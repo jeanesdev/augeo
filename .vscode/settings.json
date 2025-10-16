@@ -9,5 +9,25 @@
     "chat.tools.terminal.autoApprove": {
         ".specify/scripts/bash/": true,
         ".specify/scripts/powershell/": true
-    }
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#2e9672",
+        "activityBar.background": "#2e9672",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#d7b6e9",
+        "activityBarBadge.foreground": "#15202b",
+        "commandCenter.border": "#e7e7e799",
+        "sash.hoverBorder": "#2e9672",
+        "statusBar.background": "#226f54",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#2e9672",
+        "statusBarItem.remoteBackground": "#226f54",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "titleBar.activeBackground": "#226f54",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#226f5499",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.remoteColor": "#226f54"
 }

@@ -1,50 +1,308 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Augeo Platform Constitution
+
+## Project Identity
+
+**Name:** Augeo Fundraising Platform  
+**Vision:** World-class fundraising software that maximizes nonprofit revenue by optimizing the donor experience, driving engagement, and inspiring action  
+**Delivery Model:** SaaS (multi-tenant, cloud-hosted)  
+**Target Market:** Nonprofit organizations, professional auctioneers, event coordinators hosting galas with 50-500+ attendees
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### 1. Donor-Driven Engagement
+Primary focus is maximizing fundraising by optimizing the donor experience—reduce friction, create delight, and design every screen, workflow, and notification to drive donors towards engagement and the call-to-action. When in conflict, prioritize donor outcomes and comfort over administrative or auctioneer convenience.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### 2. Real-Time Reliability
+Bid updates, leaderboards, and notifications must propagate within 500ms. System must handle 100+ concurrent tablets per event without degradation. Lost WebSocket connections must auto-reconnect and sync state within 2 seconds.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### 3. Production-Grade Quality
+All code must be maintainable, testable, and documented as if preparing for acquisition. No shortcuts that compromise long-term scalability or security.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### 4. Solo Developer Efficiency
+Leverage AI assistance, managed cloud services, and modern tooling to move quickly while maintaining robustness. Avoid over-engineering; ship iteratively.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### 5. Data Security and Privacy
+Treat all user data as if under constant regulatory scrutiny. Encrypt everything, log everything, delete on request. Assume GDPR compliance is mandatory.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technical Architecture
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### System Design
+- **Architecture Style:** Modular monolith with microservices mindset—loosely coupled layers within monorepo, ready to split into services if needed
+- **Repository Structure:** Monorepo with clear separation: `/backend`, `/frontend`, `/shared`, `/infrastructure`, `/docs`
+- **API Design:** REST-first, API-first. Consider GraphQL in Phase 2 if client customization needs emerge
+- **Real-Time Communication:** Socket.IO for bidirectional WebSocket with auto-reconnect, rooms per event, fallback to long-polling
+- **Multi-Tenancy:** Shared PostgreSQL schema with `tenant_id` (event organization) isolation. Middleware enforces tenant boundaries on every query
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### Technology Stack
+**Backend:**
+- **Framework:** FastAPI (Python 3.11+) with async/await throughout
+- **API Documentation:** Auto-generated OpenAPI/Swagger, maintained alongside code
+- **Type Safety:** Python type hints on all functions, mypy strict mode enforced in CI
+- **Data Validation:** Pydantic models for all API requests/responses, database schemas
+- **ORM:** SQLAlchemy 2.0+ with Alembic for schema migrations
+- **Database:** Azure Database for PostgreSQL (managed, auto-backup, point-in-time recovery in Phase 2)
+- **Caching:** Azure Cache for Redis for session state, bid state, leaderboard snapshots
+- **File Storage:** Azure Blob Storage for event images, sponsor content, documents
+- **Task Queue:** Celery with Redis broker for background jobs (email, reports, data exports—Phase 2)
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Frontend:**
+- **PWA Framework:** React with Vite, TypeScript strict mode
+- **State Management:** Zustand or Redux Toolkit for global state, React Query for server state
+- **UI Components:** Headless UI library (Radix, shadcn/ui) for accessibility and consistency
+- **Real-Time Client:** socket.io-client for WebSocket connections
+- **Offline Support:** Service workers for PWA caching, graceful degradation when offline
+- **Responsive Design:** Mobile-first, optimized for tablets (10"-13"), supports BYOD phones
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+**Infrastructure:**
+- **Cloud Provider:** Microsoft Azure (prefer portable patterns, but use managed services for speed)
+- **Compute:** Azure App Service (containers) or Azure Container Apps for backend/frontend
+- **CDN:** Azure CDN for PWA static assets, global edge caching
+- **Secrets Management:** Azure Key Vault for API keys, DB credentials, encryption keys
+- **Monitoring:** Grafana + Loki (logs) + Prometheus (metrics) + Azure Monitor integration
+- **CI/CD:** GitHub Actions for automated testing, building, deployment
+- **Infrastructure as Code:** Terraform or Azure Bicep for reproducible environments
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+**Third-Party Services:**
+- **Payments:** Stripe (PCI-compliant, tokenized payments, no card storage)
+- **SMS:** Twilio for notifications (outbid alerts, event reminders)
+- **Email:** SendGrid or Azure Communication Services for transactional emails
+- **Alerting:** PagerDuty + Prometheus Alertmanager for incident response
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+## Code Quality Standards
+
+### Type Safety & Validation
+- Python: Type hints mandatory, mypy strict mode in CI, no `Any` types without justification
+- TypeScript: Strict mode, no implicit `any`, exhaustive switch case checking
+- Pydantic models for all data crossing boundaries (API, DB, external services)
+
+### Testing Requirements
+- **Unit Tests:** 80%+ code coverage, fast (<5 sec suite), mock external dependencies
+- **Integration Tests:** Critical paths (auth, bid placement, payment flow, WebSocket events)
+- **E2E Tests:** 10-15 user flows with Playwright (login → bid → win → checkout)
+- **Load Tests:** Simulate 100+ concurrent bidders per event before production (Phase 2)
+- **Test Data:** Factories (factory_boy) for consistent test fixtures, never use production data
+
+### Code Style & Linting
+- **Python:** Black (formatting), Ruff (linting), isort (import sorting)
+- **TypeScript:** ESLint + Prettier, import order enforcement
+- **Pre-commit Hooks:** Auto-format, type check, lint (no full test suite—too slow)
+- **Commit Messages:** Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
+
+### Documentation
+- **Code:** Docstrings on all public functions (Google style), inline comments for complex logic
+- **API:** OpenAPI spec auto-generated, keep examples updated
+- **Architecture:** Decision records (ADRs) for major choices in `/docs/architecture/`
+- **Runbooks:** Deployment, rollback, incident response procedures in `/docs/operations/`
+- **README:** Setup instructions, local dev environment, testing, contribution guidelines
+
+## Security & Compliance
+
+### Authentication & Authorization
+- **Method:** OAuth2 with JWT access tokens (15 min expiry) + refresh tokens (7 days)
+- **Authorization:** RBAC with roles: Superadmin, Event Coordinator, Auctioneer, Staff, Bidder
+- **Role Enforcement:** FastAPI dependency injection checks role before endpoint execution
+- **Session Management:** Redis for refresh token storage, immediate revocation on logout/compromise
+
+### Data Protection
+- **Encryption in Transit:** TLS 1.3 everywhere, HTTPS only, HSTS headers
+- **Encryption at Rest:** Azure-managed encryption for Postgres, Redis, Blob Storage
+- **PII Handling:** Never log passwords, emails, phone numbers in plain text
+- **Payment Security:** Stripe handles all card data, only store transaction IDs and tokens
+- **Secrets:** Never commit secrets, use Azure Key Vault, rotate keys quarterly
+
+### Privacy & Compliance
+- **GDPR:** Right to access (data export API), right to deletion (soft delete with anonymization after 30 days)
+- **Data Retention:** Active data indefinite, deleted user data 30 days, transaction records 7 years for audit
+- **Consent Tracking:** Log timestamp of user agreement to terms/privacy policy
+- **Audit Logging:** Immutable `audit_log` table for all sensitive actions (bids, payments, admin changes)
+
+### DDoS & Rate Limiting
+- **Application Layer:** FastAPI middleware with rate limits (100 req/min per user, 1000 req/min per event)
+- **Infrastructure Layer:** Azure Front Door WAF and DDoS protection (Phase 2)
+- **WebSocket Limits:** Max 5 connections per user, disconnect idle connections after 1 hour
+
+## Observability & Reliability
+
+### Logging
+- **Format:** Structured JSON with `timestamp`, `level`, `service`, `user_id`, `event_id`, `trace_id`, `message`, `metadata`
+- **Levels:** DEBUG (dev only), INFO (normal operations), WARNING (recoverable errors), ERROR (failures), CRITICAL (system down)
+- **Storage:** Loki for searchable logs, 30-day retention, compressed backups for audit
+- **Sensitive Data:** Never log passwords, tokens, full card numbers
+
+### Metrics (Prometheus)
+- **RED Method:** Rate (requests/sec), Errors (5xx count), Duration (p50, p95, p99 latency)
+- **Business Metrics:** Active events, bidders per event, bids/min, revenue/hour, failed payments
+- **Infrastructure:** CPU/memory per service, DB connection pool, Redis cache hit rate, disk I/O
+- **Custom Metrics:** Bid processing latency, WebSocket connection count, leaderboard update time
+
+### Alerting
+- **Critical (PagerDuty):** API error rate >5%, database down, payment processing failed
+- **Warning (Slack):** API latency p95 >500ms, disk >80% full, WebSocket disconnect rate >10%
+- **SLO Targets:** 99.9% uptime, API p95 <300ms, bid processing <500ms, WebSocket reconnect <2sec
+
+### Backups & Disaster Recovery
+- **Frequency:** Daily automated backups at 2 AM UTC
+- **Retention:** 30 days rolling, weekly snapshots for 1 year
+- **Testing:** Quarterly restore drills to staging environment
+- **RTO/RPO:** Restore within 4 hours, max 24-hour data loss (daily backups)
+- **PITR:** Add point-in-time recovery in Phase 2 for high-value events
+
+## Development Workflow
+
+### Branching Strategy (Trunk-Based)
+- **Main Branch:** `main` = production-ready, always deployable
+- **Staging Branch:** `staging` = pre-production testing
+- **Feature Branches:** Short-lived (1-3 days), merge to `main` after CI passes
+- **Hotfixes:** Branch from `main`, fix, test, merge, deploy immediately
+- **No Long-Running Branches:** Merge daily, use feature flags to hide incomplete work
+
+### CI/CD Pipeline (GitHub Actions)
+1. **On Pull Request:** Lint, type check, unit tests, integration tests (run in <5 min)
+2. **On Merge to `main`:** Full test suite + E2E tests, build Docker images, deploy to staging
+3. **Staging Validation:** Smoke tests, manual QA, load test (Phase 2)
+4. **Production Deploy:** Manual approval gate, blue-green deployment, rollback on error
+5. **Post-Deploy:** Health checks, alert if error rate spikes, automated rollback after 3 consecutive failures
+
+### AI-Assisted Development Boundaries
+- **AI Can Generate Freely:** Boilerplate (CRUD endpoints, Pydantic models), tests, docs, config files
+- **AI Needs Review:** Business logic (auction rules, bid validation), real-time coordination, payment flows
+- **Human Only:** Security-critical code (auth, encryption), production incident response, architectural decisions
+- **AI Tools:** GitHub Copilot (inline), Claude (code review), SpecKit (spec-driven generation)
+
+### Feature Flags
+- **Implementation:** Config-based flags in DB table (`feature_name`, `enabled`, `rollout_percentage`)
+- **Use Cases:** Gradual rollout (10% → 50% → 100%), instant rollback, A/B testing (Phase 2)
+- **Management:** Admin UI to toggle flags, API to check flag status per user/event
+
+### Cost Controls
+- **Budget Alerts:** Azure Cost Management alerts at 50%, 80%, 100% of monthly budget
+- **Auto-Scaling Limits:** Max 10 app instances, max 5 DB replicas, prevent runaway costs
+- **Resource Tagging:** Tag all Azure resources with `environment` (dev/staging/prod), `project`, `owner` for cost tracking
+- **Monthly Review:** Analyze spend, optimize underutilized resources, forecast growth
+
+## Scalability & Performance
+
+### Capacity Targets
+- **MVP:** 100 concurrent bidders per event, 10 simultaneous events, 1000 registered users
+- **Phase 2:** 500 bidders per event, 50 simultaneous events, 10,000 users
+- **Phase 3:** 1000+ bidders, 100+ events, 100,000+ users (consider microservices split)
+
+### Performance SLOs
+- **API Latency:** p95 <300ms, p99 <500ms
+- **Bid Processing:** Place bid → leaderboard update <500ms end-to-end
+- **WebSocket Latency:** Server event → client render <200ms
+- **Database Queries:** All queries <50ms, index all foreign keys and filters
+- **Page Load:** PWA first contentful paint <1.5sec on 4G connection
+
+### Caching Strategy
+- **Redis Use Cases:** User sessions, JWT blacklist, bid leaderboard snapshots, event metadata
+- **TTL:** Sessions 7 days, leaderboard 5 sec (refresh on bid), event metadata 1 hour
+- **Cache Invalidation:** On bid placement, event update, user logout—invalidate related keys
+- **CDN Caching:** Static assets (JS/CSS/images) cached 1 year with versioned filenames
+
+### Database Optimization
+- **Indexing:** All foreign keys, query filters (`event_id`, `user_id`, `created_at`), unique constraints
+- **Query Optimization:** Use EXPLAIN ANALYZE, no N+1 queries, eager load relationships
+- **Connection Pooling:** SQLAlchemy pool size 20, max overflow 10, recycle connections every 1 hour
+- **Read Replicas:** Add in Phase 2 for analytics/reporting queries (isolate from transactional load)
+
+## Competitive Differentiation
+
+### Must-Have Features (Competitive Parity)
+- Mobile bidding with real-time updates
+- Live and silent auction management
+- Event registration and ticketing
+- Payment processing integration
+- SMS notifications for outbid alerts
+- Basic analytics and reporting
+
+### Differentiators (Donor Engagement Focus)
+- **Digital Bid Paddles:** Hardware-agnostic PWA with engaging win/lose animations, sponsor content display
+- **Donor Experience:** Delightful interactions, frictionless flows, instant leaderboard feedback, adaptive notifications
+- **Auctioneer Control Panel:** Real-time override, pause/resume auction, trigger paddle raises, instant leaderboard on command
+- **Simplified Workflow:** Reduce setup complexity vs OneCause, match Event.Gives' PWA ease-of-use
+- **Transparent Pricing:** Clear per-event or subscription pricing (not opaque like OneCause/GiveSmart)
+- **Customization:** Per-event branding, sponsor content scheduling, QR code generation
+
+### Phase 2+ Advantages
+- **AI Insights:** Predictive bid recommendations, donor behavior analysis (inspired by OneCause)
+- **Multi-Language Support:** Spanish, French for broader nonprofit reach
+- **Advanced Analytics:** Donor journey mapping, cohort analysis, lifetime value tracking
+
+## Dependencies & Licensing
+
+### Dependency Requirements
+- **Permissive Licenses Only:** MIT, Apache 2.0, BSD (check with `pip-licenses`)
+- **Avoid:** GPL, AGPL (copyleft restrictions incompatible with proprietary SaaS)
+- **Audit:** Quarterly dependency license review, update vulnerable packages within 7 days
+
+### Your Code License
+- **Proprietary:** No open-source license, all rights reserved
+- **Copyright Notice:** Include in every source file header
+
+## Phase Roadmap Alignment
+
+### Phase 1 (MVP—Target 3-6 Months)
+- User registration, authentication, role-based access
+- Event creation with custom branding (logo, URL, colors)
+- Ticket sales with payment processing
+- Live and silent auction item management
+- Digital bid paddle PWA (login, bid placement, leaderboard, win/lose animations)
+- Real-time WebSocket updates (bids, leaderboard, notifications)
+- SMS notifications (outbid alerts, event reminders)
+- Check-in/check-out with QR codes
+- Paddle raise (fund-a-need) support
+- Basic analytics dashboard (totals, active bidders)
+- Data export (CSV) for nonprofit CRMs
+- Admin panel for staff and auctioneer controls
+
+### Phase 2 (Scale & Enhance)
+- Scoreboards and slideshows for live displays
+- Automated event messaging (dinner served, auction closing)
+- Video integration for virtual/hybrid events
+- Advanced reporting (donor insights, item performance)
+- Email campaign tools
+- Enhanced analytics (predictive, cohort analysis)
+- Load testing for 500+ bidders per event
+- Point-in-time recovery for database
+
+### Phase 3 (Enterprise)
+- Multi-region deployment for global nonprofits
+- White-label options for large organizations
+- AI-powered bid recommendations
+- Advanced integrations (Salesforce, HubSpot, Blackbaud)
+- Microservices architecture if scaling demands it
+
+## Immutable Constraints
+
+1. **Never compromise data security** for feature velocity
+2. **Never deploy without passing CI tests** (unit + integration minimum)
+3. **Never store plaintext passwords or full credit card numbers**
+4. **Never hard-code secrets** (use Azure Key Vault or environment variables)
+5. **Never skip database migrations** (always use Alembic, never manual schema changes)
+6. **Never break API backward compatibility** without versioning (`/api/v1`, `/api/v2`)
+7. **Always require code review** (AI-assisted or self-review with 24-hour cooling period)
+8. **Always log security-relevant events** (login, failed auth, bid placement, payment)
+9. **Always use HTTPS/TLS** (no exceptions, even in dev—use self-signed certs if needed)
+10. **Always design for rollback** (feature flags, blue-green deployment, database migration revert scripts)
+
+## Success Criteria
+
+**Technical Excellence:**
+- Zero security incidents in first year
+- 99.9%+ uptime after first 3 months
+- Sub-300ms API latency p95
+- Pass SOC 2 Type II audit readiness assessment (Phase 2)
+
+**Business Goals:**
+- MVP deployed to production within 6 months
+- 5 beta customers conducting live events by month 9
+- Positive customer NPS >50 within first year
+- Acquisition-ready codebase (documented, tested, scalable)
+
+**Developer Experience:**
+- New feature from spec → production in <2 weeks
+- CI/CD pipeline runs <10 minutes
+- Incident response time <30 minutes (detection → mitigation)
+
+**Version**: Version: 1.0.0 | **Ratified**: 2025-10-16 | **Last Amended**: NA
