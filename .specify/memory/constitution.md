@@ -31,7 +31,7 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 - **Repository Structure:** Monorepo with clear separation: `/backend`, `/frontend`, `/shared`, `/infrastructure`, `/docs`
 - **API Design:** REST-first, API-first. Consider GraphQL in Phase 2 if client customization needs emerge
 - **Real-Time Communication:** Socket.IO for bidirectional WebSocket with auto-reconnect, rooms per event, fallback to long-polling
-- **Multi-Tenancy:** Shared PostgreSQL schema with `tenant_id` (event organization) isolation. Middleware enforces tenant boundaries on every query
+- **Multi-Tenancy:** Shared PostgreSQL schema with `tenant_id` (event organization) isolation. Row-Level Security with `tenant_id` filtering, validated at ORM level with SQLAlchemy middleware
 
 ### Technology Stack
 **Backend:**
@@ -48,7 +48,7 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 
 **Frontend:**
 - **PWA Framework:** React with Vite, TypeScript strict mode
-- **State Management:** Zustand or Redux Toolkit for global state, React Query for server state
+- **State Management:** Zustand for global state, React Query for server state
 - **UI Components:** Headless UI library (Radix, shadcn/ui) for accessibility and consistency
 - **Real-Time Client:** socket.io-client for WebSocket connections
 - **Offline Support:** Service workers for PWA caching, graceful degradation when offline
@@ -82,13 +82,53 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 - **Integration Tests:** Critical paths (auth, bid placement, payment flow, WebSocket events)
 - **E2E Tests:** 10-15 user flows with Playwright (login → bid → win → checkout)
 - **Load Tests:** Simulate 100+ concurrent bidders per event before production (Phase 2)
+- **Auction Simulation Tests:** Multi-user bidding scenarios with race conditions
+- **WebSocket Load Tests:** Connection drops and reconnections during active bidding
 - **Test Data:** Factories (factory_boy) for consistent test fixtures, never use production data
 
 ### Code Style & Linting
 - **Python:** Black (formatting), Ruff (linting), isort (import sorting)
 - **TypeScript:** ESLint + Prettier, import order enforcement
 - **Pre-commit Hooks:** Auto-format, type check, lint (no full test suite—too slow)
-- **Commit Messages:** Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
+
+### Commit Message Standards
+Follow [Conventional Commits](https://www.conventionalcommits.org/) specification for all commits:
+
+**Format:** `<type>[optional scope]: <description>`
+
+**Types:**
+- `feat:` New feature for the user (not internal tooling)
+- `fix:` Bug fix for the user (not internal tooling)
+- `docs:` Documentation changes only
+- `style:` Formatting, missing semi colons, etc (no code change)
+- `refactor:` Code change that neither fixes a bug nor adds a feature
+- `test:` Adding missing tests or correcting existing tests
+- `chore:` Updating build tasks, package manager configs, etc
+- `perf:` Performance improvements
+- `ci:` Changes to CI configuration files and scripts
+- `build:` Changes that affect the build system or external dependencies
+- `revert:` Reverts a previous commit
+
+**Scope Examples:** `auth`, `auction`, `payment`, `websocket`, `api`, `ui`, `db`
+
+**Best Practices:**
+- Use imperative mood: "add feature" not "added feature"
+- First line ≤50 characters, body ≤72 characters per line
+- Capitalize first letter of description
+- No period at end of description
+- Use body to explain what and why, not how
+- Reference issues/PRs: "Closes #123"
+
+**Examples:**
+```
+feat(auction): add real-time bid validation
+fix(payment): resolve Stripe webhook timeout issue
+docs(api): update OpenAPI spec for bid endpoints
+refactor(auth): extract JWT validation to middleware
+test(websocket): add connection drop recovery tests
+```
+
+**Breaking Changes:** Use `!` after type/scope: `feat(api)!: change bid response format`
 
 ### Documentation
 - **Code:** Docstrings on all public functions (Google style), inline comments for complex logic
@@ -308,4 +348,4 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 - CI/CD pipeline runs <10 minutes
 - Incident response time <30 minutes (detection → mitigation)
 
-**Version**: Version: 1.0.1 | **Ratified**: 2025-10-16 | **Last Amended**: 2025-10-16
+**Version**: Version: 1.0.2 | **Ratified**: 2025-10-16 | **Last Amended**: 2025-10-16
