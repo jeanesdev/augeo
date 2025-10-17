@@ -36,6 +36,7 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 ### Technology Stack
 **Backend:**
 - **Framework:** FastAPI (Python 3.11+) with async/await throughout
+- **Dependency Management:** Poetry for Python package and virtual environment management
 - **API Documentation:** Auto-generated OpenAPI/Swagger, maintained alongside code
 - **Type Safety:** Python type hints on all functions, mypy strict mode enforced in CI
 - **Data Validation:** Pydantic models for all API requests/responses, database schemas
@@ -55,6 +56,7 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 
 **Infrastructure:**
 - **Cloud Provider:** Microsoft Azure (prefer portable patterns, but use managed services for speed)
+- **Containerization:** Docker for consistent development and deployment environments
 - **Compute:** Azure App Service (containers) or Azure Container Apps for backend/frontend
 - **CDN:** Azure CDN for PWA static assets, global edge caching
 - **Secrets Management:** Azure Key Vault for API keys, DB credentials, encryption keys
@@ -125,6 +127,7 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 
 ### Logging
 - **Format:** Structured JSON with `timestamp`, `level`, `service`, `user_id`, `event_id`, `trace_id`, `message`, `metadata`
+- **Development:** IceCream (ic) for enhanced debugging and development logging with automatic variable inspection
 - **Levels:** DEBUG (dev only), INFO (normal operations), WARNING (recoverable errors), ERROR (failures), CRITICAL (system down)
 - **Storage:** Loki for searchable logs, 30-day retention, compressed backups for audit
 - **Sensitive Data:** Never log passwords, tokens, full card numbers
@@ -160,7 +163,7 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 1. **On Pull Request:** Lint, type check, unit tests, integration tests (run in <5 min)
 2. **On Merge to `main`:** Full test suite + E2E tests, build Docker images, deploy to staging
 3. **Staging Validation:** Smoke tests, manual QA, load test (Phase 2)
-4. **Production Deploy:** Manual approval gate, blue-green deployment, rollback on error
+4. **Production Deploy:** Manual approval gate, blue-green deployment with Docker containers, rollback on error
 5. **Post-Deploy:** Health checks, alert if error rate spikes, automated rollback after 3 consecutive failures
 
 ### AI-Assisted Development Boundaries
@@ -305,4 +308,4 @@ Treat all user data as if under constant regulatory scrutiny. Encrypt everything
 - CI/CD pipeline runs <10 minutes
 - Incident response time <30 minutes (detection → mitigation)
 
-**Version**: Version: 1.0.0 | **Ratified**: 2025-10-16 | **Last Amended**: NA
+**Version**: Version: 1.0.1 | **Ratified**: 2025-10-16 | **Last Amended**: 2025-10-16
