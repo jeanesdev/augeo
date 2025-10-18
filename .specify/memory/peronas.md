@@ -108,6 +108,7 @@
 - Check in 100+ guests quickly
 - Assign paddle numbers
 - Troubleshoot donor login issues
+- Last minute registration of new guests
 
 **Pain Points:**
 - Don't have time to learn complex software
@@ -120,3 +121,4 @@
 2. Search guest by name
 3. Assign paddle number
 4. Help guest log into their device
+5. If guest is not registered already, collect information and register them then go back to step 3.
