@@ -24,6 +24,9 @@ Leverage AI assistance, managed cloud services, and modern tooling to move quick
 ### 5. Data Security and Privacy
 Treat all user data as if under constant regulatory scrutiny. Encrypt everything, log everything, delete on request. Assume GDPR compliance is mandatory.
 
+### 6. Minimalist Development (YAGNI Principle)
+Build exactly what is specified, nothing more. Resist the temptation to add "helpful" features, anticipatory optimizations, or "nice-to-have" functionality unless explicitly requested. Every function, parameter, and configuration option must solve a stated requirement. When in doubt, ship the minimal viable solution and iterate based on actual user feedback.
+
 ## Technical Architecture
 
 ### System Design
@@ -212,6 +215,13 @@ test(websocket): add connection drop recovery tests
 - **Human Only:** Security-critical code (auth, encryption), production incident response, architectural decisions
 - **AI Tools:** GitHub Copilot (inline), Claude (code review), SpecKit (spec-driven generation)
 
+### AI Development Constraints (YAGNI Enforcement)
+- **Implement Only Specified Requirements:** AI agents must not add features, parameters, or options beyond what's explicitly requested in the specification or user story
+- **No Anticipatory Features:** Avoid building extensibility hooks, configuration options, or "future-proofing" unless the immediate use case demands it
+- **No Helper Functions Without Purpose:** Every utility function must solve a current, specific problem. No "it might be useful later" functions
+- **Question Scope Creep:** If an AI agent suggests additional functionality during implementation, explicitly ask "Is this required for the current specification?" If no, omit it
+- **Default to Simple:** Choose the most straightforward implementation that meets requirements. Optimize and add complexity only when performance or scale demands it
+
 ### Feature Flags
 - **Implementation:** Config-based flags in DB table (`feature_name`, `enabled`, `rollout_percentage`)
 - **Use Cases:** Gradual rollout (10% → 50% → 100%), instant rollback, A/B testing (Phase 2)
@@ -328,6 +338,7 @@ test(websocket): add connection drop recovery tests
 8. **Always log security-relevant events** (login, failed auth, bid placement, payment)
 9. **Always use HTTPS/TLS** (no exceptions, even in dev—use self-signed certs if needed)
 10. **Always design for rollback** (feature flags, blue-green deployment, database migration revert scripts)
+11. **Never implement unspecified features** (YAGNI principle—build only what's explicitly requested, resist scope creep)
 
 ## Success Criteria
 
