@@ -1,0 +1,1028 @@
+openapi: 3.0.3
+info:
+  title: NPO Management API
+  description: API endpoints for Non-Profit Organization creation, management, and approval workflows
+  version: 1.0.0
+  contact:
+    name: Augeo Platform
+    email: support@augeo.app
+
+servers:
+  - url: https://api.augeo.app/v1
+    description: Production server
+  - url: https://api-staging.augeo.app/v1
+    description: Staging server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # NPO Management Endpoints
+  /npos:
+    get:
+      summary: List NPOs
+      description: Get list of NPOs accessible to the current user
+      tags: [NPO Management]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/NpoStatus'
+          description: Filter by NPO status
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of NPOs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  npos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NpoSummary'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+    post:
+      summary: Create NPO
+      description: Create a new NPO application
+      tags: [NPO Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNpoRequest'
+      responses:
+        '201':
+          description: NPO created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoDetail'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: NPO name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /npos/{npoId}:
+    get:
+      summary: Get NPO details
+      description: Retrieve detailed information about a specific NPO
+      tags: [NPO Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: NPO details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoDetail'
+        '403':
+          description: Access denied
+        '404':
+          description: NPO not found
+
+    put:
+      summary: Update NPO
+      description: Update NPO information (draft status only)
+      tags: [NPO Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNpoRequest'
+      responses:
+        '200':
+          description: NPO updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoDetail'
+        '400':
+          description: Invalid input or NPO not editable
+        '403':
+          description: Access denied
+        '404':
+          description: NPO not found
+
+  /npos/{npoId}/submit:
+    post:
+      summary: Submit NPO for approval
+      description: Submit NPO application for SuperAdmin review
+      tags: [NPO Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Application submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoApplicationDetail'
+        '400':
+          description: NPO not ready for submission
+        '403':
+          description: Access denied
+        '404':
+          description: NPO not found
+
+  # Branding Management
+  /npos/{npoId}/branding:
+    get:
+      summary: Get NPO branding
+      description: Retrieve branding configuration for an NPO
+      tags: [Branding]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Branding configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoBranding'
+        '404':
+          description: Branding not found
+
+    put:
+      summary: Update NPO branding
+      description: Update branding configuration for an NPO
+      tags: [Branding]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBrandingRequest'
+      responses:
+        '200':
+          description: Branding updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoBranding'
+        '400':
+          description: Invalid branding data
+        '403':
+          description: Access denied
+
+  /npos/{npoId}/logo/upload-url:
+    post:
+      summary: Get logo upload URL
+      description: Generate signed URL for logo upload to Azure Blob Storage
+      tags: [Branding]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  description: Original filename
+                fileType:
+                  type: string
+                  enum: [image/png, image/jpeg, image/svg+xml]
+                fileSize:
+                  type: integer
+                  maximum: 5242880  # 5MB
+              required: [fileName, fileType, fileSize]
+      responses:
+        '200':
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadUrl:
+                    type: string
+                    format: uri
+                    description: Signed URL for direct upload
+                  logoUrl:
+                    type: string
+                    format: uri
+                    description: Final URL for the uploaded logo
+                  expiresAt:
+                    type: string
+                    format: date-time
+
+  # Staff Management
+  /npos/{npoId}/members:
+    get:
+      summary: List NPO members
+      description: Get list of staff and administrators for an NPO
+      tags: [Staff Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role
+          in: query
+          schema:
+            $ref: '#/components/schemas/MemberRole'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/MemberStatus'
+      responses:
+        '200':
+          description: List of NPO members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NpoMember'
+
+    post:
+      summary: Invite member
+      description: Create invitation for new NPO member
+      tags: [Staff Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationRequest'
+      responses:
+        '201':
+          description: Invitation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+        '400':
+          description: Invalid invitation data
+        '403':
+          description: Insufficient permissions to invite this role
+
+  /npos/{npoId}/members/{memberId}:
+    put:
+      summary: Update member role/status
+      description: Update an existing NPO member's role or status
+      tags: [Staff Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRequest'
+      responses:
+        '200':
+          description: Member updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoMember'
+        '403':
+          description: Insufficient permissions
+
+    delete:
+      summary: Remove member
+      description: Remove a member from the NPO
+      tags: [Staff Management]
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Member removed successfully
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Member not found
+
+  # Invitation Management
+  /invitations/{invitationId}/accept:
+    post:
+      summary: Accept invitation
+      description: Accept an NPO membership invitation
+      tags: [Invitations]
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: Invitation token from email
+              required: [token]
+      responses:
+        '200':
+          description: Invitation accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoMember'
+        '400':
+          description: Invalid or expired token
+        '404':
+          description: Invitation not found
+
+  # SuperAdmin Endpoints
+  /admin/npos/applications:
+    get:
+      summary: List NPO applications (SuperAdmin)
+      description: Get list of NPO applications for review
+      tags: [SuperAdmin]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ApplicationStatus'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NpoApplicationSummary'
+                  total:
+                    type: integer
+        '403':
+          description: SuperAdmin access required
+
+  /admin/npos/{npoId}/applications/{applicationId}/review:
+    post:
+      summary: Review NPO application (SuperAdmin)
+      description: Approve or reject an NPO application
+      tags: [SuperAdmin]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: npoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewApplicationRequest'
+      responses:
+        '200':
+          description: Application reviewed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NpoApplicationDetail'
+        '400':
+          description: Invalid review data
+        '403':
+          description: SuperAdmin access required
+
+  # Legal Agreements
+  /legal/documents:
+    get:
+      summary: Get active legal documents
+      description: Retrieve current versions of legal agreements
+      tags: [Legal]
+      responses:
+        '200':
+          description: Active legal documents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LegalDocument'
+
+  /legal/documents/{documentId}/accept:
+    post:
+      summary: Accept legal agreement
+      description: Record user acceptance of a legal document
+      tags: [Legal]
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                npoId:
+                  type: string
+                  format: uuid
+                  description: NPO context (optional)
+              required: []
+      responses:
+        '201':
+          description: Agreement accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalAcceptance'
+        '400':
+          description: Already accepted or invalid document
+        '404':
+          description: Document not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # NPO Schemas
+    NpoSummary:
+      type: object
+      properties:
+        npoId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/NpoStatus'
+        description:
+          type: string
+        logoUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    NpoDetail:
+      allOf:
+        - $ref: '#/components/schemas/NpoSummary'
+        - type: object
+          properties:
+            missionStatement:
+              type: string
+            taxId:
+              type: string
+            websiteUrl:
+              type: string
+              format: uri
+            phone:
+              type: string
+            email:
+              type: string
+              format: email
+            address:
+              $ref: '#/components/schemas/Address'
+            registrationNumber:
+              type: string
+            application:
+              $ref: '#/components/schemas/NpoApplicationSummary'
+            branding:
+              $ref: '#/components/schemas/NpoBranding'
+            memberRole:
+              $ref: '#/components/schemas/MemberRole'
+
+    CreateNpoRequest:
+      type: object
+      required: [name, email, missionStatement]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        missionStatement:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        taxId:
+          type: string
+          pattern: '^[0-9]{2}-[0-9]{7}$'  # US EIN format
+        websiteUrl:
+          type: string
+          format: uri
+        phone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'  # International phone format
+        email:
+          type: string
+          format: email
+        address:
+          $ref: '#/components/schemas/Address'
+        registrationNumber:
+          type: string
+
+    UpdateNpoRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        missionStatement:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        taxId:
+          type: string
+        websiteUrl:
+          type: string
+          format: uri
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          $ref: '#/components/schemas/Address'
+        registrationNumber:
+          type: string
+
+    Address:
+      type: object
+      required: [street, city, state, zipCode, country]
+      properties:
+        street:
+          type: string
+        street2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        country:
+          type: string
+          pattern: '^[A-Z]{2}$'  # ISO 3166-1 alpha-2
+
+    NpoStatus:
+      type: string
+      enum: [DRAFT, PENDING_APPROVAL, APPROVED, SUSPENDED, REJECTED]
+
+    # Application Schemas
+    NpoApplicationSummary:
+      type: object
+      properties:
+        applicationId:
+          type: string
+          format: uuid
+        npoId:
+          type: string
+          format: uuid
+        npoName:
+          type: string
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        submittedAt:
+          type: string
+          format: date-time
+        reviewedAt:
+          type: string
+          format: date-time
+        reviewedBy:
+          type: string
+          description: SuperAdmin username
+
+    NpoApplicationDetail:
+      allOf:
+        - $ref: '#/components/schemas/NpoApplicationSummary'
+        - type: object
+          properties:
+            npo:
+              $ref: '#/components/schemas/NpoDetail'
+            reviewNotes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ReviewNote'
+
+    ReviewApplicationRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [APPROVE, REJECT, REQUEST_CHANGES]
+        notes:
+          type: string
+          maxLength: 2000
+        requiredChanges:
+          type: array
+          items:
+            type: string
+
+    ReviewNote:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        reviewerName:
+          type: string
+        action:
+          type: string
+        notes:
+          type: string
+
+    ApplicationStatus:
+      type: string
+      enum: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED]
+
+    # Branding Schemas
+    NpoBranding:
+      type: object
+      properties:
+        brandingId:
+          type: string
+          format: uuid
+        npoId:
+          type: string
+          format: uuid
+        primaryColor:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        secondaryColor:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        logoUrl:
+          type: string
+          format: uri
+        socialMediaLinks:
+          $ref: '#/components/schemas/SocialMediaLinks'
+        customCssProperties:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdateBrandingRequest:
+      type: object
+      properties:
+        primaryColor:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        secondaryColor:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        socialMediaLinks:
+          $ref: '#/components/schemas/SocialMediaLinks'
+        customCssProperties:
+          type: object
+          additionalProperties:
+            type: string
+
+    SocialMediaLinks:
+      type: object
+      properties:
+        facebook:
+          type: string
+          format: uri
+        twitter:
+          type: string
+          pattern: '^@[A-Za-z0-9_]{1,15}$'
+        instagram:
+          type: string
+          pattern: '^@[A-Za-z0-9_]{1,30}$'
+        linkedin:
+          type: string
+          format: uri
+        youtube:
+          type: string
+          format: uri
+        website:
+          type: string
+          format: uri
+        custom:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              url:
+                type: string
+                format: uri
+
+    # Member Management Schemas
+    NpoMember:
+      type: object
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        npoId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        role:
+          $ref: '#/components/schemas/MemberRole'
+        status:
+          $ref: '#/components/schemas/MemberStatus'
+        joinedAt:
+          type: string
+          format: date-time
+        invitedBy:
+          $ref: '#/components/schemas/User'
+
+    CreateInvitationRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/MemberRole'
+        customMessage:
+          type: string
+          maxLength: 500
+
+    UpdateMemberRequest:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/MemberRole'
+        status:
+          $ref: '#/components/schemas/MemberStatus'
+
+    Invitation:
+      type: object
+      properties:
+        invitationId:
+          type: string
+          format: uuid
+        npoId:
+          type: string
+          format: uuid
+        npoName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/MemberRole'
+        status:
+          $ref: '#/components/schemas/InvitationStatus'
+        expiresAt:
+          type: string
+          format: date-time
+        invitedBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+
+    MemberRole:
+      type: string
+      enum: [ADMIN, CO_ADMIN, STAFF]
+
+    MemberStatus:
+      type: string
+      enum: [ACTIVE, INVITED, SUSPENDED, REMOVED]
+
+    InvitationStatus:
+      type: string
+      enum: [PENDING, ACCEPTED, EXPIRED, REVOKED]
+
+    # Legal Schemas
+    LegalDocument:
+      type: object
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        version:
+          type: string
+        content:
+          type: string
+        effectiveDate:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+
+    LegalAcceptance:
+      type: object
+      properties:
+        acceptanceId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        npoId:
+          type: string
+          format: uuid
+        document:
+          $ref: '#/components/schemas/LegalDocument'
+        acceptedAt:
+          type: string
+          format: date-time
+        ipAddress:
+          type: string
+
+    DocumentType:
+      type: string
+      enum: [EULA, TERMS_OF_SERVICE, PRIVACY_POLICY, DPA]
+
+    # User Schema
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        fullName:
+          type: string
+
+    # Error Response
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+
+tags:
+  - name: NPO Management
+    description: Core NPO creation and management operations
+  - name: Branding
+    description: NPO branding and visual identity management
+  - name: Staff Management
+    description: NPO staff and administrator management
+  - name: Invitations
+    description: Staff invitation and acceptance workflows
+  - name: SuperAdmin
+    description: Administrative operations for platform management
+  - name: Legal
+    description: Legal agreement and compliance operations
