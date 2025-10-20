@@ -1,0 +1,895 @@
+openapi: 3.1.0
+info:
+  title: Augeo User Management API
+  description: |
+    User management endpoints for listing, creating, updating, and managing users and their roles.
+    
+    **Access Control**:
+    - Super Admin: Full access to all users across all NPOs
+    - NPO Admin: Manage users within their NPO (npo_admin, event_coordinator, staff roles)
+    - Event Coordinator: Read-only access to staff assigned to their events
+    - Staff/Donor: No access to user management
+  version: 1.0.0
+  contact:
+    name: Augeo Platform Team
+    email: support@augeo.app
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://api.staging.augeo.app/v1
+    description: Staging environment
+  - url: https://api.augeo.app/v1
+    description: Production environment
+
+tags:
+  - name: Users
+    description: User CRUD operations
+  - name: Role Management
+    description: User role assignment and updates
+  - name: Event Staff
+    description: Staff assignment to events
+
+paths:
+  /users:
+    get:
+      summary: List users
+      description: |
+        Retrieve paginated list of users based on role permissions.
+        
+        **Access Control**:
+        - Super Admin: See all users across all NPOs
+        - NPO Admin: See users in their NPO only
+        - Event Coordinator: See staff assigned to their events
+        - Staff/Donor: Forbidden
+        
+        **Filtering**:
+        - Filter by role, NPO, email verification status, active status
+        - Search by email or name
+      operationId: listUsers
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: role
+          in: query
+          description: Filter by role name
+          schema:
+            type: string
+            enum: [super_admin, npo_admin, event_coordinator, staff, donor]
+          example: staff
+        - name: npo_id
+          in: query
+          description: Filter by NPO (Super Admin only)
+          schema:
+            type: string
+            format: uuid
+          example: 660e8400-e29b-41d4-a716-446655440000
+        - name: email_verified
+          in: query
+          description: Filter by email verification status
+          schema:
+            type: boolean
+          example: true
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+          example: true
+        - name: search
+          in: query
+          description: Search by email, first name, or last name
+          schema:
+            type: string
+          example: john
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+              examples:
+                success:
+                  value:
+                    users:
+                      - id: 550e8400-e29b-41d4-a716-446655440000
+                        email: john.doe@example.com
+                        first_name: John
+                        last_name: Doe
+                        role: staff
+                        npo_id: 660e8400-e29b-41d4-a716-446655440000
+                        email_verified: true
+                        is_active: true
+                        created_at: "2025-10-15T10:00:00Z"
+                      - id: 550e8400-e29b-41d4-a716-446655440001
+                        email: jane.smith@example.com
+                        first_name: Jane
+                        last_name: Smith
+                        role: donor
+                        npo_id: null
+                        email_verified: true
+                        is_active: true
+                        created_at: "2025-10-18T14:30:00Z"
+                    pagination:
+                      page: 1
+                      per_page: 20
+                      total: 47
+                      pages: 3
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create user (admin operation)
+      description: |
+        Create a new user with specified role. NPO Admin and Super Admin only.
+        
+        **Access Control**:
+        - Super Admin: Create any role, assign to any NPO
+        - NPO Admin: Create npo_admin, event_coordinator, staff within their NPO only
+        
+        **Flow**:
+        1. Validates role is allowed for requesting admin
+        2. Creates user with `email_verified=false`, `is_active=false`
+        3. Sends verification email
+        4. Returns user details
+        
+        **Note**: Use /auth/register for donor self-registration
+      operationId: createUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+            examples:
+              create_staff:
+                summary: NPO Admin creates staff
+                value:
+                  email: staff@example.com
+                  password: TempPass123
+                  first_name: Alice
+                  last_name: Worker
+                  role: staff
+                  npo_id: 660e8400-e29b-41d4-a716-446655440000
+              create_npo_admin:
+                summary: Super Admin creates NPO Admin
+                value:
+                  email: admin@nonprofit.org
+                  password: TempPass456
+                  first_name: Bob
+                  last_name: Administrator
+                  role: npo_admin
+                  npo_id: 660e8400-e29b-41d4-a716-446655440000
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  value:
+                    user:
+                      id: 550e8400-e29b-41d4-a716-446655440002
+                      email: staff@example.com
+                      first_name: Alice
+                      last_name: Worker
+                      role: staff
+                      npo_id: 660e8400-e29b-41d4-a716-446655440000
+                      email_verified: false
+                      is_active: false
+                      created_at: "2025-10-20T11:00:00Z"
+                    message: Verification email sent to staff@example.com
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{user_id}:
+    get:
+      summary: Get user by ID
+      description: |
+        Retrieve detailed user information.
+        
+        **Access Control**:
+        - Super Admin: View any user
+        - NPO Admin: View users in their NPO
+        - Event Coordinator: View staff assigned to their events
+        - Staff/Donor: View own profile only
+      operationId: getUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+              examples:
+                staff_user:
+                  value:
+                    id: 550e8400-e29b-41d4-a716-446655440000
+                    email: john.doe@example.com
+                    first_name: John
+                    last_name: Doe
+                    phone: "+1-555-0123"
+                    role: staff
+                    npo_id: 660e8400-e29b-41d4-a716-446655440000
+                    email_verified: true
+                    is_active: true
+                    created_at: "2025-10-15T10:00:00Z"
+                    last_login_at: "2025-10-20T09:30:00Z"
+                    event_assignments:
+                      - event_id: 770e8400-e29b-41d4-a716-446655440000
+                        event_name: Annual Gala 2025
+                        assigned_at: "2025-10-15T11:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update user
+      description: |
+        Update user profile fields (not role or password).
+        
+        **Access Control**:
+        - Super Admin: Update any user
+        - NPO Admin: Update users in their NPO
+        - Staff/Donor: Update own profile only (first_name, last_name, phone)
+        
+        **Note**: Use /users/{user_id}/role to change roles
+      operationId: updateUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+            examples:
+              update_profile:
+                value:
+                  first_name: Jonathan
+                  phone: "+1-555-9999"
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Deactivate user
+      description: |
+        Soft delete user by setting `is_active=false`. NPO Admin and Super Admin only.
+        
+        **Flow**:
+        1. Sets `is_active=false` (user cannot login)
+        2. Revokes all active sessions
+        3. Logs "account_deactivated" audit event
+        
+        **Note**: Does not delete user record (for audit trail)
+      operationId: deactivateUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: User deactivated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: User deactivated successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{user_id}/role:
+    patch:
+      summary: Update user role
+      description: |
+        Change user's role. NPO Admin and Super Admin only.
+        
+        **Access Control**:
+        - Super Admin: Change any role to any role
+        - NPO Admin: Change roles within their NPO (npo_admin, event_coordinator, staff only)
+        
+        **Flow**:
+        1. Validates new role is allowed
+        2. Updates `role_id` and `npo_id` (if applicable)
+        3. Revokes all active sessions (force re-login with new permissions)
+        4. Logs "role_changed" audit event
+      operationId: updateUserRole
+      tags:
+        - Role Management
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+            examples:
+              promote_to_coordinator:
+                summary: Promote staff to event coordinator
+                value:
+                  role: event_coordinator
+                  npo_id: 660e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{user_id}/activate:
+    post:
+      summary: Reactivate deactivated user
+      description: |
+        Reactivate a deactivated user by setting `is_active=true`. NPO Admin and Super Admin only.
+        
+        **Note**: Email must still be verified
+      operationId: activateUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: User activated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: User activated successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /events/{event_id}/staff:
+    get:
+      summary: List staff assigned to event
+      description: |
+        Retrieve all staff members assigned to a specific event.
+        
+        **Access Control**:
+        - Super Admin: View any event's staff
+        - NPO Admin: View staff for events in their NPO
+        - Event Coordinator: View staff for their NPO's events
+        - Staff: View other staff on assigned events
+      operationId: listEventStaff
+      tags:
+        - Event Staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 770e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Staff list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventStaffListResponse'
+              examples:
+                success:
+                  value:
+                    event_id: 770e8400-e29b-41d4-a716-446655440000
+                    staff:
+                      - user_id: 550e8400-e29b-41d4-a716-446655440000
+                        email: john.doe@example.com
+                        first_name: John
+                        last_name: Doe
+                        assigned_at: "2025-10-15T11:00:00Z"
+                        assigned_by_email: admin@nonprofit.org
+                      - user_id: 550e8400-e29b-41d4-a716-446655440001
+                        email: jane.smith@example.com
+                        first_name: Jane
+                        last_name: Smith
+                        assigned_at: "2025-10-16T09:30:00Z"
+                        assigned_by_email: admin@nonprofit.org
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Assign staff to event
+      description: |
+        Assign a staff user to an event. NPO Admin only.
+        
+        **Business Rules**:
+        - User must have role='staff'
+        - Event must be in NPO Admin's organization
+        - Staff user can be assigned to multiple events
+        
+        **Note**: NPO Admins and Event Coordinators have automatic access to all events in their NPO
+      operationId: assignStaffToEvent
+      tags:
+        - Event Staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 770e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffAssignRequest'
+            examples:
+              assign:
+                value:
+                  user_id: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '201':
+          description: Staff assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: Staff assigned to event successfully
+        '400':
+          description: Invalid request (user not staff, already assigned, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not_staff:
+                  value:
+                    error:
+                      code: USER_NOT_STAFF
+                      message: User must have staff role to be assigned to events
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /events/{event_id}/staff/{user_id}:
+    delete:
+      summary: Unassign staff from event
+      description: |
+        Remove staff assignment from event. NPO Admin only.
+        
+        **Note**: Deletes event_staff record
+      operationId: unassignStaffFromEvent
+      tags:
+        - Event Staff
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 770e8400-e29b-41d4-a716-446655440000
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Staff unassigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: Staff unassigned from event successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPublic'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [super_admin, npo_admin, event_coordinator, staff, donor]
+        npo_id:
+          type: string
+          format: uuid
+          nullable: true
+        email_verified:
+          type: boolean
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    UserDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/UserPublic'
+        - type: object
+          properties:
+            last_login_at:
+              type: string
+              format: date-time
+              nullable: true
+            event_assignments:
+              type: array
+              description: Only present for staff users
+              items:
+                type: object
+                properties:
+                  event_id:
+                    type: string
+                    format: uuid
+                  event_name:
+                    type: string
+                  assigned_at:
+                    type: string
+                    format: date-time
+
+    UserCreateRequest:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+        role:
+          type: string
+          enum: [npo_admin, event_coordinator, staff]
+          description: NPO Admin can only create these roles
+        npo_id:
+          type: string
+          format: uuid
+          description: Required for npo_admin and event_coordinator roles
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+
+    UserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserPublic'
+        message:
+          type: string
+
+    RoleUpdateRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum: [super_admin, npo_admin, event_coordinator, staff, donor]
+        npo_id:
+          type: string
+          format: uuid
+          description: Required for npo_admin and event_coordinator roles
+
+    EventStaffListResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        staff:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                format: uuid
+              email:
+                type: string
+                format: email
+              first_name:
+                type: string
+              last_name:
+                type: string
+              assigned_at:
+                type: string
+                format: date-time
+              assigned_by_email:
+                type: string
+                format: email
+
+    StaffAssignRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID (must have role='staff')
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 47
+        pages:
+          type: integer
+          example: 3
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Invalid request format
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            missing_token:
+              value:
+                error:
+                  code: MISSING_TOKEN
+                  message: Authentication token required
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                error:
+                  code: FORBIDDEN
+                  message: You don't have permission to perform this action
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            not_found:
+              value:
+                error:
+                  code: NOT_FOUND
+                  message: User not found
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token from /auth/login or /auth/refresh

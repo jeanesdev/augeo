@@ -1,0 +1,887 @@
+openapi: 3.1.0
+info:
+  title: Augeo Authentication API
+  description: |
+    Authentication endpoints for user registration, login, email verification, 
+    password reset, and session management.
+    
+    **Security Model**:
+    - OAuth2 with JWT bearer tokens
+    - Access tokens: 15-minute expiry
+    - Refresh tokens: 7-day expiry
+    - Rate limiting: 5 failed login attempts per 15 minutes per IP
+  version: 1.0.0
+  contact:
+    name: Augeo Platform Team
+    email: support@augeo.app
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://api.staging.augeo.app/v1
+    description: Staging environment
+  - url: https://api.augeo.app/v1
+    description: Production environment
+
+tags:
+  - name: Authentication
+    description: User registration, login, and session management
+  - name: Email Verification
+    description: Email verification flow
+  - name: Password Management
+    description: Password reset and change operations
+
+paths:
+  /auth/register:
+    post:
+      summary: Register new user
+      description: |
+        Create a new user account with "donor" role by default.
+        
+        **Flow**:
+        1. Validates email uniqueness and password strength
+        2. Creates user with `email_verified=false`, `is_active=false`
+        3. Sends verification email with 24-hour token
+        4. Returns user details (no login yet)
+        
+        **Business Rules**:
+        - Email must be unique (case-insensitive)
+        - Password must be 8-100 chars with at least 1 letter and 1 number
+        - Account cannot login until email is verified
+      operationId: registerUser
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+            examples:
+              basic:
+                summary: Basic registration
+                value:
+                  email: john.doe@example.com
+                  password: SecurePass123
+                  first_name: John
+                  last_name: Doe
+                  phone: "+1-555-0123"
+      responses:
+        '201':
+          description: User created successfully (verification email sent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegisterResponse'
+              examples:
+                success:
+                  value:
+                    user:
+                      id: 550e8400-e29b-41d4-a716-446655440000
+                      email: john.doe@example.com
+                      first_name: John
+                      last_name: Doe
+                      phone: "+1-555-0123"
+                      email_verified: false
+                      is_active: false
+                      role: donor
+                      created_at: "2025-10-20T10:00:00Z"
+                    message: "Verification email sent to john.doe@example.com"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                duplicate_email:
+                  value:
+                    error:
+                      code: DUPLICATE_EMAIL
+                      message: Email already registered
+                      details:
+                        email: john.doe@example.com
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/verify-email:
+    post:
+      summary: Verify email address
+      description: |
+        Complete email verification using token from email.
+        
+        **Flow**:
+        1. Validates token (24-hour expiry)
+        2. Sets `email_verified=true`, `is_active=true`
+        3. Deletes verification token from Redis
+        4. Logs "email_verified" audit event
+        
+        **After verification**: User can now login with /auth/login
+      operationId: verifyEmail
+      tags:
+        - Email Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerifyRequest'
+            examples:
+              valid_token:
+                value:
+                  token: abc123xyz456
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailVerifyResponse'
+              examples:
+                success:
+                  value:
+                    message: Email verified successfully
+                    user:
+                      id: 550e8400-e29b-41d4-a716-446655440000
+                      email: john.doe@example.com
+                      email_verified: true
+                      is_active: true
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: INVALID_VERIFICATION_TOKEN
+                      message: Verification token is invalid or expired
+
+  /auth/verify-email/resend:
+    post:
+      summary: Resend verification email
+      description: |
+        Request a new verification email if the original expired or was lost.
+        
+        **Flow**:
+        1. Validates email exists and is unverified
+        2. Generates new 24-hour token
+        3. Sends new verification email
+        
+        **Rate Limit**: 1 email per 5 minutes per email address
+      operationId: resendVerificationEmail
+      tags:
+        - Email Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailResendRequest'
+            examples:
+              resend:
+                value:
+                  email: john.doe@example.com
+      responses:
+        '200':
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: Verification email sent to john.doe@example.com
+        '400':
+          description: Email already verified or doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                already_verified:
+                  value:
+                    error:
+                      code: EMAIL_ALREADY_VERIFIED
+                      message: Email is already verified
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /auth/login:
+    post:
+      summary: Login user
+      description: |
+        Authenticate user and return JWT tokens.
+        
+        **Flow**:
+        1. Validates email/password
+        2. Checks email is verified and account is active
+        3. Generates access token (15min) + refresh token (7day)
+        4. Creates session record in PostgreSQL + Redis
+        5. Updates `last_login_at` timestamp
+        6. Logs "login" audit event
+        
+        **Rate Limiting**: 5 failed attempts per 15 minutes per IP
+      operationId: loginUser
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              basic:
+                value:
+                  email: john.doe@example.com
+                  password: SecurePass123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  value:
+                    access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    token_type: bearer
+                    expires_in: 900
+                    user:
+                      id: 550e8400-e29b-41d4-a716-446655440000
+                      email: john.doe@example.com
+                      first_name: John
+                      last_name: Doe
+                      role: donor
+                      npo_id: null
+        '400':
+          description: Email not verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                email_not_verified:
+                  value:
+                    error:
+                      code: EMAIL_NOT_VERIFIED
+                      message: Please verify your email before logging in
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_credentials:
+                  value:
+                    error:
+                      code: INVALID_CREDENTIALS
+                      message: Invalid email or password
+        '403':
+          description: Account deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                account_deactivated:
+                  value:
+                    error:
+                      code: ACCOUNT_DEACTIVATED
+                      message: Your account has been deactivated
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: |
+        Exchange a valid refresh token for a new access token.
+        
+        **Flow**:
+        1. Validates refresh token signature and expiry
+        2. Checks token not in Redis blacklist
+        3. Validates session exists in Redis
+        4. Generates new access token (15min)
+        5. Returns new access token (refresh token unchanged)
+        
+        **Note**: Refresh token is NOT rotated (valid for full 7 days)
+      operationId: refreshToken
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            examples:
+              refresh:
+                value:
+                  refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+              examples:
+                success:
+                  value:
+                    access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    token_type: bearer
+                    expires_in: 900
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: INVALID_REFRESH_TOKEN
+                      message: Refresh token is invalid or expired
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      description: |
+        Revoke current session and invalidate tokens.
+        
+        **Flow**:
+        1. Extracts JTI from refresh token
+        2. Sets `revoked_at` on session in PostgreSQL
+        3. Deletes session from Redis
+        4. Adds access token JTI to Redis blacklist (15min TTL)
+        5. Logs "logout" audit event
+        
+        **Security**: Access token remains valid until 15min expiry (cached in clients)
+      operationId: logoutUser
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+            examples:
+              logout:
+                value:
+                  refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /password/reset/request:
+    post:
+      summary: Request password reset
+      description: |
+        Send password reset email with 1-hour token.
+        
+        **Flow**:
+        1. Validates email exists
+        2. Generates secure reset token (1-hour expiry)
+        3. Stores token in Redis: `password_reset:{token_hash}` → `user_id`
+        4. Sends reset email with link: `https://app.augeo.app/reset-password?token={token}`
+        5. Logs "password_reset_requested" audit event
+        
+        **Security**: Always returns 200 even if email doesn't exist (prevent enumeration)
+      operationId: requestPasswordReset
+      tags:
+        - Password Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+            examples:
+              request:
+                value:
+                  email: john.doe@example.com
+      responses:
+        '200':
+          description: Password reset email sent (or email not found - same response)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: If the email exists, a password reset link has been sent
+
+  /password/reset/confirm:
+    post:
+      summary: Complete password reset
+      description: |
+        Reset password using token from email.
+        
+        **Flow**:
+        1. Validates token (1-hour expiry)
+        2. Validates new password strength
+        3. Hashes new password with bcrypt (12 rounds)
+        4. Updates user password
+        5. Deletes reset token from Redis
+        6. Revokes all active sessions (force re-login)
+        7. Logs "password_reset_completed" audit event
+      operationId: confirmPasswordReset
+      tags:
+        - Password Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+            examples:
+              confirm:
+                value:
+                  token: xyz789abc123
+                  new_password: NewSecurePass456
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: Password reset successfully
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: INVALID_RESET_TOKEN
+                      message: Password reset token is invalid or expired
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /password/change:
+    post:
+      summary: Change password (authenticated)
+      description: |
+        Change password for currently logged-in user.
+        
+        **Flow**:
+        1. Validates current password
+        2. Validates new password strength
+        3. Hashes new password with bcrypt (12 rounds)
+        4. Updates user password
+        5. Revokes all sessions EXCEPT current session
+        6. Logs "password_changed" audit event
+        
+        **Requires**: Valid access token
+      operationId: changePassword
+      tags:
+        - Password Management
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+            examples:
+              change:
+                value:
+                  current_password: SecurePass123
+                  new_password: NewSecurePass456
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                success:
+                  value:
+                    message: Password changed successfully
+        '401':
+          description: Current password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                incorrect_password:
+                  value:
+                    error:
+                      code: INCORRECT_PASSWORD
+                      message: Current password is incorrect
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  schemas:
+    UserRegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+      properties:
+        email:
+          type: string
+          format: email
+          description: Unique email address (case-insensitive)
+          example: john.doe@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: Password (8-100 chars, must contain letter and number)
+          example: SecurePass123
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: John
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Doe
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+          example: "+1-555-0123"
+
+    UserRegisterResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserPublic'
+        message:
+          type: string
+          example: Verification email sent to john.doe@example.com
+
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: Doe
+        phone:
+          type: string
+          nullable: true
+          example: "+1-555-0123"
+        email_verified:
+          type: boolean
+          example: false
+        is_active:
+          type: boolean
+          example: false
+        role:
+          type: string
+          enum: [super_admin, npo_admin, event_coordinator, staff, donor]
+          example: donor
+        npo_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-10-20T10:00:00Z"
+
+    EmailVerifyRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Email verification token from email
+          example: abc123xyz456
+
+    EmailVerifyResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Email verified successfully
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            email_verified:
+              type: boolean
+              example: true
+            is_active:
+              type: boolean
+              example: true
+
+    EmailResendRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        password:
+          type: string
+          example: SecurePass123
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token (15-minute expiry)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token:
+          type: string
+          description: JWT refresh token (7-day expiry)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          enum: [bearer]
+          example: bearer
+        expires_in:
+          type: integer
+          description: Access token expiry in seconds
+          example: 900
+        user:
+          $ref: '#/components/schemas/UserPublic'
+
+    RefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Valid refresh token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    RefreshResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: New JWT access token (15-minute expiry)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          enum: [bearer]
+          example: bearer
+        expires_in:
+          type: integer
+          description: Access token expiry in seconds
+          example: 900
+
+    LogoutRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token to revoke
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+
+    PasswordResetConfirm:
+      type: object
+      required:
+        - token
+        - new_password
+      properties:
+        token:
+          type: string
+          description: Password reset token from email
+          example: xyz789abc123
+        new_password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: New password (8-100 chars, must contain letter and number)
+          example: NewSecurePass456
+
+    PasswordChangeRequest:
+      type: object
+      required:
+        - current_password
+        - new_password
+      properties:
+        current_password:
+          type: string
+          example: SecurePass123
+        new_password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: New password (8-100 chars, must contain letter and number)
+          example: NewSecurePass456
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation completed successfully
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: INVALID_CREDENTIALS
+            message:
+              type: string
+              example: Invalid email or password
+            details:
+              type: object
+              additionalProperties: true
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Request validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    example: password
+                  message:
+                    type: string
+                    example: Password must contain at least one number
+
+  responses:
+    BadRequest:
+      description: Invalid request format
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            missing_token:
+              value:
+                error:
+                  code: MISSING_TOKEN
+                  message: Authentication token required
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            rate_limit:
+              value:
+                error:
+                  code: RATE_LIMIT_EXCEEDED
+                  message: Too many attempts. Please try again in 15 minutes.
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token from /auth/login or /auth/refresh
