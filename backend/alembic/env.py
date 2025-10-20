@@ -1,8 +1,10 @@
 """Alembic environment configuration for async SQLAlchemy."""
 
 import asyncio
+import os
 from logging.config import fileConfig
 
+from dotenv import load_dotenv
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -30,10 +32,7 @@ if config.config_file_name is not None:
 # Add your model's MetaData object here for 'autogenerate' support
 target_metadata = Base.metadata
 
-# Override sqlalchemy.url from environment variable
-import os
-from dotenv import load_dotenv
-
+# Load environment variables and override sqlalchemy.url from .env
 load_dotenv()
 
 database_url = os.getenv("DATABASE_URL")
