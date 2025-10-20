@@ -5,6 +5,12 @@
 **Status**: Draft  
 **Input**: User description: "User Authentication & Role Management"
 
+## Clarifications
+
+### Session 2025-10-18
+
+- Q: What specific roles should the system start with and what are their core permissions? → A: Multi-tier structure with Super Admin (Augeo staff), NPO Admin (full NPO access), Event Coordinator (event management), Staff (registration/checkin), and Donor (bidding only)
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - User Registration & Login (Priority: P1)
@@ -116,23 +122,33 @@ The system manages user sessions securely, including automatic logout for inacti
 - **FR-010**: System MUST prevent unauthorized access to user accounts and administrative functions
 - **FR-011**: System MUST handle session expiration and require re-authentication for expired sessions
 - **FR-012**: System MUST provide feedback to users about authentication status and any security issues
+- **FR-013**: System MUST support role-based access scoping (platform-wide, NPO-specific, event-specific)
+- **FR-014**: Super Admin role MUST have platform-wide access to all NPOs and events
+- **FR-015**: NPO Admin role MUST have full management access within their assigned NPO(s)
+- **FR-016**: Event Coordinator role MUST have event and auction management access within assigned events
+- **FR-017**: Staff role MUST have donor registration and check-in access within assigned events
+- **FR-018**: Donor role MUST have bidding and profile management access only
 
 ### Business Rules
 
 - **BR-001**: Email addresses MUST be unique across the system (case-insensitive)
 - **BR-002**: Passwords MUST be at least 8 characters long and contain at least one letter and one number
 - **BR-003**: Users MUST have exactly one role assigned at any time (no unassigned users)
-- **BR-004**: Default role "User" MUST be automatically assigned to new registrations
+- **BR-004**: Default role "Donor" MUST be automatically assigned to new registrations
 - **BR-005**: Administrative roles MUST require explicit assignment (cannot be self-assigned)
 - **BR-006**: Role changes MUST be effective immediately for new requests (no caching delay)
 - **BR-007**: Account deletion MUST revoke all active sessions immediately
 - **BR-008**: Password reset links MUST be invalidated after successful password change
+- **BR-009**: Super Admin role MUST be restricted to Augeo platform staff only
+- **BR-010**: NPO Admin role MUST be scoped to specific nonprofit organizations
+- **BR-011**: Event Coordinator and Staff roles MUST be scoped to specific events within an NPO
 
 ### Key Entities
 
 - **User**: Represents individuals who can access the system, containing profile information, credentials, and role assignments
-- **Role**: Defines a set of permissions that can be assigned to users, containing name and associated permissions
-- **Permission**: Specific actions or access rights that can be granted to roles, such as read, write, or admin access to features
+- **Role**: Defines a set of permissions that can be assigned to users, with five core types: Super Admin (platform-wide access), NPO Admin (full NPO management), Event Coordinator (event and auction management), Staff (donor registration/checkin), and Donor (bidding participation)
+- **Permission**: Specific actions or access rights that can be granted to roles, scoped to platform, NPO, or event levels
+- **NPO (Nonprofit Organization)**: Organization context that scopes NPO Admin, Event Coordinator, and Staff permissions
 - **Session**: Temporary authentication state that tracks user login status and activity, with expiration handling
 - **Authentication Event**: Security log entries that track login attempts, role changes, and other security-relevant actions
 
@@ -174,12 +190,13 @@ The system manages user sessions securely, including automatic logout for inacti
 
 - Users have access to email for account verification and password reset
 - Standard web security practices are acceptable (HTTPS, secure session handling)
-- User roles follow a hierarchical permission model (admin > manager > user)
+- User roles follow a hierarchical permission model with organizational scoping (platform > NPO > event)
 - Email delivery systems are reliable for authentication-related communications
 - Users are familiar with standard authentication patterns (email/password, password reset flows)
-- The system will primarily serve authenticated users rather than anonymous visitors
-- Administrative users are trusted with role management responsibilities
-- Session duration of 30 minutes of inactivity is appropriate for the user base
+- The system will primarily serve fundraising auction events for nonprofit organizations
+- NPO administrators are trusted with user management responsibilities within their organization
+- Event coordinators are trusted with event-specific user management and auction setup
+- Session duration of 30 minutes of inactivity is appropriate for event-based usage patterns
 
 ## Security & Compliance Requirements
 
