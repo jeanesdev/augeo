@@ -1,4 +1,4 @@
-# Implementation Plan: NPO Creation and Management
+Event Creation. Ability for NPO administrator and Event coordinator to create and edit an event. They should be able to input details like date, venue, descriptions, food options, upload media like logos, flyers, link to videos, social media tags, links to websites, etc.# Implementation Plan: NPO Creation and Management
 
 **Branch**: `002-npo-creation` | **Date**: 2025-10-19 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/002-npo-creation/spec.md`
