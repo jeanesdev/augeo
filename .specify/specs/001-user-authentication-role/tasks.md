@@ -89,9 +89,9 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T035 [US1] Implement SessionService with create_session(), revoke_session() methods in backend/app/services/session_service.py
 - [x] T036 [US1] Implement JWT token utilities: create_access_token(), create_refresh_token(), verify_token() in backend/app/core/security.py
 - [x] T037 [US1] Implement Redis session storage: set_session(), get_session(), delete_session() in backend/app/services/redis_service.py
-- [ ] T038 [US1] Implement POST /api/v1/auth/register endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
-- [ ] T039 [US1] Implement POST /api/v1/auth/login endpoint with rate limiting per contracts/auth.yaml in backend/app/api/v1/auth.py
-- [ ] T040 [US1] Implement POST /api/v1/auth/logout endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
+- [x] T038 [US1] Implement POST /api/v1/auth/register endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
+- [x] T039 [US1] Implement POST /api/v1/auth/login endpoint with rate limiting per contracts/auth.yaml in backend/app/api/v1/auth.py
+- [x] T040 [US1] Implement POST /api/v1/auth/logout endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
 - [ ] T041 [US1] Create authentication middleware to extract/validate JWT from Authorization header in backend/app/middleware/auth.py
 - [ ] T042 [US1] Add validation: email uniqueness check, password strength (8+ chars, 1 letter, 1 number) in backend/app/schemas/auth.py
 - [ ] T043 [US1] Add audit logging for login, logout, failed_login events in backend/app/services/audit_service.py
