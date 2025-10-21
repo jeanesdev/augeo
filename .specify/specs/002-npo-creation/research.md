@@ -1,14 +1,14 @@
 # Research: NPO Creation and Management
 
-**Date**: 2025-10-19  
+**Date**: 2025-10-19
 **Status**: Phase 0 - Research Complete
 
 ## Research Tasks Completed
 
 ### 1. Multi-Tenant NPO Data Model Design
 
-**Decision**: Extend existing multi-tenant architecture with NPO-specific entities  
-**Rationale**: 
+**Decision**: Extend existing multi-tenant architecture with NPO-specific entities
+**Rationale**:
 - Leverages existing `tenant_id` pattern from constitution
 - Maintains data isolation between NPOs
 - Aligns with PostgreSQL Row-Level Security approach already established
@@ -24,9 +24,9 @@
 
 ### 2. File Upload Security for NPO Branding
 
-**Decision**: Azure Blob Storage with signed URLs and content validation  
+**Decision**: Azure Blob Storage with signed URLs and content validation
 **Rationale**:
-- Aligns with constitution's Azure-first infrastructure approach  
+- Aligns with constitution's Azure-first infrastructure approach
 - Built-in CDN capabilities for global performance
 - Proper security controls with time-limited access URLs
 
@@ -42,7 +42,7 @@
 
 ### 3. Staff Invitation and Role Management System
 
-**Decision**: JWT-based invitation tokens with role-scoped permissions  
+**Decision**: JWT-based invitation tokens with role-scoped permissions
 **Rationale**:
 - Integrates with existing OAuth2/JWT authentication system
 - Supports time-limited invitations with automatic expiry
@@ -63,7 +63,7 @@
 
 ### 4. SuperAdmin Approval Workflow Design
 
-**Decision**: State machine-based application workflow with audit trails  
+**Decision**: State machine-based application workflow with audit trails
 **Rationale**:
 - Clear state transitions prevent inconsistent application status
 - Full audit trail for compliance and support purposes
@@ -85,7 +85,7 @@
 
 ### 5. Legal Agreement Management (EULA/Terms)
 
-**Decision**: Versioned legal documents with tracking and re-acceptance workflow  
+**Decision**: Versioned legal documents with tracking and re-acceptance workflow
 **Rationale**:
 - GDPR compliance requires proper consent tracking
 - Legal document updates need user re-acceptance
@@ -105,7 +105,7 @@
 
 ### 6. Social Media Integration Best Practices
 
-**Decision**: URL validation with platform-specific regex patterns  
+**Decision**: URL validation with platform-specific regex patterns
 **Rationale**:
 - Prevents invalid social media links in NPO profiles
 - Consistent formatting for display purposes
@@ -127,7 +127,7 @@
 
 ### 7. Branding Color System Implementation
 
-**Decision**: CSS custom properties with theme inheritance  
+**Decision**: CSS custom properties with theme inheritance
 **Rationale**:
 - Dynamic theming without CSS rebuilds
 - Consistent color application across components

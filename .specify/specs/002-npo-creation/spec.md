@@ -38,7 +38,7 @@ This feature enables users to create and manage Non-Profit Organizations (NPOs) 
   - Other relevant social platforms
 
 ### Administrative Management
-- **Co-Administrator Invitations**: 
+- **Co-Administrator Invitations**:
   - Ability to invite multiple co-administrators
   - Role-based permissions for co-administrators
   - Invitation management and tracking
@@ -56,7 +56,7 @@ This feature enables users to create and manage Non-Profit Organizations (NPOs) 
   - 2 business days SLA for review completion with automated status notifications
 
 ### Legal and Compliance
-- **EULA Agreement**: 
+- **EULA Agreement**:
   - NPO administrators must agree to End User License Agreement
   - Terms and Conditions acceptance required
   - Legal document versioning and tracking

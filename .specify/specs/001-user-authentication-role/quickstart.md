@@ -1,7 +1,7 @@
 # Quickstart Guide: User Authentication & Role Management
 
-**Feature**: 001-user-authentication-role  
-**Date**: October 20, 2025  
+**Feature**: 001-user-authentication-role
+**Date**: October 20, 2025
 **Audience**: Developers setting up local development environment
 
 ---
@@ -187,7 +187,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c "\dt"
 Expected output:
 ```
               List of relations
- Schema |       Name        | Type  |   Owner    
+ Schema |       Name        | Type  |   Owner
 --------+-------------------+-------+------------
  public | alembic_version   | table | augeo_user
  public | audit_logs        | table | augeo_user
@@ -206,7 +206,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c \
 
 Expected output:
 ```
-                  id                  |      email       |              role_id               
+                  id                  |      email       |              role_id
 --------------------------------------+------------------+------------------------------------
  550e8400-e29b-41d4-a716-446655440000 | admin@augeo.app  | <uuid-of-super-admin-role>
 ```
@@ -438,7 +438,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c \
 
 Expected output:
 ```
- refresh_token_jti |         revoked_at         
+ refresh_token_jti |         revoked_at
 -------------------+----------------------------
  abc-123-xyz       | 2025-10-20 10:10:00.123456
 ```
@@ -541,7 +541,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c \
 
 Expected output:
 ```
-              user_id               | action |  ip_address  |         created_at         
+              user_id               | action |  ip_address  |         created_at
 ------------------------------------+--------+--------------+----------------------------
  550e8400-e29b-41d4-a716-446655440000 | login  | 127.0.0.1    | 2025-10-20 10:00:00.123456
 ```
@@ -744,12 +744,12 @@ alembic upgrade head
 
 ## Summary
 
-✅ **Infrastructure**: PostgreSQL + Redis running in Docker  
-✅ **Backend**: FastAPI server with authentication endpoints  
-✅ **Database**: Migrations applied, super admin seeded  
-✅ **Frontend**: Admin dashboard and donor PWA running  
-✅ **Tests**: Unit, integration, and E2E tests passing  
-✅ **Authentication Flow**: Registration → Email verification → Login → Protected endpoints  
+✅ **Infrastructure**: PostgreSQL + Redis running in Docker
+✅ **Backend**: FastAPI server with authentication endpoints
+✅ **Database**: Migrations applied, super admin seeded
+✅ **Frontend**: Admin dashboard and donor PWA running
+✅ **Tests**: Unit, integration, and E2E tests passing
+✅ **Authentication Flow**: Registration → Email verification → Login → Protected endpoints
 
 **Local URLs**:
 - Backend API: http://localhost:8000
@@ -759,6 +759,6 @@ alembic upgrade head
 
 ---
 
-**Version**: 1.0.0  
-**Date**: October 20, 2025  
+**Version**: 1.0.0
+**Date**: October 20, 2025
 **Status**: Ready for development

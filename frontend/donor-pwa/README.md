@@ -135,7 +135,7 @@ import { useThemeMode } from '@/theme';
 
 function MyComponent() {
   const { themeMode, toggle } = useThemeMode();
-  
+
   return <Button onClick={toggle}>Toggle Theme</Button>;
 }
 ```
@@ -234,7 +234,7 @@ Prettier enforces consistent style across all contributors, reducing discussions
 Check out the [live demo](https://react-pwa.surenatoyan.com/)
 
 <div>
- <img src="./public/demo-dark.png" width="280" alt="Dark theme demo"> 
+ <img src="./public/demo-dark.png" width="280" alt="Dark theme demo">
  <img src="./public/demo-light.png" width="280" alt="Light theme demo">
 </div>
 
