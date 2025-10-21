@@ -8,6 +8,7 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 from redis.asyncio import Redis  # type: ignore[import-untyped]
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -46,11 +47,17 @@ def test_database_url() -> str:
     Get test database URL.
 
     Uses separate test database to avoid conflicts with development data.
+    Ensures asyncpg driver is used for async SQLAlchemy.
     """
     # Replace database name with test database
     db_url: str = str(settings.database_url)
     if db_url.endswith("/augeo"):
         db_url = db_url.replace("/augeo", "/augeo_test")
+
+    # Ensure we're using postgresql+asyncpg:// not postgresql://
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+
     return db_url
 
 
@@ -64,8 +71,44 @@ async def test_engine(test_database_url: str) -> AsyncGenerator[AsyncEngine, Non
     """
     engine = create_async_engine(test_database_url, poolclass=NullPool, echo=False)
 
-    # Create all tables
+    # Create all tables including roles
     async with engine.begin() as conn:
+        # First create roles table (required by users table FK)
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS roles (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    name VARCHAR(50) UNIQUE NOT NULL,
+                    description TEXT NOT NULL,
+                    scope VARCHAR(20) NOT NULL,
+                    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                    CONSTRAINT role_name_valid CHECK (name IN ('super_admin', 'npo_admin', 'event_coordinator', 'staff', 'donor')),
+                    CONSTRAINT role_scope_valid CHECK (scope IN ('platform', 'npo', 'event', 'own'))
+                )
+            """
+            )
+        )
+
+        # Seed roles
+        await conn.execute(
+            text(
+                """
+                INSERT INTO roles (name, description, scope) VALUES
+                    ('super_admin', 'Augeo platform staff with full access to all NPOs and events', 'platform'),
+                    ('npo_admin', 'Full management access within assigned nonprofit organization(s)', 'npo'),
+                    ('event_coordinator', 'Event and auction management within assigned NPO', 'npo'),
+                    ('staff', 'Donor registration and check-in within assigned events', 'event'),
+                    ('donor', 'Bidding and profile management only', 'own')
+                ON CONFLICT (name) DO NOTHING
+            """
+            )
+        )
+
+        # Reflect the roles table into Base.metadata so auth_service can use it
+        await conn.run_sync(lambda sync_conn: Base.metadata.reflect(bind=sync_conn, only=["roles"]))
+
+        # Then create other tables
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
@@ -73,6 +116,7 @@ async def test_engine(test_database_url: str) -> AsyncGenerator[AsyncEngine, Non
     # Drop all tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DROP TABLE IF EXISTS roles CASCADE"))
 
     await engine.dispose()
 
