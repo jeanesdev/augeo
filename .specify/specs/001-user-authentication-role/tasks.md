@@ -80,10 +80,10 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 ### Implementation for User Story 1
 
-- [ ] T029 [P] [US1] Create User model with SQLAlchemy per data-model.md in backend/app/models/user.py
-- [ ] T030 [P] [US1] Create Alembic migration 002_create_users_table.py with indexes and constraints
-- [ ] T031 [P] [US1] Create Session model (PostgreSQL audit) in backend/app/models/session.py
-- [ ] T032 [P] [US1] Create Alembic migration 004_create_sessions_table.py
+- [x] T029 [P] [US1] Create User model with SQLAlchemy per data-model.md in backend/app/models/user.py
+- [x] T030 [P] [US1] Create Alembic migration 002_create_users_table.py with indexes and constraints
+- [x] T031 [P] [US1] Create Session model (PostgreSQL audit) in backend/app/models/session.py
+- [x] T032 [P] [US1] Create Alembic migration 003_create_sessions_table.py (migration 003, not 004 - permissions table deferred)
 - [ ] T033 [P] [US1] Create Pydantic schemas: UserCreate, UserPublic, LoginRequest, LoginResponse in backend/app/schemas/auth.py
 - [ ] T034 [US1] Implement AuthService with register(), login(), logout() methods in backend/app/services/auth_service.py
 - [ ] T035 [US1] Implement SessionService with create_session(), revoke_session() methods in backend/app/services/session_service.py
