@@ -48,7 +48,7 @@ def test_database_url() -> str:
     Uses separate test database to avoid conflicts with development data.
     """
     # Replace database name with test database
-    db_url: str = settings.DATABASE_URL
+    db_url: str = str(settings.database_url)
     if db_url.endswith("/augeo"):
         db_url = db_url.replace("/augeo", "/augeo_test")
     return db_url
@@ -106,7 +106,7 @@ async def db_session(test_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, N
 
 
 @pytest_asyncio.fixture
-async def redis_client() -> AsyncGenerator[Redis[Any], None]:
+async def redis_client() -> AsyncGenerator["Redis[Any]", None]:
     """
     Create Redis client for tests.
 

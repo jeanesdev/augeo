@@ -1,19 +1,24 @@
 """Redis client configuration and connection pooling."""
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 import redis.asyncio as redis  # noqa: F401
 from redis.asyncio import Redis  # noqa: F401
 
 from app.core.config import get_settings
 
+if TYPE_CHECKING:
+    from redis.asyncio import Redis as RedisType
+else:
+    RedisType = Redis
+
 settings = get_settings()
 
 # Redis connection pool (singleton pattern)
-_redis_client: Redis[Any] | None = None
+_redis_client: RedisType | None = None  # type: ignore[type-arg]
 
 
-async def get_redis() -> Redis[Any]:
+async def get_redis() -> RedisType:  # type: ignore[type-arg]
     """Get Redis client with connection pooling.
 
     Returns:
