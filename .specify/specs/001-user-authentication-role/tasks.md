@@ -92,10 +92,10 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T038 [US1] Implement POST /api/v1/auth/register endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
 - [x] T039 [US1] Implement POST /api/v1/auth/login endpoint with rate limiting per contracts/auth.yaml in backend/app/api/v1/auth.py
 - [x] T040 [US1] Implement POST /api/v1/auth/logout endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
-- [ ] T041 [US1] Create authentication middleware to extract/validate JWT from Authorization header in backend/app/middleware/auth.py
-- [ ] T042 [US1] Add validation: email uniqueness check, password strength (8+ chars, 1 letter, 1 number) in backend/app/schemas/auth.py
-- [ ] T043 [US1] Add audit logging for login, logout, failed_login events in backend/app/services/audit_service.py
-- [ ] T044 [US1] Implement rate limiting for login endpoint (5 attempts/15min) using Redis sorted sets in backend/app/middleware/rate_limit.py
+- [x] T041 [US1] Create authentication middleware to extract/validate JWT from Authorization header in backend/app/middleware/auth.py
+- [x] T042 [US1] Add validation: email uniqueness check, password strength (8+ chars, 1 letter, 1 number) in backend/app/schemas/auth.py
+- [x] T043 [US1] Add audit logging for login, logout, failed_login events in backend/app/services/audit_service.py
+- [x] T044 [US1] Implement rate limiting for login endpoint (5 attempts/15min) using Redis sorted sets in backend/app/middleware/rate_limit.py
 - [ ] T045 [P] [US1] Create login form component in frontend/augeo-admin/src/features/auth/LoginForm.tsx
 - [ ] T046 [P] [US1] Create registration form component in frontend/augeo-admin/src/features/auth/RegisterForm.tsx
 - [ ] T047 [US1] Create auth store with Zustand: login(), logout(), getUser() in frontend/augeo-admin/src/stores/auth-store.ts
