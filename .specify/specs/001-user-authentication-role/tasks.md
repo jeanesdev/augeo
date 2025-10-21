@@ -71,12 +71,12 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T023 [P] [US1] Create contract test for POST /api/v1/auth/register in backend/app/tests/contract/test_auth_register.py
-- [ ] T024 [P] [US1] Create contract test for POST /api/v1/auth/login in backend/app/tests/contract/test_auth_login.py
-- [ ] T025 [P] [US1] Create contract test for POST /api/v1/auth/logout in backend/app/tests/contract/test_auth_logout.py
-- [ ] T026 [P] [US1] Create integration test for registration → login flow in backend/app/tests/integration/test_auth_flow.py
-- [ ] T027 [P] [US1] Create unit test for JWT token creation/verification in backend/app/tests/unit/test_security.py
-- [ ] T028 [P] [US1] Create unit test for password hashing in backend/app/tests/unit/test_password.py
+- [x] T023 [P] [US1] Create contract test for POST /api/v1/auth/register in backend/app/tests/contract/test_auth_register.py
+- [x] T024 [P] [US1] Create contract test for POST /api/v1/auth/login in backend/app/tests/contract/test_auth_login.py
+- [x] T025 [P] [US1] Create contract test for POST /api/v1/auth/logout in backend/app/tests/contract/test_auth_logout.py
+- [x] T026 [P] [US1] Create integration test for registration → login flow in backend/app/tests/integration/test_auth_flow.py
+- [x] T027 [P] [US1] Create unit test for JWT token creation/verification in backend/app/tests/unit/test_security.py
+- [x] T028 [P] [US1] Create unit test for password hashing in backend/app/tests/unit/test_password.py
 
 ### Implementation for User Story 1
 
