@@ -96,25 +96,12 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T042 [US1] Add validation: email uniqueness check, password strength (8+ chars, 1 letter, 1 number) in backend/app/schemas/auth.py
 - [x] T043 [US1] Add audit logging for login, logout, failed_login events in backend/app/services/audit_service.py
 - [x] T044 [US1] Implement rate limiting for login endpoint (5 attempts/15min) using Redis sorted sets in backend/app/middleware/rate_limit.py
-- [ ] T045 [P] [US1] Create login form component in frontend/augeo-admin/src/features/auth/LoginForm.tsx
-- [ ] T046 [P] [US1] Create registration form component in frontend/augeo-admin/src/features/auth/RegisterForm.tsx
-- [ ] T047 [US1] Create auth store with Zustand: login(), logout(), getUser() in frontend/augeo-admin/src/stores/auth-store.ts
-- [ ] T048 [US1] Create axios interceptor for adding Authorization header in frontend/augeo-admin/src/lib/axios.ts
-- [ ] T049 [US1] Create ProtectedRoute component that checks auth state in frontend/augeo-admin/src/components/ProtectedRoute.tsx
-- [ ] T050 [US1] Add login/register routes to React Router in frontend/augeo-admin/src/routes/__root.tsx
-
-**Checkpoint**: At this point, User Story 1 should be fully functional - users can register, login, and logout with JWT tokens
-
----
-
-## Phase 4: User Story 2 - Password Recovery & Security (Priority: P2)
-
-**Goal**: Users can recover access to their accounts when they forget their passwords and manage their account security settings.
-
-**Independent Test**: Initiate password reset flow, receive reset email (check Redis for token in dev), and successfully change password to regain access.
-
-### Tests for User Story 2
-
+- [x] T045 [P] [US1] Create login form component in frontend/augeo-admin/src/features/auth/LoginForm.tsx
+- [x] T046 [P] [US1] Create registration form component in frontend/augeo-admin/src/features/auth/RegisterForm.tsx
+- [x] T047 [US1] Create auth store with Zustand: login(), logout(), getUser() in frontend/augeo-admin/src/stores/auth-store.ts
+- [x] T048 [US1] Create axios interceptor for adding Authorization header in frontend/augeo-admin/src/lib/axios.ts
+- [x] T049 [US1] Create ProtectedRoute component that checks auth state in frontend/augeo-admin/src/components/ProtectedRoute.tsx
+- [x] T050 [US1] Add login/register routes to React Router in frontend/augeo-admin/src/routes/__root.tsx
 - [ ] T051 [P] [US2] Create contract test for POST /api/v1/password/reset/request in backend/app/tests/contract/test_password_reset.py
 - [ ] T052 [P] [US2] Create contract test for POST /api/v1/password/reset/confirm in backend/app/tests/contract/test_password_reset.py
 - [ ] T053 [P] [US2] Create contract test for POST /api/v1/password/change in backend/app/tests/contract/test_password_change.py

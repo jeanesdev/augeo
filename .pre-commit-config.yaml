@@ -7,6 +7,7 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-json
+        exclude: ^frontend/.*/tsconfig.*\.json$  # TypeScript config files use JSONC format
       - id: check-toml
       - id: check-merge-conflict
       - id: detect-private-key
