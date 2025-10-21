@@ -84,11 +84,11 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T030 [P] [US1] Create Alembic migration 002_create_users_table.py with indexes and constraints
 - [x] T031 [P] [US1] Create Session model (PostgreSQL audit) in backend/app/models/session.py
 - [x] T032 [P] [US1] Create Alembic migration 003_create_sessions_table.py (migration 003, not 004 - permissions table deferred)
-- [ ] T033 [P] [US1] Create Pydantic schemas: UserCreate, UserPublic, LoginRequest, LoginResponse in backend/app/schemas/auth.py
-- [ ] T034 [US1] Implement AuthService with register(), login(), logout() methods in backend/app/services/auth_service.py
-- [ ] T035 [US1] Implement SessionService with create_session(), revoke_session() methods in backend/app/services/session_service.py
-- [ ] T036 [US1] Implement JWT token utilities: create_access_token(), create_refresh_token(), verify_token() in backend/app/core/security.py
-- [ ] T037 [US1] Implement Redis session storage: set_session(), get_session(), delete_session() in backend/app/services/redis_service.py
+- [x] T033 [P] [US1] Create Pydantic schemas: UserCreate, UserPublic, LoginRequest, LoginResponse in backend/app/schemas/auth.py
+- [x] T034 [US1] Implement AuthService with register(), login(), logout() methods in backend/app/services/auth_service.py
+- [x] T035 [US1] Implement SessionService with create_session(), revoke_session() methods in backend/app/services/session_service.py
+- [x] T036 [US1] Implement JWT token utilities: create_access_token(), create_refresh_token(), verify_token() in backend/app/core/security.py
+- [x] T037 [US1] Implement Redis session storage: set_session(), get_session(), delete_session() in backend/app/services/redis_service.py
 - [ ] T038 [US1] Implement POST /api/v1/auth/register endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
 - [ ] T039 [US1] Implement POST /api/v1/auth/login endpoint with rate limiting per contracts/auth.yaml in backend/app/api/v1/auth.py
 - [ ] T040 [US1] Implement POST /api/v1/auth/logout endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
