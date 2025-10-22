@@ -20,6 +20,7 @@ from app.schemas.password import (
     PasswordResetConfirm,
     PasswordResetRequest,
 )
+from app.services.audit_service import AuditService
 from app.services.auth_service import AuthService
 from app.services.password_service import PasswordService
 from app.services.redis_service import RedisService
@@ -323,6 +324,7 @@ async def verify_email(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 )
 async def request_password_reset(
     reset_data: PasswordResetRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     """Request password reset email.
@@ -343,16 +345,24 @@ async def request_password_reset(
 
     Args:
         reset_data: Contains email address
+        request: FastAPI request for IP address
         db: Database session
 
     Returns:
         MessageResponse confirming email sent (always success)
     """
+    # Get client IP address for audit logging
+    ip_address = request.client.host if request.client else None
+
     try:
         await PasswordService.request_reset(reset_data.email, db)
+        # Log password reset request (even if email doesn't exist, for security monitoring)
+        AuditService.log_password_reset_request(reset_data.email, ip_address)
         return MessageResponse(message="If that email exists, a password reset link has been sent.")
     except Exception:
         # Always return success to prevent email enumeration
+        # Still log the request for security monitoring
+        AuditService.log_password_reset_request(reset_data.email, ip_address)
         return MessageResponse(message="If that email exists, a password reset link has been sent.")
 
 
@@ -360,6 +370,7 @@ async def request_password_reset(
     "/password/reset/confirm", status_code=status.HTTP_200_OK, response_model=MessageResponse
 )
 async def confirm_password_reset(
+    request: Request,
     confirm_data: PasswordResetConfirm,
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
@@ -372,7 +383,8 @@ async def confirm_password_reset(
     4. Updates user password (bcrypt hash)
     5. Deletes token from Redis (one-time use)
     6. Revokes ALL active sessions (force re-login)
-    7. Returns success message
+    7. Logs audit event
+    8. Returns success message
 
     Business Rules:
     - Token is one-time use (deleted after consumption)
@@ -381,6 +393,7 @@ async def confirm_password_reset(
     - All sessions are revoked (user must login with new password)
 
     Args:
+        request: FastAPI request object (for IP address)
         confirm_data: Contains token and new_password
         db: Database session
 
@@ -391,7 +404,14 @@ async def confirm_password_reset(
         HTTPException 400: Invalid or expired token
     """
     try:
-        await PasswordService.confirm_reset(confirm_data.token, confirm_data.new_password, db)
+        user = await PasswordService.confirm_reset(
+            confirm_data.token, confirm_data.new_password, db
+        )
+
+        # Log audit event
+        ip_address = request.client.host if request.client else None
+        AuditService.log_password_reset_complete(user.id, user.email, ip_address)
+
         return MessageResponse(
             message="Password reset successfully. Please login with your new password."
         )
@@ -460,13 +480,17 @@ async def change_password(
         current_jti = payload["jti"]
 
         # Change password (validates current password internally)
-        await PasswordService.change_password(
+        user = await PasswordService.change_password(
             user_id=user_id,
             current_password=change_data.current_password,
             new_password=change_data.new_password,
             current_jti=current_jti,
             db=db,
         )
+
+        # Log audit event
+        ip_address = request.client.host if request.client else None
+        AuditService.log_password_changed(user.id, user.email, ip_address)
 
         return MessageResponse(message="Password changed successfully.")
 

@@ -18,9 +18,9 @@ import {
   Users,
   MessagesSquare,
   ShieldCheck,
-  Command,
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
+import { Logo } from '@/assets/logo'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -32,7 +32,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: 'Augeo Platform',
-      logo: Command,
+      logo: Logo,
       plan: 'Admin Portal',
     },
   ],

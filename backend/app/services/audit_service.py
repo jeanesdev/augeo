@@ -20,6 +20,7 @@ class AuditEventType(str, Enum):
     LOGOUT = "logout"
     PASSWORD_RESET_REQUEST = "password_reset_request"
     PASSWORD_RESET_COMPLETE = "password_reset_complete"
+    PASSWORD_CHANGED = "password_changed"
     EMAIL_VERIFICATION = "email_verification"
     ACCOUNT_CREATED = "account_created"
     ACCOUNT_DEACTIVATED = "account_deactivated"
@@ -181,6 +182,30 @@ class AuditService:
             "Password reset completed",
             extra={
                 "event_type": AuditEventType.PASSWORD_RESET_COMPLETE.value,
+                "user_id": str(user_id),
+                "email": email,
+                "ip_address": ip_address,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    @staticmethod
+    def log_password_changed(
+        user_id: uuid.UUID,
+        email: str,
+        ip_address: str | None = None,
+    ) -> None:
+        """Log password change by authenticated user.
+
+        Args:
+            user_id: UUID of user who changed their password
+            email: User's email address
+            ip_address: Optional client IP address
+        """
+        logger.info(
+            "Password changed",
+            extra={
+                "event_type": AuditEventType.PASSWORD_CHANGED.value,
                 "user_id": str(user_id),
                 "email": email,
                 "ip_address": ip_address,

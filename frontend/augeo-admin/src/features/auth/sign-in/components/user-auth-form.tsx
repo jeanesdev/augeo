@@ -104,7 +104,7 @@ export function UserAuthForm({
               </FormControl>
               <FormMessage />
               <Link
-                to='/forgot-password'
+                to='/password-reset'
                 className='text-muted-foreground absolute end-0 -top-0.5 text-sm font-medium hover:opacity-75'
               >
                 Forgot password?
