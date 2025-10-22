@@ -9,13 +9,22 @@ import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
-import { users } from './data/users'
+import { useUsers } from './hooks/use-users'
 
 const route = getRouteApi('/_authenticated/users/')
 
 export function Users() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+
+  // Fetch users from API
+  const { data: usersData, isLoading, isError } = useUsers({
+    page: search.page || 1,
+    page_size: search.pageSize || 10,
+  })
+
+  // Use API data directly, or empty array if not loaded yet
+  const users = usersData?.items || []
 
   return (
     <UsersProvider>
@@ -38,6 +47,8 @@ export function Users() {
           </div>
           <UsersPrimaryButtons />
         </div>
+        {isLoading && <div>Loading users...</div>}
+        {isError && <div>Error loading users. Using mock data.</div>}
         <UsersTable data={users} search={search} navigate={navigate} />
       </Main>
 

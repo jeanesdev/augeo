@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MailPlus, Send } from 'lucide-react'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { useCreateUser } from '../hooks/use-users'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,17 +22,16 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { SelectDropdown } from '@/components/select-dropdown'
 import { roles } from '../data/data'
 
 const formSchema = z.object({
-  email: z.email({
-    error: (iss) =>
-      iss.input === '' ? 'Please enter an email to invite.' : undefined,
-  }),
-  role: z.string().min(1, 'Role is required.'),
-  desc: z.string().optional(),
+  email: z.string().email('Please enter a valid email address'),
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  phone: z.string().optional(),
+  role: z.string().min(1, 'Role is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 type UserInviteForm = z.infer<typeof formSchema>
@@ -46,14 +45,33 @@ export function UsersInviteDialog({
   open,
   onOpenChange,
 }: UserInviteDialogProps) {
+  const createUserMutation = useCreateUser()
+
   const form = useForm<UserInviteForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: '', role: '', desc: '' },
+    defaultValues: {
+      email: '',
+      first_name: '',
+      last_name: '',
+      phone: '',
+      role: '',
+      password: '',
+    },
   })
 
-  const onSubmit = (values: UserInviteForm) => {
+  const onSubmit = async (values: InviteUserForm) => {
+    // Call mutation to create user
+    await createUserMutation.mutateAsync({
+      email: values.email,
+      first_name: values.firstName,
+      last_name: values.lastName,
+      phone: values.phone || null,
+      role: values.role,
+      password: values.password,
+    })
+
+    // Close dialog and reset form on success
     form.reset()
-    showSubmittedData(values)
     onOpenChange(false)
   }
 
@@ -98,6 +116,57 @@ export function UsersInviteDialog({
                 </FormItem>
               )}
             />
+            <div className='grid grid-cols-2 gap-4'>
+              <FormField
+                control={form.control}
+                name='first_name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='John'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='last_name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Doe'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name='phone'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='tel'
+                      placeholder='+1 (555) 123-4567'
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name='role'
@@ -119,14 +188,14 @@ export function UsersInviteDialog({
             />
             <FormField
               control={form.control}
-              name='desc'
+              name='password'
               render={({ field }) => (
-                <FormItem className=''>
-                  <FormLabel>Description (optional)</FormLabel>
+                <FormItem>
+                  <FormLabel>Temporary Password</FormLabel>
                   <FormControl>
-                    <Textarea
-                      className='resize-none'
-                      placeholder='Add a personal note to your invitation (optional)'
+                    <Input
+                      type='password'
+                      placeholder='Min. 8 characters'
                       {...field}
                     />
                   </FormControl>
@@ -138,10 +207,16 @@ export function UsersInviteDialog({
         </Form>
         <DialogFooter className='gap-y-2'>
           <DialogClose asChild>
-            <Button variant='outline'>Cancel</Button>
+            <Button variant='outline' disabled={createUserMutation.isPending}>
+              Cancel
+            </Button>
           </DialogClose>
-          <Button type='submit' form='user-invite-form'>
-            Invite <Send />
+          <Button
+            type='submit'
+            form='user-invite-form'
+            disabled={createUserMutation.isPending}
+          >
+            {createUserMutation.isPending ? 'Creating...' : 'Create User'} <Send />
           </Button>
         </DialogFooter>
       </DialogContent>
