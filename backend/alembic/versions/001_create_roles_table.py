@@ -34,6 +34,13 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("scope", sa.String(20), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.text("NOW()")),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+            onupdate=sa.text("NOW()"),
+        ),
         sa.CheckConstraint(
             "name IN ('super_admin', 'npo_admin', 'event_coordinator', 'staff', 'donor')",
             name="role_name_valid",

@@ -176,6 +176,9 @@ class AuthService:
         user.last_login_at = datetime.utcnow()
         await db.commit()
 
+        # Refresh to load role relationship
+        await db.refresh(user, ["role"])
+
         # Build response
         user_public = UserPublic(
             id=user.id,
@@ -185,7 +188,7 @@ class AuthService:
             phone=user.phone,
             email_verified=user.email_verified,
             is_active=user.is_active,
-            role="donor",  # Hardcoded for now, will fetch from role relationship later
+            role=user.role.name,  # Get role name from relationship
             npo_id=user.npo_id,
             created_at=user.created_at,
         )

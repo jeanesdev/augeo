@@ -23,7 +23,7 @@ from app.services.permission_service import PermissionService
 class UserService:
     """Service for user management operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize UserService with PermissionService."""
         self.permission_service = PermissionService()
 
@@ -69,8 +69,9 @@ class UserService:
         stmt = select(User)
 
         # Apply access control based on user role
-        if current_user.role != "super_admin":
-            if current_user.role in {"npo_admin", "event_coordinator"}:
+        # Note: role_name is added dynamically by auth middleware
+        if current_user.role_name != "super_admin":  # type: ignore[attr-defined]
+            if current_user.role_name in {"npo_admin", "event_coordinator"}:  # type: ignore[attr-defined]
                 # Can only see users in their NPO
                 if current_user.npo_id is None:
                     raise PermissionError("NPO admin/coordinator must have npo_id")
@@ -147,7 +148,10 @@ class UserService:
             }
             user_list.append(UserPublicWithRole(**user_dict))
 
-        total_pages = ceil(total / per_page) if total > 0 else 1
+        # Calculate total pages, handling case where total is None
+        total_pages = ceil(total / per_page) if (total is not None and total > 0) else 1
+        # Ensure total is not None for response
+        total = total or 0
 
         return UserListResponse(
             items=user_list,

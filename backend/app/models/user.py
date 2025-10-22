@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
+    from app.models.role import Role
     from app.models.session import Session
 
 
@@ -82,8 +83,11 @@ class User(Base, UUIDMixin, TimestampMixin):
     )
 
     # Relationships
-    # Note: Role relationship will be added when role.py model is created
-    # role: Mapped["Role"] = relationship("Role", back_populates="users")
+    role: Mapped["Role"] = relationship(
+        "Role",
+        back_populates="users",
+        foreign_keys=[role_id],
+    )
 
     sessions: Mapped[list["Session"]] = relationship(
         "Session",

@@ -21,7 +21,7 @@ from app.services.redis_service import RedisService
 class HTTPBearerAuth(HTTPBearer):
     """Custom HTTPBearer that returns 401 instead of 403 for missing credentials."""
 
-    async def __call__(self, request: Request) -> HTTPAuthorizationCredentials:
+    async def __call__(self, request: Request) -> HTTPAuthorizationCredentials | None:
         """Override to return 401 for missing credentials."""
         try:
             return await super().__call__(request)
@@ -150,10 +150,11 @@ async def get_current_user(
 
         role_stmt = text("SELECT name FROM roles WHERE id = :role_id")
         role_result = await db.execute(role_stmt, {"role_id": user.role_id})
-        role_name = role_result.scalar_one_or_none()
+        role_name_str = role_result.scalar_one_or_none()
 
         # Attach role name to user object for permission checks
-        user.role = role_name if role_name else "unknown"
+        # Note: user.role is the SQLAlchemy relationship, so we use a custom attribute
+        user.role_name = role_name_str if role_name_str else "unknown"  # type: ignore[attr-defined]
 
         return user
 
@@ -210,7 +211,7 @@ async def get_current_active_user(current_user: Annotated[User, Depends(get_curr
     return current_user
 
 
-def require_role(*allowed_roles: str) -> Callable:
+def require_role(*allowed_roles: str) -> Callable[..., Any]:
     """Decorator to require specific roles for an endpoint.
 
     Args:
@@ -231,7 +232,7 @@ def require_role(*allowed_roles: str) -> Callable:
         HTTPException 403: User role not in allowed roles
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Extract current_user from kwargs (injected by FastAPI)
@@ -249,7 +250,7 @@ def require_role(*allowed_roles: str) -> Callable:
                 )
 
             # Check if user has an allowed role
-            user_role = getattr(current_user, "role", None)
+            user_role = getattr(current_user, "role_name", None)  # Use role_name, not role
             if user_role not in allowed_roles:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -268,7 +269,7 @@ def require_role(*allowed_roles: str) -> Callable:
     return decorator
 
 
-def require_permission(resource: str, action: str) -> Callable:
+def require_permission(resource: str, action: str) -> Callable[..., Any]:
     """Decorator to require specific permission for an endpoint.
 
     This is a more fine-grained alternative to require_role that checks
@@ -297,7 +298,7 @@ def require_permission(resource: str, action: str) -> Callable:
         has permission for the specified resource:action combination.
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Extract current_user from kwargs

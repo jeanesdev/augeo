@@ -48,17 +48,17 @@ class PermissionService:
             - event_coordinator: Can view users in their NPO only
             - staff/donor: Cannot view user lists
         """
-        if user.role not in self.ROLES_CAN_VIEW_USERS:
+        if user.role_name not in self.ROLES_CAN_VIEW_USERS:
             return False
 
-        if user.role == "super_admin":
+        if user.role_name == "super_admin":
             return True
 
         # NPO admin and event coordinator can only view users in their NPO
-        if user.role in {"npo_admin", "event_coordinator"}:
+        if user.role_name in {"npo_admin", "event_coordinator"}:
             if user.npo_id is None:
                 return False
-            return target_user_npo_id == user.npo_id
+            return bool(target_user_npo_id == user.npo_id)
 
         return False
 
@@ -78,24 +78,24 @@ class PermissionService:
             - event_coordinator: Can create users in their NPO only (staff/donors for events)
             - Others: Cannot create users
         """
-        if user.role not in self.ROLES_CAN_CREATE_USERS:
+        if user.role_name not in self.ROLES_CAN_CREATE_USERS:
             return False
 
-        if user.role == "super_admin":
+        if user.role_name == "super_admin":
             return True
 
         # NPO admin can create users in their NPO or without NPO (donors)
-        if user.role == "npo_admin":
+        if user.role_name == "npo_admin":
             if user.npo_id is None:
                 return False
             # Can create users with no NPO (donors) or users in their NPO
             return target_npo_id is None or target_npo_id == user.npo_id
 
         # Event coordinator can create users in their NPO only
-        if user.role == "event_coordinator":
+        if user.role_name == "event_coordinator":
             if user.npo_id is None:
                 return False
-            return target_npo_id == user.npo_id
+            return bool(target_npo_id == user.npo_id)
 
         return False
 
@@ -115,17 +115,17 @@ class PermissionService:
             - event_coordinator: Can assign staff and donor only
             - Others: Cannot assign roles
         """
-        if user.role not in self.ROLES_CAN_ASSIGN_ROLES:
+        if user.role_name not in self.ROLES_CAN_ASSIGN_ROLES:
             return False
 
-        if user.role == "super_admin":
+        if user.role_name == "super_admin":
             return True
 
-        if user.role == "npo_admin":
+        if user.role_name == "npo_admin":
             # NPO admin cannot assign super_admin role
             return target_role != "super_admin"
 
-        if user.role == "event_coordinator":
+        if user.role_name == "event_coordinator":
             # Event coordinator can only assign staff and donor
             return target_role in {"staff", "donor"}
 
@@ -146,10 +146,10 @@ class PermissionService:
             - npo_admin: Can modify users in their NPO only
             - Others: Cannot modify users
         """
-        if user.role == "super_admin":
+        if user.role_name == "super_admin":
             return True
 
-        if user.role == "npo_admin":
+        if user.role_name == "npo_admin":
             if user.npo_id is None:
                 return False
             # Can modify users in their NPO or users without NPO (donors)

@@ -1,7 +1,8 @@
 import z from 'zod'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Users } from '@/features/users'
 import { roles } from '@/features/users/data/data'
+import { useAuthStore } from '@/stores/auth-store'
 
 const usersSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -22,7 +23,28 @@ const usersSearchSchema = z.object({
     .catch([]),
 })
 
+// Roles allowed to access user management (admin roles only)
+const ALLOWED_ROLES = ['super_admin', 'npo_admin']
+
 export const Route = createFileRoute('/_authenticated/users/')({
   validateSearch: usersSearchSchema,
+  beforeLoad: () => {
+    const user = useAuthStore.getState().auth.user
+
+    // Check if user is authenticated
+    if (!user) {
+      throw redirect({
+        to: '/sign-in',
+      })
+    }
+
+    // Check if user has required role (super_admin or npo_admin)
+    if (!ALLOWED_ROLES.includes(user.role)) {
+      // Redirect to home with error
+      throw redirect({
+        to: '/',
+      })
+    }
+  },
   component: Users,
 })
