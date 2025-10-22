@@ -12,7 +12,30 @@ tests/
 ```
 
 ## Commands
-cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] pytest [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] ruff check .
+
+### Backend (Python)
+**CRITICAL**: Always use Poetry for Python commands. Never use pip, venv, or virtualenv directly.
+
+- Run tests: `cd backend && poetry run pytest`
+- Run linter: `cd backend && poetry run ruff check .`
+- Run formatter: `cd backend && poetry run black .`
+- Install dependencies: `cd backend && poetry install`
+- Add package: `cd backend && poetry add <package>`
+- Run any Python command: `cd backend && poetry run <command>`
+
+### Frontend
+- Install: `pnpm install`
+- Dev server: `pnpm dev`
+- Build: `pnpm build`
+- Test: `pnpm test`
+
+## Development Environment
+
+### Python Environment
+- **Package Manager**: Poetry (ALWAYS use `poetry run` for all Python commands)
+- **Virtual Environment**: Managed by Poetry at `~/.cache/pypoetry/virtualenvs/`
+- **Never use**: pip install, venv/bin/activate, python -m commands directly
+- **Always use**: `poetry run python`, `poetry run pytest`, etc.
 
 ## Code Style
 Python 3.11+ (Backend), TypeScript (Frontend): Follow standard conventions
