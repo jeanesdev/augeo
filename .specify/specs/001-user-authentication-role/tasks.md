@@ -149,11 +149,11 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 ### Tests for User Story 3
 
-- [ ] T069 [P] [US3] Create contract test for GET /api/v1/users in backend/app/tests/contract/test_users_list.py
-- [ ] T070 [P] [US3] Create contract test for POST /api/v1/users in backend/app/tests/contract/test_users_create.py
-- [ ] T071 [P] [US3] Create contract test for PATCH /api/v1/users/{user_id}/role in backend/app/tests/contract/test_users_role.py
-- [ ] T072 [P] [US3] Create integration test for role assignment flow in backend/app/tests/integration/test_role_assignment.py
-- [ ] T073 [P] [US3] Create unit test for permission checking logic in backend/app/tests/unit/test_permissions.py
+- [x] T069 [P] [US3] Create contract test for GET /api/v1/users in backend/app/tests/contract/test_users_list.py
+- [x] T070 [P] [US3] Create contract test for POST /api/v1/users in backend/app/tests/contract/test_users_create.py
+- [x] T071 [P] [US3] Create contract test for PATCH /api/v1/users/{user_id}/role in backend/app/tests/contract/test_users_role.py
+- [x] T072 [P] [US3] Create integration test for role assignment flow in backend/app/tests/integration/test_role_assignment.py
+- [x] T073 [P] [US3] Create unit test for permission checking logic in backend/app/tests/unit/test_permissions.py
 
 ### Implementation for User Story 3
 
