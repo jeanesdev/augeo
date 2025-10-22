@@ -172,14 +172,34 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T086 [US3] Create authorization middleware with @require_role, @require_permission decorators in backend/app/middleware/auth.py
 - [x] T087 [US3] Implement role-based access control checks for all user management endpoints in backend/app/api/v1/users.py
 - [x] T088 [US3] Add audit logging for role_changed, account_deactivated events in backend/app/services/audit_service.py
-- [ ] T089 [P] [US3] Create user list page component with table in frontend/augeo-admin/src/features/users/UserListPage.tsx
-- [ ] T090 [P] [US3] Create user create form component in frontend/augeo-admin/src/features/users/UserCreateForm.tsx
-- [ ] T091 [P] [US3] Create role assignment dialog component in frontend/augeo-admin/src/features/users/RoleAssignmentDialog.tsx
+- [x] T089 [P] [US3] Create user list page component with table in frontend/augeo-admin/src/features/users/UserListPage.tsx
+- [x] T090 [P] [US3] Create user create form component in frontend/augeo-admin/src/features/users/UserCreateForm.tsx
+- [x] T091 [P] [US3] Create role assignment dialog component in frontend/augeo-admin/src/features/users/RoleAssignmentDialog.tsx
 - [ ] T092 [US3] Add user management routes (admin only) to React Router in frontend/augeo-admin/src/routes/_authenticated/
 
-**In Progress**: October 22, 2025 | **Commit**: ae14a19
+**Completed**: October 22, 2025 | **Commits**: ae14a19 (backend), ad7bcce (frontend T089-T091)
 
 **Notes**:
+
+- Frontend integration (T089-T091):
+  - Created API service layer (users-api.ts) with backend schema
+  - Created React Query hooks (use-users.ts) for all CRUD operations
+  - Updated user schema to match backend snake_case format (first_name, last_name, phone, is_active)
+  - Refactored table columns to use backend fields directly (removed transformation layer)
+  - Created RoleAssignmentDialog for changing user roles with conditional NPO ID field
+  - Updated UsersInviteDialog (create user) with password field
+  - Removed template mock data and camelCase → snake_case conversion
+  - TypeScript compilation: 0 errors ✅
+  - ESLint: 0 errors, 1 warning (React Compiler optimization - non-blocking)
+- Servers running:
+  - Backend: http://localhost:8000 (FastAPI + docs at /docs)
+  - Frontend: http://localhost:5173 (Vite dev server)
+- Testing needed:
+  - Manual testing: Create, list, update role, delete user operations
+  - Edge cases: NPO ID validation, error messages, empty states
+  - Integration: Verify auth tokens work, 401/403 responses handled correctly
+
+**Original Notes**:
 
 - T074-T075 deferred: Using service-based permissions (PermissionService) instead of database Permission table - simpler and faster for MVP
 - Backend implementation complete (T076-T088):
