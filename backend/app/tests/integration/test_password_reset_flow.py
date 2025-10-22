@@ -15,7 +15,7 @@ class TestPasswordResetFlow:
 
     @pytest.mark.asyncio
     async def test_complete_password_reset_flow(
-        self, client: AsyncClient, db_session: AsyncSession, test_user: User
+        self, async_client: AsyncClient, db_session: AsyncSession, test_user: User
     ):
         """
         Test complete password reset flow:
@@ -27,8 +27,8 @@ class TestPasswordResetFlow:
         6. Old password no longer works
         """
         # Step 1: Request password reset
-        response = await client.post(
-            "/api/v1/password/reset/request",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/request",
             json={"email": test_user.email},
         )
         assert response.status_code == 200
@@ -44,8 +44,8 @@ class TestPasswordResetFlow:
         token = "test_token"  # Placeholder
         new_password = "NewSecurePass789"
 
-        response = await client.post(
-            "/api/v1/password/reset/confirm",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/confirm",
             json={
                 "token": token,
                 "new_password": new_password,
@@ -58,7 +58,7 @@ class TestPasswordResetFlow:
         # assert token_exists is None
 
         # Step 5: Login with new password should work
-        response = await client.post(
+        response = await async_client.post(
             "/api/v1/auth/login",
             json={
                 "email": test_user.email,
@@ -69,7 +69,7 @@ class TestPasswordResetFlow:
         assert "access_token" in response.json()
 
         # Step 6: Login with old password should fail
-        response = await client.post(
+        response = await async_client.post(
             "/api/v1/auth/login",
             json={
                 "email": test_user.email,
@@ -81,7 +81,7 @@ class TestPasswordResetFlow:
     @pytest.mark.asyncio
     async def test_password_reset_revokes_all_sessions(
         self,
-        client: AsyncClient,
+        async_client: AsyncClient,
         db_session: AsyncSession,
         test_user: User,
         authenticated_client: AsyncClient,
@@ -99,14 +99,14 @@ class TestPasswordResetFlow:
         # assert response.status_code == 200
 
         # Step 2: Request and confirm password reset
-        await client.post(
-            "/api/v1/password/reset/request",
+        await async_client.post(
+            "/api/v1/auth/password/reset/request",
             json={"email": test_user.email},
         )
 
         token = "test_token"
-        response = await client.post(
-            "/api/v1/password/reset/confirm",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/confirm",
             json={
                 "token": token,
                 "new_password": "NewPassword123",
@@ -119,7 +119,7 @@ class TestPasswordResetFlow:
         # assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_reset_token_expires_after_use(self, client: AsyncClient, test_user: User):
+    async def test_reset_token_expires_after_use(self, async_client: AsyncClient, test_user: User):
         """
         Test that reset tokens can only be used once:
         1. User requests password reset
@@ -127,8 +127,8 @@ class TestPasswordResetFlow:
         3. Token cannot be used again
         """
         # Request reset
-        response = await client.post(
-            "/api/v1/password/reset/request",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/request",
             json={"email": test_user.email},
         )
         assert response.status_code == 200
@@ -136,8 +136,8 @@ class TestPasswordResetFlow:
         token = "test_token"
 
         # First use: success
-        response = await client.post(
-            "/api/v1/password/reset/confirm",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/confirm",
             json={
                 "token": token,
                 "new_password": "NewPassword123",
@@ -146,8 +146,8 @@ class TestPasswordResetFlow:
         assert response.status_code == 200
 
         # Second use: should fail
-        response = await client.post(
-            "/api/v1/password/reset/confirm",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/confirm",
             json={
                 "token": token,
                 "new_password": "AnotherPassword456",
@@ -157,7 +157,9 @@ class TestPasswordResetFlow:
         assert response.json()["error"]["code"] == "INVALID_RESET_TOKEN"
 
     @pytest.mark.asyncio
-    async def test_reset_token_expires_after_1_hour(self, client: AsyncClient, test_user: User):
+    async def test_reset_token_expires_after_1_hour(
+        self, async_client: AsyncClient, test_user: User
+    ):
         """
         Test that reset tokens expire after 1 hour:
         1. User requests password reset
@@ -170,7 +172,7 @@ class TestPasswordResetFlow:
 
     @pytest.mark.asyncio
     async def test_multiple_reset_requests_invalidate_previous_tokens(
-        self, client: AsyncClient, test_user: User
+        self, async_client: AsyncClient, test_user: User
     ):
         """
         Test that requesting a new reset invalidates previous tokens:
@@ -180,8 +182,8 @@ class TestPasswordResetFlow:
         4. token2 should be valid
         """
         # First request
-        response = await client.post(
-            "/api/v1/password/reset/request",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/request",
             json={"email": test_user.email},
         )
         assert response.status_code == 200
@@ -189,8 +191,8 @@ class TestPasswordResetFlow:
         token1 = "first_token"
 
         # Second request
-        response = await client.post(
-            "/api/v1/password/reset/request",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/request",
             json={"email": test_user.email},
         )
         assert response.status_code == 200
@@ -198,8 +200,8 @@ class TestPasswordResetFlow:
         token2 = "second_token"
 
         # Try to use first token: should fail
-        response = await client.post(
-            "/api/v1/password/reset/confirm",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/confirm",
             json={
                 "token": token1,
                 "new_password": "NewPassword123",
@@ -208,8 +210,8 @@ class TestPasswordResetFlow:
         assert response.status_code == 400
 
         # Try to use second token: should succeed
-        response = await client.post(
-            "/api/v1/password/reset/confirm",
+        response = await async_client.post(
+            "/api/v1/auth/password/reset/confirm",
             json={
                 "token": token2,
                 "new_password": "NewPassword123",

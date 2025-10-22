@@ -222,8 +222,14 @@ async def test_user(db_session: AsyncSession) -> Any:
     Returns a User model instance with verified email and active status.
     Password: TestPass123
     """
-    from app.core.security import get_password_hash
+    from sqlalchemy import text
+
+    from app.core.security import hash_password
     from app.models.user import User
+
+    # Get donor role_id from database
+    role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'donor'"))
+    donor_role_id = role_result.scalar_one()
 
     # Create test user
     user = User(
@@ -231,10 +237,10 @@ async def test_user(db_session: AsyncSession) -> Any:
         first_name="Test",
         last_name="User",
         phone="+1-555-0100",
-        hashed_password=get_password_hash("TestPass123"),
+        password_hash=hash_password("TestPass123"),
         email_verified=True,
         is_active=True,
-        role="donor",
+        role_id=donor_role_id,
     )
     db_session.add(user)
     await db_session.commit()
@@ -250,8 +256,14 @@ async def authenticated_client(async_client: AsyncClient, test_user: Any) -> Asy
 
     Returns AsyncClient with Authorization header set to valid access token.
     """
+    # Clear rate limiting from Redis to avoid conflicts from previous test runs
+    from app.core.redis import get_redis
+
+    redis_client = await get_redis()
+    await redis_client.flushdb()
+
     # Login to get access token
-    response = async_client.post(
+    response = await async_client.post(
         "/api/v1/auth/login",
         json={
             "email": test_user.email,
@@ -259,7 +271,7 @@ async def authenticated_client(async_client: AsyncClient, test_user: Any) -> Asy
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Login failed: {response.json()}"
     data = response.json()
     access_token = data["access_token"]
 

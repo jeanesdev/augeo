@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from passlib.context import CryptContext
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,9 +12,6 @@ from app.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.models.session import Session
-
-# Password hashing context (bcrypt with 12 rounds minimum)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class User(Base, UUIDMixin, TimestampMixin):
@@ -107,7 +103,9 @@ class User(Base, UUIDMixin, TimestampMixin):
         Args:
             plain_password: The plain text password to hash
         """
-        self.password_hash = pwd_context.hash(plain_password)
+        from app.core.security import hash_password
+
+        self.password_hash = hash_password(plain_password)
 
     def verify_password(self, plain_password: str) -> bool:
         """Verify a plain text password against the stored hash.
@@ -118,8 +116,9 @@ class User(Base, UUIDMixin, TimestampMixin):
         Returns:
             True if password matches, False otherwise
         """
-        result: bool = pwd_context.verify(plain_password, self.password_hash)
-        return result
+        from app.core.security import verify_password
+
+        return verify_password(plain_password, self.password_hash)
 
     @property
     def full_name(self) -> str:
