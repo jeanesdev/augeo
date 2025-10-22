@@ -212,8 +212,58 @@ async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, 
 # ================================
 # Authentication Fixtures
 # ================================
-# TODO: Add fixtures for authenticated users when auth is implemented
-# - authenticated_client: Client with valid access token
-# - super_admin_client: Client with super admin role
-# - npo_admin_client: Client with npo admin role
-# - donor_client: Client with donor role
+
+
+@pytest_asyncio.fixture
+async def test_user(db_session: AsyncSession) -> Any:
+    """
+    Create a test user for authentication tests.
+
+    Returns a User model instance with verified email and active status.
+    Password: TestPass123
+    """
+    from app.core.security import get_password_hash
+    from app.models.user import User
+
+    # Create test user
+    user = User(
+        email="test@example.com",
+        first_name="Test",
+        last_name="User",
+        phone="+1-555-0100",
+        hashed_password=get_password_hash("TestPass123"),
+        email_verified=True,
+        is_active=True,
+        role="donor",
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    return user
+
+
+@pytest_asyncio.fixture
+async def authenticated_client(async_client: AsyncClient, test_user: Any) -> AsyncClient:
+    """
+    Create authenticated async test client with access token.
+
+    Returns AsyncClient with Authorization header set to valid access token.
+    """
+    # Login to get access token
+    response = async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": test_user.email,
+            "password": "TestPass123",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    access_token = data["access_token"]
+
+    # Set authorization header for subsequent requests
+    async_client.headers["Authorization"] = f"Bearer {access_token}"
+
+    return async_client
