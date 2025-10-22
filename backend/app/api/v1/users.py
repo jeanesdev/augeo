@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, require_role
 from app.models.user import User
 from app.schemas.users import (
     RoleUpdateRequest,
@@ -22,6 +22,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=UserListResponse)
+@require_role("super_admin", "npo_admin", "event_coordinator")
 async def list_users(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
@@ -78,6 +79,7 @@ async def list_users(
 
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublicWithRole)
+@require_role("super_admin", "npo_admin")
 async def create_user(
     user_data: UserCreateRequest,
     current_user: User = Depends(get_current_user),
@@ -111,9 +113,7 @@ async def create_user(
     user_service = UserService()
 
     try:
-        user = await user_service.create_user(
-            db=db, current_user=current_user, user_data=user_data
-        )
+        user = await user_service.create_user(db=db, current_user=current_user, user_data=user_data)
 
         # Get role name for response
         from sqlalchemy import select
@@ -127,15 +127,12 @@ async def create_user(
 
         # Log user creation
         audit_service = AuditService()
-        audit_service.log_info(
-            f"User created: {user.email} with role {role_name}",
-            extra={
-                "event": "USER_CREATED",
-                "user_id": str(current_user.id),
-                "target_user_id": str(user.id),
-                "role": role_name,
-                "npo_id": str(user.npo_id) if user.npo_id else None,
-            },
+        audit_service.log_user_created(
+            user_id=user.id,
+            email=user.email,
+            role=role_name,
+            admin_user_id=current_user.id,
+            admin_email=current_user.email,
         )
 
         return {
@@ -161,6 +158,7 @@ async def create_user(
 
 
 @router.get("/{user_id}", response_model=UserPublicWithRole)
+@require_role("super_admin", "npo_admin", "event_coordinator")
 async def get_user(
     user_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -220,6 +218,7 @@ async def get_user(
 
 
 @router.patch("/{user_id}", response_model=UserPublicWithRole)
+@require_role("super_admin", "npo_admin")
 async def update_user(
     user_id: uuid.UUID,
     user_data: UserUpdateRequest,
@@ -263,13 +262,21 @@ async def update_user(
 
         # Log user update
         audit_service = AuditService()
-        audit_service.log_info(
-            f"User updated: {user.email}",
-            extra={
-                "event": "USER_UPDATED",
-                "user_id": str(current_user.id),
-                "target_user_id": str(user.id),
-            },
+        # Determine which fields were updated
+        fields_updated = []
+        if user_data.first_name is not None:
+            fields_updated.append("first_name")
+        if user_data.last_name is not None:
+            fields_updated.append("last_name")
+        if user_data.phone is not None:
+            fields_updated.append("phone")
+
+        audit_service.log_user_updated(
+            user_id=user.id,
+            email=user.email,
+            fields_updated=fields_updated,
+            admin_user_id=current_user.id,
+            admin_email=current_user.email,
         )
 
         return {
@@ -293,6 +300,7 @@ async def update_user(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@require_role("super_admin", "npo_admin")
 async def delete_user(
     user_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -315,19 +323,15 @@ async def delete_user(
     user_service = UserService()
 
     try:
-        user = await user_service.deactivate_user(
-            db=db, current_user=current_user, user_id=user_id
-        )
+        user = await user_service.deactivate_user(db=db, current_user=current_user, user_id=user_id)
 
-        # Log user deletion
+        # Log user deletion/deactivation
         audit_service = AuditService()
-        audit_service.log_info(
-            f"User deactivated: {user.email}",
-            extra={
-                "event": "USER_DELETED",
-                "user_id": str(current_user.id),
-                "target_user_id": str(user.id),
-            },
+        audit_service.log_user_deleted(
+            user_id=user.id,
+            email=user.email,
+            admin_user_id=current_user.id,
+            admin_email=current_user.email,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -336,6 +340,7 @@ async def delete_user(
 
 
 @router.patch("/{user_id}/role", response_model=UserPublicWithRole)
+@require_role("super_admin", "npo_admin", "event_coordinator")
 async def update_user_role(
     user_id: uuid.UUID,
     role_data: RoleUpdateRequest,
@@ -370,6 +375,19 @@ async def update_user_role(
     user_service = UserService()
 
     try:
+        # First, get the user to retrieve old role
+        old_user = await user_service.get_user(db, current_user, user_id)
+
+        from sqlalchemy import select
+
+        from app.models.base import Base
+
+        roles_table = Base.metadata.tables["roles"]
+        old_role_stmt = select(roles_table.c.name).where(roles_table.c.id == old_user.role_id)
+        old_role_result = await db.execute(old_role_stmt)
+        old_role_name = old_role_result.scalar_one()
+
+        # Update the role
         user = await user_service.update_role(
             db=db,
             current_user=current_user,
@@ -378,27 +396,20 @@ async def update_user_role(
             npo_id=role_data.npo_id,
         )
 
-        # Get role name
-        from sqlalchemy import select
-
-        from app.models.base import Base
-
-        roles_table = Base.metadata.tables["roles"]
-        role_stmt = select(roles_table.c.name).where(roles_table.c.id == user.role_id)
-        role_result = await db.execute(role_stmt)
-        role_name = role_result.scalar_one()
+        # Get new role name
+        new_role_stmt = select(roles_table.c.name).where(roles_table.c.id == user.role_id)
+        new_role_result = await db.execute(new_role_stmt)
+        new_role_name = new_role_result.scalar_one()
 
         # Log role change
         audit_service = AuditService()
-        audit_service.log_info(
-            f"User role changed: {user.email} -> {role_name}",
-            extra={
-                "event": "ROLE_CHANGED",
-                "user_id": str(current_user.id),
-                "target_user_id": str(user.id),
-                "new_role": role_name,
-                "npo_id": str(user.npo_id) if user.npo_id else None,
-            },
+        audit_service.log_role_changed(
+            user_id=user.id,
+            email=user.email,
+            old_role=old_role_name,
+            new_role=new_role_name,
+            admin_user_id=current_user.id,
+            admin_email=current_user.email,
         )
 
         return {
@@ -407,7 +418,7 @@ async def update_user_role(
             "first_name": user.first_name,
             "last_name": user.last_name,
             "phone": user.phone,
-            "role": role_name,
+            "role": new_role_name,
             "npo_id": user.npo_id,
             "email_verified": user.email_verified,
             "is_active": user.is_active,
@@ -424,6 +435,7 @@ async def update_user_role(
 
 
 @router.post("/{user_id}/activate", response_model=UserPublicWithRole)
+@require_role("super_admin", "npo_admin")
 async def activate_user(
     user_id: uuid.UUID,
     activate_data: UserActivateRequest,

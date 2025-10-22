@@ -4,7 +4,9 @@ Provides dependency injection for protected endpoints that require authenticatio
 """
 
 import uuid
-from typing import Annotated
+from collections.abc import Callable
+from functools import wraps
+from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -206,3 +208,164 @@ async def get_current_active_user(current_user: Annotated[User, Depends(get_curr
         )
 
     return current_user
+
+
+def require_role(*allowed_roles: str) -> Callable:
+    """Decorator to require specific roles for an endpoint.
+
+    Args:
+        *allowed_roles: Role names that are allowed to access the endpoint
+
+    Returns:
+        Decorator function
+
+    Usage:
+        @router.get("/admin-only")
+        @require_role("super_admin", "npo_admin")
+        async def admin_endpoint(
+            current_user: Annotated[User, Depends(get_current_user)]
+        ):
+            return {"message": "Admin access granted"}
+
+    Raises:
+        HTTPException 403: User role not in allowed roles
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Extract current_user from kwargs (injected by FastAPI)
+            current_user = kwargs.get("current_user")
+
+            if not current_user:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={
+                        "error": {
+                            "code": "INTERNAL_ERROR",
+                            "message": "Current user not found in request context",
+                        }
+                    },
+                )
+
+            # Check if user has an allowed role
+            user_role = getattr(current_user, "role", None)
+            if user_role not in allowed_roles:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        "error": {
+                            "code": "INSUFFICIENT_PERMISSIONS",
+                            "message": f"Role '{user_role}' not authorized. Required: {', '.join(allowed_roles)}",
+                        }
+                    },
+                )
+
+            return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def require_permission(resource: str, action: str) -> Callable:
+    """Decorator to require specific permission for an endpoint.
+
+    This is a more fine-grained alternative to require_role that checks
+    specific resource:action permissions based on the user's role.
+
+    Args:
+        resource: Resource name (e.g., 'users', 'events', 'auctions')
+        action: Action name (e.g., 'create', 'read', 'update', 'delete')
+
+    Returns:
+        Decorator function
+
+    Usage:
+        @router.post("/users")
+        @require_permission("users", "create")
+        async def create_user(
+            current_user: Annotated[User, Depends(get_current_user)]
+        ):
+            return {"message": "User creation granted"}
+
+    Raises:
+        HTTPException 403: User lacks required permission
+
+    Note:
+        This decorator uses PermissionService to check if the user's role
+        has permission for the specified resource:action combination.
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Extract current_user from kwargs
+            current_user = kwargs.get("current_user")
+
+            if not current_user:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={
+                        "error": {
+                            "code": "INTERNAL_ERROR",
+                            "message": "Current user not found in request context",
+                        }
+                    },
+                )
+
+            # Import here to avoid circular dependency
+            from app.services.permission_service import PermissionService
+
+            permission_service = PermissionService()
+            user_role = getattr(current_user, "role", None)
+
+            # Map resource:action to permission check methods
+            # For now, we'll use a simple role-based check
+            # TODO: Implement granular permission checking when Permission table is added
+            if user_role == "super_admin":
+                # Super admin has all permissions
+                pass
+            elif resource == "users":
+                if action == "create" and not permission_service.can_create_user(
+                    current_user, None
+                ):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail={
+                            "error": {
+                                "code": "INSUFFICIENT_PERMISSIONS",
+                                "message": f"Permission denied: {resource}:{action}",
+                            }
+                        },
+                    )
+                elif action in ("read", "list") and not permission_service.can_view_user(
+                    current_user, None
+                ):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail={
+                            "error": {
+                                "code": "INSUFFICIENT_PERMISSIONS",
+                                "message": f"Permission denied: {resource}:{action}",
+                            }
+                        },
+                    )
+            else:
+                # For other resources, allow super_admin and npo_admin by default
+                if user_role not in ("super_admin", "npo_admin"):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail={
+                            "error": {
+                                "code": "INSUFFICIENT_PERMISSIONS",
+                                "message": f"Permission denied: {resource}:{action}",
+                            }
+                        },
+                    )
+
+            return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

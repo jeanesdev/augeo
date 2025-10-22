@@ -74,9 +74,7 @@ class UserService:
                 # Can only see users in their NPO
                 if current_user.npo_id is None:
                     raise PermissionError("NPO admin/coordinator must have npo_id")
-                stmt = stmt.where(
-                    or_(User.npo_id == current_user.npo_id, User.npo_id.is_(None))
-                )
+                stmt = stmt.where(or_(User.npo_id == current_user.npo_id, User.npo_id.is_(None)))
             else:
                 # Staff and donors cannot list users
                 raise PermissionError("Insufficient permissions to view users")
@@ -87,9 +85,8 @@ class UserService:
             from app.models.base import Base
 
             roles_table = Base.metadata.tables["roles"]
-            stmt = (
-                stmt.join(roles_table, User.role_id == roles_table.c.id)
-                .where(roles_table.c.name == role)
+            stmt = stmt.join(roles_table, User.role_id == roles_table.c.id).where(
+                roles_table.c.name == role
             )
 
         if npo_id:
@@ -334,9 +331,7 @@ class UserService:
             raise PermissionError(f"Cannot assign role: {role}")
 
         # Validate role and npo_id combination
-        is_valid, error_msg = self.permission_service.validate_role_npo_id_combination(
-            role, npo_id
-        )
+        is_valid, error_msg = self.permission_service.validate_role_npo_id_combination(role, npo_id)
         if not is_valid:
             raise ValueError(error_msg)
 
@@ -389,9 +384,7 @@ class UserService:
 
         return user
 
-    async def activate_user(
-        self, db: AsyncSession, current_user: User, user_id: uuid.UUID
-    ) -> User:
+    async def activate_user(self, db: AsyncSession, current_user: User, user_id: uuid.UUID) -> User:
         """Activate a user account.
 
         Args:

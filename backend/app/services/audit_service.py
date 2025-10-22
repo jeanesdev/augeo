@@ -27,6 +27,10 @@ class AuditEventType(str, Enum):
     ACCOUNT_REACTIVATED = "account_reactivated"
     TOKEN_REFRESHED = "token_refreshed"
     UNAUTHORIZED_ACCESS_ATTEMPT = "unauthorized_access_attempt"
+    ROLE_CHANGED = "role_changed"
+    USER_CREATED = "user_created"
+    USER_UPDATED = "user_updated"
+    USER_DELETED = "user_deleted"
 
 
 class AuditService:
@@ -311,6 +315,126 @@ class AuditService:
                 "email": email,
                 "reason": reason,
                 "admin_user_id": str(admin_user_id) if admin_user_id else None,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    @staticmethod
+    def log_role_changed(
+        user_id: uuid.UUID,
+        email: str,
+        old_role: str,
+        new_role: str,
+        admin_user_id: uuid.UUID,
+        admin_email: str,
+    ) -> None:
+        """Log role change event.
+
+        Args:
+            user_id: UUID of user whose role changed
+            email: User's email address
+            old_role: Previous role name
+            new_role: New role name
+            admin_user_id: UUID of admin who changed the role
+            admin_email: Email of admin who changed the role
+        """
+        logger.info(
+            "User role changed",
+            extra={
+                "event_type": AuditEventType.ROLE_CHANGED.value,
+                "user_id": str(user_id),
+                "email": email,
+                "old_role": old_role,
+                "new_role": new_role,
+                "admin_user_id": str(admin_user_id),
+                "admin_email": admin_email,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    @staticmethod
+    def log_user_created(
+        user_id: uuid.UUID,
+        email: str,
+        role: str,
+        admin_user_id: uuid.UUID,
+        admin_email: str,
+    ) -> None:
+        """Log user creation event.
+
+        Args:
+            user_id: UUID of created user
+            email: New user's email address
+            role: Assigned role name
+            admin_user_id: UUID of admin who created the user
+            admin_email: Email of admin who created the user
+        """
+        logger.info(
+            "User created by admin",
+            extra={
+                "event_type": AuditEventType.USER_CREATED.value,
+                "user_id": str(user_id),
+                "email": email,
+                "role": role,
+                "admin_user_id": str(admin_user_id),
+                "admin_email": admin_email,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    @staticmethod
+    def log_user_updated(
+        user_id: uuid.UUID,
+        email: str,
+        fields_updated: list[str],
+        admin_user_id: uuid.UUID,
+        admin_email: str,
+    ) -> None:
+        """Log user profile update event.
+
+        Args:
+            user_id: UUID of updated user
+            email: User's email address
+            fields_updated: List of field names that were updated
+            admin_user_id: UUID of admin who updated the user
+            admin_email: Email of admin who updated the user
+        """
+        logger.info(
+            "User profile updated",
+            extra={
+                "event_type": AuditEventType.USER_UPDATED.value,
+                "user_id": str(user_id),
+                "email": email,
+                "fields_updated": fields_updated,
+                "admin_user_id": str(admin_user_id),
+                "admin_email": admin_email,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    @staticmethod
+    def log_user_deleted(
+        user_id: uuid.UUID,
+        email: str,
+        admin_user_id: uuid.UUID,
+        admin_email: str,
+    ) -> None:
+        """Log user deletion/deactivation event.
+
+        Args:
+            user_id: UUID of deleted user
+            email: User's email address
+            admin_user_id: UUID of admin who deleted the user
+            admin_email: Email of admin who deleted the user
+        """
+        logger.warning(
+            "User deleted/deactivated",
+            extra={
+                "event_type": AuditEventType.USER_DELETED.value,
+                "user_id": str(user_id),
+                "email": email,
+                "admin_user_id": str(admin_user_id),
+                "admin_email": admin_email,
                 "timestamp": datetime.utcnow().isoformat(),
             },
         )
