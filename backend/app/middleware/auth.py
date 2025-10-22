@@ -6,7 +6,7 @@ Provides dependency injection for protected endpoints that require authenticatio
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,8 +15,27 @@ from app.core.security import decode_token
 from app.models.user import User
 from app.services.redis_service import RedisService
 
+
+class HTTPBearerAuth(HTTPBearer):
+    """Custom HTTPBearer that returns 401 instead of 403 for missing credentials."""
+
+    async def __call__(self, request: Request) -> HTTPAuthorizationCredentials:
+        """Override to return 401 for missing credentials."""
+        try:
+            return await super().__call__(request)
+        except HTTPException as e:
+            if e.status_code == 403:
+                # Convert 403 (Forbidden) to 401 (Unauthorized) for missing credentials
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication required",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            raise
+
+
 # HTTP Bearer token scheme
-security = HTTPBearer()
+security = HTTPBearerAuth()
 
 
 async def get_current_user(
@@ -123,6 +142,16 @@ async def get_current_user(
                     }
                 },
             )
+
+        # Fetch role name from roles table and attach to user object
+        from sqlalchemy import text
+
+        role_stmt = text("SELECT name FROM roles WHERE id = :role_id")
+        role_result = await db.execute(role_stmt, {"role_id": user.role_id})
+        role_name = role_result.scalar_one_or_none()
+
+        # Attach role name to user object for permission checks
+        user.role = role_name if role_name else "unknown"
 
         return user
 

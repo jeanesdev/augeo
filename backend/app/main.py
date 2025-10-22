@@ -2,7 +2,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -92,6 +92,7 @@ app.add_middleware(  # type: ignore[call-arg]
 
 # Exception handlers
 app.add_exception_handler(Exception, generic_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(AuthenticationError, http_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(AuthorizationError, http_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(ResourceNotFoundError, http_exception_handler)  # type: ignore[arg-type]
