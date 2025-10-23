@@ -12,11 +12,11 @@ interface ProtectedRouteProps {
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate()
-  const { auth } = useAuthStore()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   useEffect(() => {
     // Check if user is authenticated
-    if (!auth.isAuthenticated) {
+    if (!isAuthenticated) {
       // Redirect to sign-in with return URL
       navigate({
         to: '/sign-in',
@@ -24,10 +24,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         replace: true,
       })
     }
-  }, [auth.isAuthenticated, navigate])
+  }, [isAuthenticated, navigate])
 
   // If not authenticated, don't render children (will redirect)
-  if (!auth.isAuthenticated) {
+  if (!isAuthenticated) {
     return null
   }
 

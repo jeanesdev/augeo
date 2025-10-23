@@ -29,7 +29,7 @@ const ALLOWED_ROLES = ['super_admin', 'npo_admin']
 export const Route = createFileRoute('/_authenticated/users/')({
   validateSearch: usersSearchSchema,
   beforeLoad: () => {
-    const user = useAuthStore.getState().auth.user
+    const user = useAuthStore.getState().user
 
     // Check if user is authenticated
     if (!user) {
