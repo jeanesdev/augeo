@@ -14,6 +14,7 @@ class UserCreateRequest(BaseModel):
     """Request schema for creating a new user (admin only)."""
 
     email: EmailStr
+    password: str = Field(min_length=8, max_length=100)
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     phone: str | None = Field(None, max_length=20)
@@ -25,6 +26,16 @@ class UserCreateRequest(BaseModel):
     def email_must_be_lowercase(cls, v: str) -> str:
         """Ensure email is lowercase."""
         return v.lower()
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        """Validate password strength."""
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Password must contain at least one letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one number")
+        return v
 
 
 class RoleUpdateRequest(BaseModel):
@@ -40,6 +51,19 @@ class UserUpdateRequest(BaseModel):
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, min_length=1, max_length=100)
     phone: str | None = Field(None, max_length=20)
+    password: str | None = Field(None, min_length=8, max_length=100)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str | None) -> str | None:
+        """Validate password strength if provided."""
+        if v is None:
+            return v
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Password must contain at least one letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one number")
+        return v
 
 
 # ================================

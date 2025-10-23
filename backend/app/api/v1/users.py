@@ -84,7 +84,7 @@ async def create_user(
     user_data: UserCreateRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, object]:
     """Create a new user (admin only).
 
     Access Control:
@@ -163,7 +163,7 @@ async def get_user(
     user_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, object]:
     """Get a user by ID.
 
     Access Control:
@@ -224,7 +224,7 @@ async def update_user(
     user_data: UserUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, object]:
     """Update user profile.
 
     Access Control:
@@ -346,7 +346,7 @@ async def update_user_role(
     role_data: RoleUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, object]:
     """Update user's role and optionally npo_id.
 
     Access Control:
@@ -441,7 +441,7 @@ async def activate_user(
     activate_data: UserActivateRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, object]:
     """Activate or deactivate a user account.
 
     Access Control:
@@ -467,12 +467,10 @@ async def activate_user(
             user = await user_service.activate_user(
                 db=db, current_user=current_user, user_id=user_id
             )
-            action = "activated"
         else:
             user = await user_service.deactivate_user(
                 db=db, current_user=current_user, user_id=user_id
             )
-            action = "deactivated"
 
         # Get role name
         from sqlalchemy import select
@@ -486,15 +484,18 @@ async def activate_user(
 
         # Log activation change
         audit_service = AuditService()
-        audit_service.log_info(
-            f"User {action}: {user.email}",
-            extra={
-                "event": "USER_ACTIVATION_CHANGED",
-                "user_id": str(current_user.id),
-                "target_user_id": str(user.id),
-                "is_active": user.is_active,
-            },
-        )
+        if activate_data.is_active:
+            audit_service.log_account_reactivated(
+                user_id=user.id,
+                email=user.email,
+                admin_user_id=current_user.id,
+            )
+        else:
+            audit_service.log_account_deactivated(
+                user_id=user.id,
+                email=user.email,
+                admin_user_id=current_user.id,
+            )
 
         return {
             "id": user.id,

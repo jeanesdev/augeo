@@ -212,14 +212,13 @@ class UserService:
         if not role_id:
             raise ValueError(f"Invalid role: {user_data.role}")
 
-        # Create user with a temporary password (should be changed on first login)
-        temp_password = f"TempPass{uuid.uuid4().hex[:8]}!"
+        # Create user with provided password
         user = User(
             email=user_data.email.lower(),
             first_name=user_data.first_name,
             last_name=user_data.last_name,
             phone=user_data.phone,
-            password_hash=hash_password(temp_password),
+            password_hash=hash_password(user_data.password),
             role_id=role_id,
             npo_id=user_data.npo_id,
             email_verified=False,  # Will need email verification
@@ -295,6 +294,8 @@ class UserService:
             user.last_name = user_data.last_name
         if user_data.phone is not None:
             user.phone = user_data.phone
+        if user_data.password is not None:
+            user.password_hash = hash_password(user_data.password)
 
         await db.commit()
         await db.refresh(user)
