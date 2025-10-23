@@ -14,8 +14,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Get access token from auth store
-    const { auth } = useAuthStore.getState()
-    const token = auth.accessToken
+    const token = useAuthStore.getState().accessToken
 
     // Add Authorization header if token exists
     if (token) {
@@ -38,8 +37,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized - clear auth and redirect to login
     if (error.response?.status === 401) {
-      const { auth } = useAuthStore.getState()
-      auth.reset()
+      useAuthStore.getState().reset()
 
       // Only redirect if not already on auth pages
       if (!window.location.pathname.startsWith('/sign-in')) {

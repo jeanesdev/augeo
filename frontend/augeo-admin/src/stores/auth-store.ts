@@ -48,180 +48,151 @@ interface RegisterResponse {
 }
 
 interface AuthState {
-  auth: {
-    user: AuthUser | null
-    accessToken: string
-    refreshToken: string
-    isAuthenticated: boolean
-    isLoading: boolean
-    error: string | null
+  user: AuthUser | null
+  accessToken: string
+  refreshToken: string
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
 
-    // Actions
-    setUser: (user: AuthUser | null) => void
-    setAccessToken: (accessToken: string) => void
-    setRefreshToken: (refreshToken: string) => void
-    setError: (error: string | null) => void
-    setLoading: (loading: boolean) => void
-    reset: () => void
+  // Actions
+  setUser: (user: AuthUser | null) => void
+  setAccessToken: (accessToken: string) => void
+  setRefreshToken: (refreshToken: string) => void
+  setError: (error: string | null) => void
+  setLoading: (loading: boolean) => void
+  reset: () => void
 
-    // API methods
-    login: (credentials: LoginRequest) => Promise<LoginResponse>
-    register: (data: RegisterRequest) => Promise<RegisterResponse>
-    logout: () => Promise<void>
-    getUser: () => AuthUser | null
-  }
+  // API methods
+  login: (credentials: LoginRequest) => Promise<LoginResponse>
+  register: (data: RegisterRequest) => Promise<RegisterResponse>
+  logout: () => Promise<void>
+  getUser: () => AuthUser | null
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      auth: {
-        user: null,
-        accessToken: '',
-        refreshToken: '',
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
+      user: null,
+      accessToken: '',
+      refreshToken: '',
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
 
-        // Setters
-        setUser: (user) =>
-          set((state) => ({
-            ...state,
-            auth: {
-              ...state.auth,
-              user,
-              isAuthenticated: !!user,
-            },
-          })),
+      // Setters
+      setUser: (user) =>
+        set({
+          user,
+          isAuthenticated: !!user,
+        }),
 
-        setAccessToken: (accessToken) =>
-          set((state) => ({
-            ...state,
-            auth: { ...state.auth, accessToken },
-          })),
+      setAccessToken: (accessToken) =>
+        set({ accessToken }),
 
-        setRefreshToken: (refreshToken) =>
-          set((state) => ({
-            ...state,
-            auth: { ...state.auth, refreshToken },
-          })),
+      setRefreshToken: (refreshToken) =>
+        set({ refreshToken }),
 
-        setError: (error) =>
-          set((state) => ({
-            ...state,
-            auth: { ...state.auth, error },
-          })),
+      setError: (error) =>
+        set({ error }),
 
-        setLoading: (loading) =>
-          set((state) => ({
-            ...state,
-            auth: { ...state.auth, isLoading: loading },
-          })),
+      setLoading: (loading) =>
+        set({ isLoading: loading }),
 
-        reset: () =>
-          set((state) => ({
-            ...state,
-            auth: {
-              ...state.auth,
-              user: null,
-              accessToken: '',
-              refreshToken: '',
-              isAuthenticated: false,
-              error: null,
-            },
-          })),
+      reset: () =>
+        set({
+          user: null,
+          accessToken: '',
+          refreshToken: '',
+          isAuthenticated: false,
+          error: null,
+        }),
 
-        // API methods
-        login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-          const { auth } = get()
-          auth.setLoading(true)
-          auth.setError(null)
+      // API methods
+      login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+        set({ isLoading: true, error: null })
 
-          try {
-            const response = await apiClient.post<LoginResponse>(
-              '/auth/login',
-              credentials
-            )
+        try {
+          const response = await apiClient.post<LoginResponse>(
+            '/auth/login',
+            credentials
+          )
 
-            const { access_token, refresh_token, user } = response.data
+          const { access_token, refresh_token, user } = response.data
 
-            // Update store
-            auth.setAccessToken(access_token)
-            auth.setRefreshToken(refresh_token)
-            auth.setUser(user)
+          // Update store
+          set({
+            accessToken: access_token,
+            refreshToken: refresh_token,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          })
 
-            return response.data
-          } catch (error: unknown) {
-            const errorMessage =
-              (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
-              (error as { message?: string }).message ||
-              'Login failed'
-            auth.setError(errorMessage)
-            throw error
-          } finally {
-            auth.setLoading(false)
+          return response.data
+        } catch (error: unknown) {
+          const errorMessage =
+            (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
+            (error as { message?: string }).message ||
+            'Login failed'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
+      register: async (
+        data: RegisterRequest
+      ): Promise<RegisterResponse> => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const response = await apiClient.post<RegisterResponse>(
+            '/auth/register',
+            data
+          )
+
+          set({ isLoading: false })
+          return response.data
+        } catch (error: unknown) {
+          const errorMessage =
+            (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
+            (error as { message?: string }).message ||
+            'Registration failed'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
+      logout: async (): Promise<void> => {
+        const { accessToken, refreshToken, reset } = get()
+
+        try {
+          // Call logout endpoint if tokens exist
+          if (accessToken && refreshToken) {
+            await apiClient.post('/auth/logout', {
+              refresh_token: refreshToken,
+            })
           }
-        },
+        } catch (_error) {
+          // Silently fail - we still want to clear local state
+          // Error is expected if token is already invalid
+        } finally {
+          // Always clear local state
+          reset()
+        }
+      },
 
-        register: async (
-          data: RegisterRequest
-        ): Promise<RegisterResponse> => {
-          const { auth } = get()
-          auth.setLoading(true)
-          auth.setError(null)
-
-          try {
-            const response = await apiClient.post<RegisterResponse>(
-              '/auth/register',
-              data
-            )
-
-            return response.data
-          } catch (error: unknown) {
-            const errorMessage =
-              (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
-              (error as { message?: string }).message ||
-              'Registration failed'
-            auth.setError(errorMessage)
-            throw error
-          } finally {
-            auth.setLoading(false)
-          }
-        },
-
-        logout: async (): Promise<void> => {
-          const { auth } = get()
-          const { accessToken } = auth
-
-          try {
-            // Call logout endpoint if token exists
-            if (accessToken) {
-              await apiClient.post('/auth/logout')
-            }
-          } catch (_error) {
-            // Silently fail - we still want to clear local state
-            // Error is expected if token is already invalid
-          } finally {
-            // Always clear local state
-            auth.reset()
-          }
-        },
-
-        getUser: (): AuthUser | null => {
-          const { auth } = get()
-          return auth.user
-        },
+      getUser: (): AuthUser | null => {
+        return get().user
       },
     }),
     {
       name: 'augeo-auth-storage',
       partialize: (state) => ({
-        auth: {
-          user: state.auth.user,
-          accessToken: state.auth.accessToken,
-          refreshToken: state.auth.refreshToken,
-          isAuthenticated: state.auth.isAuthenticated,
-        },
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
       }),
     }
   )
