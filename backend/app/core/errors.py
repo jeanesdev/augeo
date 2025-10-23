@@ -67,15 +67,22 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     Returns:
         JSONResponse: Formatted error response
     """
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
+    # If detail is already a dict with error structure, use it as-is
+    if isinstance(exc.detail, dict) and "error" in exc.detail:
+        content = exc.detail
+    else:
+        # Otherwise, wrap it in standard error format
+        content = {
             "error": {
                 "code": exc.status_code,
                 "message": exc.detail,
                 "type": exc.__class__.__name__,
             }
-        },
+        }
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=content,
         headers=exc.headers,
     )
 

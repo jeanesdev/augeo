@@ -10,6 +10,7 @@ from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -158,7 +159,7 @@ async def get_current_user(
 
         return user
 
-    except ValueError as e:
+    except JWTError as e:
         # Token decode errors (invalid signature, expired, etc.)
         error_msg = str(e)
         if "expired" in error_msg.lower():
@@ -171,6 +172,13 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": {"code": code, "message": message}},
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+    except ValueError as e:
+        # Other validation errors (invalid UUID, etc.)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": {"code": "INVALID_TOKEN", "message": str(e)}},
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
 

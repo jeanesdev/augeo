@@ -138,15 +138,15 @@ class AuthService:
 
         # Check credentials
         if not user or not user.verify_password(password):
-            raise ValueError("INVALID_CREDENTIALS")
+            raise ValueError("Invalid email or password")
 
         # Check email verification
         if not user.email_verified:
-            raise ValueError("EMAIL_NOT_VERIFIED")
+            raise ValueError("Email not verified")
 
         # Check account active
         if not user.is_active:
-            raise ValueError("ACCOUNT_DEACTIVATED")
+            raise ValueError("Account deactivated")
 
         # Create JWT tokens
         token_data = {
