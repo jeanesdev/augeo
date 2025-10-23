@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { useCreateUser, useUpdateUser } from '../hooks/use-users'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -31,8 +31,7 @@ const formSchema = z
   .object({
     firstName: z.string().min(1, 'First Name is required.'),
     lastName: z.string().min(1, 'Last Name is required.'),
-    username: z.string().min(1, 'Username is required.'),
-    phoneNumber: z.string().min(1, 'Phone number is required.'),
+    phoneNumber: z.string().optional(),
     email: z.email({
       error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
     }),
@@ -105,6 +104,9 @@ export function UsersActionDialog({
   onOpenChange,
 }: UserActionDialogProps) {
   const isEdit = !!currentRow
+  const createUser = useCreateUser()
+  const updateUser = useUpdateUser()
+
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
@@ -117,7 +119,6 @@ export function UsersActionDialog({
       : {
           firstName: '',
           lastName: '',
-          username: '',
           email: '',
           role: '',
           phoneNumber: '',
@@ -127,10 +128,60 @@ export function UsersActionDialog({
         },
   })
 
-  const onSubmit = (values: UserForm) => {
-    form.reset()
-    showSubmittedData(values)
-    onOpenChange(false)
+  const onSubmit = async (values: UserForm) => {
+    try {
+      if (isEdit) {
+        // Update existing user
+        const updateData: {
+          first_name?: string
+          last_name?: string
+          phone?: string
+          password?: string
+        } = {
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phoneNumber || undefined,
+        }
+
+        // Only include password if it was changed
+        if (values.password) {
+          updateData.password = values.password
+        }
+
+        await updateUser.mutateAsync({
+          id: currentRow!.id,
+          ...updateData,
+        })
+      } else {
+        // Create new user
+        // TODO: Add NPO selection field for npo_admin and event_coordinator roles
+        // For now, these roles cannot be created without npo_id
+        if (['npo_admin', 'event_coordinator'].includes(values.role)) {
+          console.error('Cannot create user with role that requires NPO without NPO selection')
+          throw new Error('NPO Admin and Event Coordinator roles require NPO selection. Please use Staff or Donor role for now.')
+        }
+
+        const payload = {
+          email: values.email,
+          password: values.password,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phoneNumber || undefined,
+          role: values.role,
+        }
+        console.log('Creating user with payload:', payload)
+        await createUser.mutateAsync(payload)
+      }
+
+      form.reset()
+      onOpenChange(false)
+    } catch (error) {
+      // Error handling is done in the mutation hooks
+      console.error('Failed to save user:', error)
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('Error response:', (error as any).response?.data)
+      }
+    }
   }
 
   const isPasswordTouched = !!form.formState.dirtyFields.password
@@ -191,25 +242,6 @@ export function UsersActionDialog({
                         placeholder='Doe'
                         className='col-span-4'
                         autoComplete='off'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='username'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Username
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='john_doe'
-                        className='col-span-4'
                         {...field}
                       />
                     </FormControl>
