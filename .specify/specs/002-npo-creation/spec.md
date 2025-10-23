@@ -93,12 +93,38 @@ This feature enables users to create and manage Non-Profit Organizations (NPOs) 
 - Legal agreements are properly tracked and enforced
 - Application status is clearly communicated to users
 
+## Authentication and Route Protection
+
+### Protected Routes
+
+- **Index/Dashboard Route (`/`)**: Requires authentication
+  - Unauthenticated users must be redirected to `/sign-in`
+  - Prevents display of user interface elements when not logged in
+  - Navigation guards check authentication status before rendering
+- **All Application Routes**: Must verify user authentication before access
+  - Sign-in page preserves intended destination for post-login redirect
+  - Session validation on route transitions
+  - Automatic logout redirect on token expiration
+
+### UI State Management
+
+- **Unauthenticated State**:
+  - No profile dropdown or user information displayed
+  - No access to protected features or navigation
+  - Clear call-to-action to sign in
+- **Authenticated State**:
+  - Display user profile information (name, email)
+  - Show role-appropriate navigation and features
+  - Proper sign-out functionality
+
 ## Technical Considerations
 
 - Form validation and data sanitization
 - File upload handling for logos and documents
 - Role-based access control implementation
 - Email notification system for invitations and approvals
+- Route guards and authentication middleware
+- Session management and token validation
 - Audit logging for all administrative actions
 - Integration with authentication system
 - Responsive design for various devices
