@@ -43,7 +43,7 @@ export function SignUpForm({
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { auth } = useAuthStore()
+  const register = useAuthStore((state) => state.register)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,7 +62,7 @@ export function SignUpForm({
 
     const { confirmPassword: _, ...registerData } = data
 
-    toast.promise(auth.register(registerData), {
+    toast.promise(register(registerData), {
       loading: 'Creating your account...',
       success: (response) => {
         setIsLoading(false)

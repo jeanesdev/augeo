@@ -40,7 +40,7 @@ export function UserAuthForm({
 }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { auth } = useAuthStore()
+  const login = useAuthStore((state) => state.login)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,7 +53,7 @@ export function UserAuthForm({
   function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
 
-    toast.promise(auth.login(data), {
+    toast.promise(login(data), {
       loading: 'Signing in...',
       success: (response) => {
         setIsLoading(false)
