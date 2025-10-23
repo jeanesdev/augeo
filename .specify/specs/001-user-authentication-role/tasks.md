@@ -175,7 +175,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T089 [P] [US3] Create user list page component with table in frontend/augeo-admin/src/features/users/UserListPage.tsx
 - [x] T090 [P] [US3] Create user create form component in frontend/augeo-admin/src/features/users/UserCreateForm.tsx
 - [x] T091 [P] [US3] Create role assignment dialog component in frontend/augeo-admin/src/features/users/RoleAssignmentDialog.tsx
-- [ ] T092 [US3] Add user management routes (admin only) to React Router in frontend/augeo-admin/src/routes/_authenticated/
+- [x] T092 [US3] Add user management routes (admin only) to React Router in frontend/augeo-admin/src/routes/_authenticated/
 
 **Completed**: October 22, 2025 | **Commits**: ae14a19 (backend), ad7bcce (frontend T089-T091)
 
