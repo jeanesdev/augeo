@@ -8,6 +8,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.session import Session
+from app.services.audit_service import AuditService
 from app.services.redis_service import RedisService
 
 
@@ -91,6 +92,7 @@ class SessionService:
         db: AsyncSession,
         user_id: uuid.UUID,
         refresh_token_jti: str,
+        reason: str | None = None,
     ) -> bool:
         """Revoke session (soft delete in PostgreSQL, hard delete in Redis).
 
@@ -98,10 +100,23 @@ class SessionService:
             db: Database session
             user_id: User UUID
             refresh_token_jti: JWT ID from refresh token
+            reason: Optional reason for revocation
 
         Returns:
             True if session was revoked, False if not found
         """
+        # Fetch session details for audit logging
+        stmt = select(Session).where(
+            Session.user_id == user_id,
+            Session.refresh_token_jti == refresh_token_jti,
+            Session.revoked_at.is_(None),
+        )
+        session_result = await db.execute(stmt)
+        session = session_result.scalar_one_or_none()
+
+        if not session:
+            return False
+
         # Set revoked_at in PostgreSQL (immutable audit trail)
         result = await db.execute(
             update(Session)
@@ -117,6 +132,22 @@ class SessionService:
         # Delete from Redis (removes active session)
         await RedisService.delete_session(user_id, refresh_token_jti)
 
+        # Log audit event (get user email for logging)
+        from app.models.user import User
+
+        user_stmt = select(User).where(User.id == user_id)
+        user_result = await db.execute(user_stmt)
+        user = user_result.scalar_one_or_none()
+
+        if user:
+            AuditService.log_session_revoked(
+                user_id=user_id,
+                email=user.email,
+                session_jti=refresh_token_jti,
+                reason=reason or "manual_logout",
+                ip_address=session.ip_address,
+            )
+
         rows_affected: int = result.rowcount or 0  # type: ignore[attr-defined]
         return rows_affected > 0
 
@@ -125,6 +156,7 @@ class SessionService:
         db: AsyncSession,
         user_id: uuid.UUID,
         except_jti: str | None = None,
+        reason: str | None = None,
     ) -> int:
         """Revoke all sessions for a user (e.g., password reset, security breach).
 
@@ -132,10 +164,18 @@ class SessionService:
             db: Database session
             user_id: User UUID
             except_jti: Optional JTI to exclude (keep current session active)
+            reason: Optional reason for bulk revocation
 
         Returns:
             Number of sessions revoked
         """
+        # Get user info for audit logging
+        from app.models.user import User
+
+        user_stmt = select(User).where(User.id == user_id)
+        user_result = await db.execute(user_stmt)
+        user = user_result.scalar_one_or_none()
+
         # Build query to revoke sessions
         query = update(Session).where(
             Session.user_id == user_id,
@@ -150,6 +190,17 @@ class SessionService:
 
         result = await db.execute(query)
         await db.commit()
+
+        rows_affected: int = result.rowcount or 0  # type: ignore[attr-defined]
+
+        # Log audit event for bulk session revocation
+        if user and rows_affected > 0:
+            AuditService.log_session_revoked(
+                user_id=user_id,
+                email=user.email,
+                session_jti="ALL_SESSIONS",
+                reason=reason or "bulk_revocation",
+            )
 
         # Delete from Redis (except current session)
         await RedisService.delete_all_user_sessions(user_id)
@@ -172,7 +223,6 @@ class SessionService:
                     ip_address=current_session.ip_address,
                 )
 
-        rows_affected: int = result.rowcount or 0  # type: ignore[attr-defined]
         return rows_affected
 
     @staticmethod

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/auth-store'
 
 // Create axios instance with default config
@@ -9,6 +9,21 @@ const apiClient = axios.create({
   },
   timeout: 10000, // 10 seconds
 })
+
+// Flag to prevent multiple simultaneous refresh requests
+let isRefreshing = false
+let refreshSubscribers: Array<(token: string) => void> = []
+
+// Add subscriber to queue waiting for token refresh
+const subscribeTokenRefresh = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback)
+}
+
+// Notify all subscribers when token is refreshed
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach((callback) => callback(token))
+  refreshSubscribers = []
+}
 
 // Request interceptor to add Authorization header
 apiClient.interceptors.request.use(
@@ -28,20 +43,92 @@ apiClient.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors and token refresh
 apiClient.interceptors.response.use(
   (response) => {
     // Return successful responses as-is
     return response
   },
-  (error) => {
-    // Handle 401 Unauthorized - clear auth and redirect to login
-    if (error.response?.status === 401) {
-      useAuthStore.getState().reset()
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean
+    }
 
-      // Only redirect if not already on auth pages
-      if (!window.location.pathname.startsWith('/sign-in')) {
-        window.location.href = '/sign-in'
+    // Handle 401 Unauthorized - attempt token refresh
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // Check if this is a refresh endpoint request (avoid infinite loop)
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        // Refresh token itself is invalid, logout user
+        useAuthStore.getState().reset()
+        if (!window.location.pathname.startsWith('/sign-in')) {
+          window.location.href = '/sign-in'
+        }
+        return Promise.reject(error)
+      }
+
+      const refreshToken = useAuthStore.getState().refreshToken
+
+      if (!refreshToken) {
+        // No refresh token, logout user
+        useAuthStore.getState().reset()
+        if (!window.location.pathname.startsWith('/sign-in')) {
+          window.location.href = '/sign-in'
+        }
+        return Promise.reject(error)
+      }
+
+      // Mark this request as retried
+      originalRequest._retry = true
+
+      if (!isRefreshing) {
+        // Start refresh process
+        isRefreshing = true
+
+        try {
+          // Call refresh endpoint
+          const response = await axios.post(
+            `${apiClient.defaults.baseURL}/auth/refresh`,
+            { refresh_token: refreshToken },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+
+          const { access_token } = response.data
+
+          // Update token in store
+          useAuthStore.getState().setAccessToken(access_token)
+
+          // Notify all queued requests
+          onTokenRefreshed(access_token)
+
+          isRefreshing = false
+
+          // Retry original request with new token
+          originalRequest.headers.Authorization = `Bearer ${access_token}`
+          return apiClient(originalRequest)
+        } catch (refreshError) {
+          // Refresh failed, logout user
+          isRefreshing = false
+          refreshSubscribers = []
+          useAuthStore.getState().reset()
+
+          if (!window.location.pathname.startsWith('/sign-in')) {
+            window.location.href = '/sign-in'
+          }
+
+          return Promise.reject(refreshError)
+        }
+      } else {
+        // Another request is already refreshing, queue this request
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            resolve(apiClient(originalRequest))
+          })
+        })
       }
     }
 
@@ -49,7 +136,10 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 429) {
       const retryAfter = error.response.headers['retry-after']
       if (retryAfter) {
-        error.retryAfter = parseInt(retryAfter, 10)
+        ;(error as AxiosError & { retryAfter?: number }).retryAfter = parseInt(
+          retryAfter,
+          10
+        )
       }
     }
 

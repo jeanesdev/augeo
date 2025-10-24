@@ -8,11 +8,13 @@
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
 ## Format: `[ID] [P?] [Story] Description`
+
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3, US4)
 - Include exact file paths in descriptions
 
 ## Path Conventions
+
 Based on plan.md: Web application structure with `backend/` and `frontend/` directories.
 
 ---
@@ -51,7 +53,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T017 [P] Create error handlers for HTTPException, ValidationError in backend/app/core/errors.py
 - [x] T018 [P] Create logging configuration with structured JSON logging in backend/app/core/logging.py
 - [x] T019 [P] Create Alembic migration 001_create_roles_table.py with Role model and seed 5 roles per data-model.md
-- [x] T020 Create API router structure in backend/app/api/v1/{auth.py, users.py, __init__.py}
+- [x] T020 Create API router structure in backend/app/api/v1/{auth.py, users.py, **init**.py}
 - [x] T021 Create FastAPI app instance with CORS, middleware, and exception handlers in backend/app/main.py
 - [x] T022 [P] Create test fixtures for database, Redis, and test client in backend/app/tests/conftest.py
 
@@ -192,8 +194,8 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
   - TypeScript compilation: 0 errors ✅
   - ESLint: 0 errors, 1 warning (React Compiler optimization - non-blocking)
 - Servers running:
-  - Backend: http://localhost:8000 (FastAPI + docs at /docs)
-  - Frontend: http://localhost:5173 (Vite dev server)
+  - Backend: <http://localhost:8000> (FastAPI + docs at /docs)
+  - Frontend: <http://localhost:5173> (Vite dev server)
 - Testing needed:
   - Manual testing: Create, list, update role, delete user operations
   - Edge cases: NPO ID validation, error messages, empty states
@@ -233,19 +235,19 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 ### Tests for User Story 4
 
-- [ ] T093 [P] [US4] Create contract test for POST /api/v1/auth/refresh in backend/app/tests/contract/test_auth_refresh.py
-- [ ] T094 [P] [US4] Create integration test for token refresh flow in backend/app/tests/integration/test_token_refresh.py
-- [ ] T095 [P] [US4] Create integration test for session expiration in backend/app/tests/integration/test_session_expiration.py
-- [ ] T096 [P] [US4] Create integration test for rate limiting in backend/app/tests/integration/test_rate_limiting.py
-- [ ] T097 [P] [US4] Create unit test for JWT blacklist logic in backend/app/tests/unit/test_jwt_blacklist.py
+- [x] T093 [P] [US4] Create contract test for POST /api/v1/auth/refresh in backend/app/tests/contract/test_auth_refresh.py
+- [x] T094 [P] [US4] Create integration test for token refresh flow in backend/app/tests/integration/test_token_refresh.py
+- [x] T095 [P] [US4] Create integration test for session expiration in backend/app/tests/integration/test_session_expiration.py
+- [x] T096 [P] [US4] Create integration test for rate limiting in backend/app/tests/integration/test_rate_limiting.py
+- [x] T097 [P] [US4] Create unit test for JWT blacklist logic in backend/app/tests/unit/test_jwt_blacklist.py
 
 ### Implementation for User Story 4
 
-- [ ] T098 [P] [US4] Create Pydantic schemas: RefreshRequest, RefreshResponse in backend/app/schemas/auth.py
-- [ ] T099 [US4] Implement POST /api/v1/auth/refresh endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
-- [ ] T100 [US4] Implement refresh token validation and rotation in backend/app/services/auth_service.py
-- [ ] T101 [US4] Implement JWT blacklist using Redis for revoked access tokens in backend/app/services/redis_service.py
-- [ ] T102 [US4] Add session expiration check to auth middleware (validate session in Redis) in backend/app/middleware/auth.py
+- [x] T098 [P] [US4] Create Pydantic schemas: RefreshRequest, RefreshResponse in backend/app/schemas/auth.py
+- [x] T099 [US4] Implement POST /api/v1/auth/refresh endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
+- [x] T100 [US4] Implement refresh token validation and rotation in backend/app/services/auth_service.py
+- [x] T101 [US4] Implement JWT blacklist using Redis for revoked access tokens in backend/app/services/redis_service.py
+- [x] T102 [US4] Add session expiration check to auth middleware (validate session in Redis) in backend/app/middleware/auth.py
 - [ ] T103 [US4] Add automatic token refresh logic to axios interceptor (handle 401 responses) in frontend/augeo-admin/src/lib/axios.ts
 - [ ] T104 [US4] Add session expiration warning component (show modal 2 minutes before expiry) in frontend/augeo-admin/src/components/SessionExpirationWarning.tsx
 - [ ] T105 [US4] Add device tracking: store device info (user agent, IP) with sessions in backend/app/services/session_service.py
@@ -263,21 +265,21 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 ### Tests for Email Verification
 
-- [ ] T107 [P] Create contract test for POST /api/v1/auth/verify-email in backend/app/tests/contract/test_email_verification.py
-- [ ] T108 [P] Create contract test for POST /api/v1/auth/verify-email/resend in backend/app/tests/contract/test_email_verification.py
+- [x] T107 [P] Create contract test for POST /api/v1/auth/verify-email in backend/app/tests/contract/test_email_verification.py
+- [x] T108 [P] Create contract test for POST /api/v1/auth/verify-email/resend in backend/app/tests/contract/test_email_verification.py
 - [ ] T109 [P] Create integration test for email verification flow in backend/app/tests/integration/test_email_verification.py
 
 ### Implementation for Email Verification
 
-- [ ] T110 [P] Create Pydantic schemas: EmailVerifyRequest, EmailVerifyResponse, EmailResendRequest in backend/app/schemas/auth.py
-- [ ] T111 Add email_verified and is_active boolean columns to users table in Alembic migration 002_create_users_table.py
-- [ ] T112 Implement email verification token utilities in backend/app/services/redis_service.py
-- [ ] T113 Implement send_verification_email() in backend/app/services/email_service.py
-- [ ] T114 Implement POST /api/v1/auth/verify-email endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
-- [ ] T115 Implement POST /api/v1/auth/verify-email/resend endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
-- [ ] T116 Add email verification check to login endpoint (block unverified users) in backend/app/api/v1/auth.py
-- [ ] T117 Add verification email sending to registration endpoint in backend/app/api/v1/auth.py
-- [ ] T118 Add audit logging for email_verified events in backend/app/services/audit_service.py
+- [x] T110 [P] Create Pydantic schemas: EmailVerifyRequest, EmailVerifyResponse, EmailResendRequest in backend/app/schemas/auth.py
+- [x] T111 Add email_verified and is_active boolean columns to users table in Alembic migration 002_create_users_table.py
+- [x] T112 Implement email verification token utilities in backend/app/services/redis_service.py
+- [x] T113 Implement send_verification_email() in backend/app/services/email_service.py
+- [x] T114 Implement POST /api/v1/auth/verify-email endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
+- [x] T115 Implement POST /api/v1/auth/verify-email/resend endpoint per contracts/auth.yaml in backend/app/api/v1/auth.py
+- [x] T116 Add email verification check to login endpoint (block unverified users) in backend/app/api/v1/auth.py
+- [x] T117 Add verification email sending to registration endpoint in backend/app/api/v1/auth.py
+- [x] T118 Add audit logging for email_verified events in backend/app/services/audit_service.py
 - [ ] T119 [P] Create email verification page component in frontend/augeo-admin/src/features/auth/EmailVerificationPage.tsx
 - [ ] T120 Add email verification route to React Router in frontend/augeo-admin/src/routes/(auth)/
 
@@ -517,6 +519,7 @@ With multiple developers:
 **Total Tasks**: 170
 
 **Tasks by Phase**:
+
 - Phase 1 (Setup): 11 tasks
 - Phase 2 (Foundational): 11 tasks (BLOCKING)
 - Phase 3 (User Story 1 - Registration & Login): 28 tasks ← MVP
@@ -533,6 +536,7 @@ With multiple developers:
 **Parallel Tasks**: 83 tasks marked [P] can run in parallel
 
 **MVP Scope** (Minimum Viable Product):
+
 - Phase 1: Setup (T001-T011)
 - Phase 2: Foundational (T012-T022)
 - Phase 3: User Story 1 (T023-T050)
@@ -540,6 +544,7 @@ With multiple developers:
 - **Total MVP**: 54 tasks
 
 **Independent Test Criteria**:
+
 - US1: Create account → logout → login → access protected endpoint
 - US2: Request password reset → receive email → reset password → login with new password
 - US3: Create user → assign role → verify role-based access → change role → verify updated access

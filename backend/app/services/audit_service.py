@@ -18,6 +18,7 @@ class AuditEventType(str, Enum):
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILED = "login_failed"
     LOGOUT = "logout"
+    SESSION_REVOKED = "session_revoked"
     PASSWORD_RESET_REQUEST = "password_reset_request"
     PASSWORD_RESET_COMPLETE = "password_reset_complete"
     PASSWORD_CHANGED = "password_changed"
@@ -120,6 +121,39 @@ class AuditService:
                 "email": email,
                 "ip_address": ip_address,
                 "session_id": str(session_id) if session_id else None,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    @staticmethod
+    def log_session_revoked(
+        user_id: uuid.UUID,
+        email: str,
+        session_jti: str,
+        reason: str | None = None,
+        ip_address: str | None = None,
+        revoked_by_user_id: uuid.UUID | None = None,
+    ) -> None:
+        """Log session revocation event.
+
+        Args:
+            user_id: UUID of user whose session was revoked
+            email: User's email address
+            session_jti: JWT ID of the revoked session
+            reason: Optional reason for revocation (e.g., "password_reset", "security_breach", "manual_logout")
+            ip_address: Optional IP address where revocation occurred
+            revoked_by_user_id: Optional UUID of admin who revoked session (if different from user)
+        """
+        logger.warning(
+            "Session revoked",
+            extra={
+                "event_type": AuditEventType.SESSION_REVOKED.value,
+                "user_id": str(user_id),
+                "email": email,
+                "session_jti": session_jti,
+                "reason": reason,
+                "ip_address": ip_address,
+                "revoked_by_user_id": str(revoked_by_user_id) if revoked_by_user_id else None,
                 "timestamp": datetime.utcnow().isoformat(),
             },
         )
