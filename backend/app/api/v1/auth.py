@@ -1,4 +1,5 @@
 """Authentication endpoints."""
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -324,7 +325,7 @@ async def logout(
     try:
         # Decode access token to get user_id and jti
         payload = decode_token(access_token)
-        user_id = payload["sub"]
+        user_id = uuid.UUID(payload["sub"])
         access_token_jti = payload["jti"]
 
         # Logout and invalidate tokens
