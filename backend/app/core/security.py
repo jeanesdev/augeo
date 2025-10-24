@@ -82,6 +82,7 @@ def create_access_token(
             "exp": expire,
             "iat": datetime.utcnow(),
             "jti": secrets.token_urlsafe(32),  # JWT ID for blacklisting
+            "type": "access",  # Token type for validation
         }
     )
 
