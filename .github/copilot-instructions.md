@@ -40,6 +40,39 @@ tests/
 ## Code Style
 Python 3.11+ (Backend), TypeScript (Frontend): Follow standard conventions
 
+## Git Workflow
+
+### Committing Changes
+**CRITICAL**: Always use the safe-commit script to ensure pre-commit hooks pass before committing.
+
+**Always use**:
+```bash
+./scripts/safe-commit.sh "your commit message"
+```
+
+**Never use**:
+```bash
+git commit -m "message"  # ❌ Don't use - bypasses pre-commit verification
+```
+
+**Why**: The safe-commit script:
+- Runs pre-commit hooks to completion
+- Auto-stages formatting changes (ruff, black, trailing whitespace, etc.)
+- Re-runs hooks after auto-fixes to verify
+- Only commits if all checks pass
+- Prevents failed commits that need re-doing
+
+**If you must commit manually** (for testing or special cases):
+```bash
+git add -A
+pre-commit run --all-files
+# If changes were made, re-stage and re-run:
+git add -A
+pre-commit run --all-files
+# Then commit:
+git commit -m "message"
+```
+
 ## Recent Changes
 - 002-npo-creation: Added Python 3.11+ (Backend), TypeScript (Frontend) + FastAPI, SQLAlchemy, Pydantic, React, Zustand
 
