@@ -11,6 +11,8 @@ from app.schemas.auth import (
     LoginResponse,
     LogoutRequest,
     MessageResponse,
+    RefreshRequest,
+    RefreshResponse,
     UserCreate,
     UserPublic,
     UserRegisterResponse,
@@ -214,14 +216,61 @@ async def login(
         ) from e
 
 
-@router.post("/refresh", status_code=status.HTTP_200_OK)
-async def refresh_token(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
-    """
-    Refresh access token using refresh token.
+@router.post("/refresh", status_code=status.HTTP_200_OK, response_model=RefreshResponse)
+async def refresh_token(
+    refresh_data: RefreshRequest,
+    db: AsyncSession = Depends(get_db),
+) -> RefreshResponse:
+    """Refresh access token using refresh token.
 
-    TODO: Implement token refresh logic.
+    Flow:
+    1. Decode and validate refresh token JWT
+    2. Check session exists in Redis
+    3. Check token not blacklisted
+    4. Generate new access token (refresh token unchanged)
+
+    Business Rules:
+    - Refresh token must be valid (not expired, correct signature)
+    - Session must exist in Redis (not expired)
+    - Refresh token must not be blacklisted
+    - Returns new access token ONLY (no refresh token rotation per spec)
+    - New access token has 15-minute expiry
+
+    Args:
+        refresh_data: Contains refresh_token
+        db: Database session (unused but required for dependency)
+
+    Returns:
+        RefreshResponse with new access_token and expires_in
+
+    Raises:
+        HTTPException 401: Invalid/expired token or session not found
     """
-    return {"message": "Token refresh endpoint - to be implemented"}
+    try:
+        # Generate new access token using refresh token
+        access_token, expires_in = await AuthService.refresh_access_token(
+            refresh_token=refresh_data.refresh_token
+        )
+
+        return RefreshResponse(
+            access_token=access_token,
+            token_type="bearer",
+            expires_in=expires_in,
+        )
+
+    except ValueError as e:
+        error_msg = str(e)
+
+        # Map all refresh errors to 401 Unauthorized
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "INVALID_REFRESH_TOKEN",
+                    "message": error_msg if error_msg else "Invalid or expired refresh token",
+                }
+            },
+        ) from e
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK, response_model=MessageResponse)

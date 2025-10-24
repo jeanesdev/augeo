@@ -34,7 +34,7 @@ class TestSessionExpirationIntegration:
         }
         register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
         assert register_response.status_code == 201
-        user_id = register_response.json()["id"]
+        user_id = register_response.json()["user"]["id"]
 
         # Verify email
         await db_session.execute(

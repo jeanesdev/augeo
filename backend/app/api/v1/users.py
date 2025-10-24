@@ -21,6 +21,40 @@ from app.services.user_service import UserService
 router = APIRouter()
 
 
+@router.get("/me", response_model=UserPublicWithRole)
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+) -> UserPublicWithRole:
+    """Get current authenticated user's profile.
+
+    Returns the profile of the currently authenticated user based on their JWT token.
+    This endpoint is accessible to all authenticated users.
+
+    Returns:
+        UserPublicWithRole: Current user's profile with role information
+
+    Raises:
+        401: Not authenticated
+    """
+    # Fetch role name from current_user
+    role_name = getattr(current_user, "role_name", "unknown")
+
+    return UserPublicWithRole(
+        id=current_user.id,
+        email=current_user.email,
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        phone=current_user.phone,
+        email_verified=current_user.email_verified,
+        is_active=current_user.is_active,
+        role=role_name,
+        npo_id=current_user.npo_id,
+        created_at=current_user.created_at,
+        updated_at=current_user.updated_at,
+        last_login_at=current_user.last_login_at,
+    )
+
+
 @router.get("", response_model=UserListResponse)
 @require_role("super_admin", "npo_admin", "event_coordinator")
 async def list_users(

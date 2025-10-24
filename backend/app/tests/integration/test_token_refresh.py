@@ -41,7 +41,7 @@ class TestTokenRefreshIntegration:
         register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
         assert register_response.status_code == 201
         user_data = register_response.json()
-        user_id = user_data["id"]
+        user_id = user_data["user"]["id"]
 
         # Manually verify email
         await db_session.execute(
