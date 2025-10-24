@@ -344,3 +344,93 @@ class TestRoleAssignmentIntegration:
         async_client.headers["Authorization"] = f"Bearer {donor_token}"
         list_response = await async_client.get("/api/v1/users")
         assert list_response.status_code in [403, 404]
+
+    @pytest.mark.asyncio
+    async def test_cannot_change_own_role(
+        self, async_client: AsyncClient, db_session: AsyncSession
+    ):
+        """Test that users cannot change their own role.
+
+        Security requirement: Prevent privilege escalation or accidental
+        role changes by requiring another admin to make role changes.
+
+        Flow:
+        1. Super admin logs in
+        2. Attempt to change own role from super_admin to donor
+        3. Should receive 403 Forbidden error
+        """
+        # Step 1: Create super admin
+        await db_session.execute(
+            text(
+                """
+                INSERT INTO roles (id, name, description, scope)
+                VALUES (:id, :name, :description, :scope)
+                ON CONFLICT (name) DO NOTHING
+                """
+            ),
+            {
+                "id": uuid.uuid4(),
+                "name": "super_admin",
+                "description": "Super administrator",
+                "scope": "platform",
+            },
+        )
+
+        admin_id = uuid.uuid4()
+        await db_session.execute(
+            text(
+                """
+                INSERT INTO users (
+                    id, email, password_hash, first_name, last_name, phone,
+                    email_verified, is_active, role_id, npo_id
+                )
+                VALUES (
+                    :id, :email, :password_hash, :first_name, :last_name, :phone,
+                    :email_verified, :is_active,
+                    (SELECT id FROM roles WHERE name = 'super_admin'),
+                    :npo_id
+                )
+                """
+            ),
+            {
+                "id": admin_id,
+                "email": "selfchange@example.com",
+                "password_hash": hash_password("AdminPass123"),
+                "first_name": "Self",
+                "last_name": "Change",
+                "phone": "+1234567890",
+                "email_verified": True,
+                "is_active": True,
+                "npo_id": None,
+            },
+        )
+        await db_session.commit()
+
+        # Step 2: Login as super admin
+        login_response = await async_client.post(
+            "/api/v1/auth/login",
+            json={"email": "selfchange@example.com", "password": "AdminPass123"},
+        )
+        assert login_response.status_code == 200
+        admin_token = login_response.json()["access_token"]
+
+        # Step 3: Attempt to change own role
+        async_client.headers["Authorization"] = f"Bearer {admin_token}"
+        change_response = await async_client.patch(
+            f"/api/v1/users/{admin_id}/role",
+            json={"role": "donor"},
+        )
+
+        # Should be forbidden
+        assert change_response.status_code == 403
+        error_data = change_response.json()
+        # Check for error message in various response formats
+        error_message = ""
+        if "error" in error_data and "message" in error_data["error"]:
+            error_message = error_data["error"]["message"].lower()
+        elif "detail" in error_data:
+            error_message = error_data["detail"].lower()
+        elif "message" in error_data:
+            error_message = error_data["message"].lower()
+
+        assert "cannot change your own role" in error_message

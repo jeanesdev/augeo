@@ -51,7 +51,10 @@ def test_database_url() -> str:
     """
     # Replace database name with test database
     db_url: str = str(settings.database_url)
-    if db_url.endswith("/augeo"):
+    # Handle both /augeo and /augeo_db database names
+    if "/augeo_db" in db_url:
+        db_url = db_url.replace("/augeo_db", "/augeo_test_db")
+    elif db_url.endswith("/augeo"):
         db_url = db_url.replace("/augeo", "/augeo_test")
 
     # Ensure we're using postgresql+asyncpg:// not postgresql://

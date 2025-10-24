@@ -1,9 +1,4 @@
-import React from 'react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Shield } from 'lucide-react'
-import { useUpdateUserRole } from '../hooks/use-users'
+import { SelectDropdown } from '@/components/select-dropdown'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,16 +12,21 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { SelectDropdown } from '@/components/select-dropdown'
-import { roles } from '../data/data'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Shield } from 'lucide-react'
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import type { User } from '../api/users-api'
+import { roles } from '../data/data'
+import { useUpdateUserRole } from '../hooks/use-users'
 
 const formSchema = z
   .object({

@@ -18,9 +18,9 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}/backend"
       },
+      "python": "/home/jjeanes/.cache/pypoetry/virtualenvs/augeo-backend-koj7Cp7X-py3.12/bin/python",
       "console": "integratedTerminal",
-      "justMyCode": false,
-      "preLaunchTask": "start-backend-with-cleanup"
+      "justMyCode": false
     },
     {
       "name": "Backend: Pytest Current File",
@@ -36,6 +36,7 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}/backend"
       },
+      "python": "/home/jjeanes/.cache/pypoetry/virtualenvs/augeo-backend-koj7Cp7X-py3.12/bin/python",
       "console": "integratedTerminal",
       "justMyCode": false
     },
@@ -52,6 +53,7 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}/backend"
       },
+      "python": "/home/jjeanes/.cache/pypoetry/virtualenvs/augeo-backend-koj7Cp7X-py3.12/bin/python",
       "console": "integratedTerminal",
       "justMyCode": false
     },
@@ -69,6 +71,7 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}/backend"
       },
+      "python": "/home/jjeanes/.cache/pypoetry/virtualenvs/augeo-backend-koj7Cp7X-py3.12/bin/python",
       "console": "integratedTerminal",
       "justMyCode": false
     },
@@ -90,6 +93,7 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}/backend"
       },
+      "python": "/home/jjeanes/.cache/pypoetry/virtualenvs/augeo-backend-koj7Cp7X-py3.12/bin/python",
       "console": "integratedTerminal",
       "justMyCode": false
     },
@@ -153,7 +157,7 @@
       "configurations": [
         "Backend: FastAPI"
       ],
-      "preLaunchTask": "start-frontend-with-cleanup",
+      "preLaunchTask": "start-fullstack-with-cleanup",
       "presentation": {
         "hidden": false,
         "group": "fullstack",

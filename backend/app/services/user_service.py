@@ -328,6 +328,10 @@ class UserService:
         """
         user = await self.get_user(db, current_user, user_id)
 
+        # Prevent users from changing their own role
+        if current_user.id == user_id:
+            raise PermissionError("Cannot change your own role")
+
         # Check permissions
         if not self.permission_service.can_modify_user(current_user, user.npo_id):
             raise PermissionError("Insufficient permissions to modify this user")

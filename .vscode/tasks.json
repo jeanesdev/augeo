@@ -18,7 +18,7 @@
     {
       "label": "kill-frontend",
       "type": "shell",
-      "command": "pkill -f 'vite.*5173' || true",
+      "command": "pkill -f 'vite/bin/vite\\.js' || true",
       "presentation": {
         "echo": true,
         "reveal": "silent",
@@ -36,6 +36,24 @@
         "kill-frontend"
       ],
       "dependsOrder": "parallel",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "start-fullstack-with-cleanup",
+      "dependsOn": [
+        "kill-all-servers",
+        "poetry-install-backend",
+        "pnpm-dev-frontend"
+      ],
+      "dependsOrder": "sequence",
       "presentation": {
         "echo": true,
         "reveal": "silent",
