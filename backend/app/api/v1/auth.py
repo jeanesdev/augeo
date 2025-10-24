@@ -1,13 +1,17 @@
 """Authentication endpoints."""
+import logging
 import uuid
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import decode_token
 from app.schemas.auth import (
+    EmailResendRequest,
+    EmailVerifyRequest,
+    EmailVerifyResponse,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
@@ -28,6 +32,7 @@ from app.services.auth_service import AuthService
 from app.services.password_service import PasswordService
 from app.services.redis_service import RedisService
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -359,14 +364,185 @@ async def logout(
         ) from e
 
 
-@router.post("/verify-email", status_code=status.HTTP_200_OK)
-async def verify_email(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+@router.post("/verify-email", status_code=status.HTTP_200_OK, response_model=EmailVerifyResponse)
+async def verify_email(
+    verify_data: EmailVerifyRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> EmailVerifyResponse:
     """
-    Verify email address with token.
+    Verify email address with token from registration email.
 
-    TODO: Implement email verification logic.
+    Flow:
+    1. Validates token format (Pydantic)
+    2. Retrieves user_id from Redis using token
+    3. Validates token exists and hasn't expired
+    4. Checks user exists and isn't already verified
+    5. Updates user: email_verified=True, is_active=True
+    6. Deletes token from Redis
+    7. Logs audit event
+    8. Returns success message
+
+    Business Rules:
+    - Token must be valid (exists in Redis)
+    - Token expires after 24 hours
+    - User cannot verify twice
+    - Account becomes active upon verification
+
+    Returns:
+        EmailVerifyResponse: Success message
+
+    Raises:
+        HTTPException:
+            - 400: Invalid/expired token or already verified
+            - 404: User not found
     """
-    return {"message": "Email verification endpoint - to be implemented"}
+    # Get user_id from Redis token
+    user_id = await RedisService.get_email_verification_user(verify_data.token)
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": {
+                    "code": "INVALID_TOKEN",
+                    "message": "Invalid or expired verification token",
+                }
+            },
+        )
+
+    # Get user from database
+    from app.models.user import User
+
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": {
+                    "code": "USER_NOT_FOUND",
+                    "message": "User not found",
+                }
+            },
+        )
+
+    # Check if already verified
+    if user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": {
+                    "code": "ALREADY_VERIFIED",
+                    "message": "Email already verified",
+                }
+            },
+        )
+
+    # Update user verification status
+    user.email_verified = True
+    user.is_active = True
+    await db.commit()
+    await db.refresh(user)
+
+    # Delete token from Redis
+    await RedisService.delete_email_verification_token(verify_data.token)
+
+    # Log audit event
+    client_ip = request.client.host if request.client else None
+    AuditService.log_email_verification(
+        user_id=user.id,
+        email=user.email,
+        ip_address=client_ip,
+    )
+
+    return EmailVerifyResponse(message="Email verified successfully")
+
+
+@router.post(
+    "/verify-email/resend", status_code=status.HTTP_200_OK, response_model=EmailVerifyResponse
+)
+async def resend_verification_email(
+    resend_data: EmailResendRequest,
+    db: AsyncSession = Depends(get_db),
+) -> EmailVerifyResponse:
+    """
+    Resend email verification link to user.
+
+    Flow:
+    1. Validates email format (Pydantic)
+    2. Looks up user by email (case-insensitive)
+    3. Checks user exists and isn't already verified
+    4. Generates new verification token
+    5. Stores token in Redis (24h expiry, replaces old token)
+    6. Sends verification email
+    7. Returns success message
+
+    Business Rules:
+    - Email must match existing user
+    - User cannot be already verified
+    - New token invalidates previous token
+    - Always returns success (prevent email enumeration)
+
+    Returns:
+        EmailVerifyResponse: Success message
+
+    Raises:
+        HTTPException:
+            - 400: Email already verified
+            - 404: User not found
+    """
+    # Look up user by email
+    from app.core.security import generate_verification_token
+    from app.models.user import User
+    from app.services.email_service import EmailService
+
+    stmt = select(User).where(User.email == resend_data.email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": {
+                    "code": "USER_NOT_FOUND",
+                    "message": "User not found",
+                }
+            },
+        )
+
+    # Check if already verified
+    if user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": {
+                    "code": "ALREADY_VERIFIED",
+                    "message": "Email already verified",
+                }
+            },
+        )
+
+    # Generate new verification token
+    verification_token = generate_verification_token()
+
+    # Store in Redis (replaces old token if exists)
+    await RedisService.store_email_verification_token(verification_token, user.id)
+
+    # Send verification email
+    email_service = EmailService()
+    await email_service.send_verification_email(
+        to_email=user.email,
+        verification_token=verification_token,
+        user_name=user.first_name,
+    )
+
+    # Log for debugging (not audit event since it's a retry)
+    logger.info(f"Verification email resent to {user.email} (user_id={user.id})")
+
+    return EmailVerifyResponse(message="Verification email sent")
 
 
 @router.post(

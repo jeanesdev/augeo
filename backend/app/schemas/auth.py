@@ -120,3 +120,39 @@ class UserRegisterResponse(BaseModel):
 
     user: UserPublic
     message: str
+
+
+class EmailVerifyRequest(BaseModel):
+    """Schema for email verification request.
+
+    Business Rules:
+    - Token is required (generated during registration)
+    - Token must be valid and not expired (24h TTL)
+    - User must not already be verified
+    """
+
+    token: str = Field(..., description="Email verification token from registration email")
+
+
+class EmailVerifyResponse(BaseModel):
+    """Schema for email verification response."""
+
+    message: str = Field(..., description="Success or error message")
+
+
+class EmailResendRequest(BaseModel):
+    """Schema for resend verification email request.
+
+    Business Rules:
+    - Email must match an existing user
+    - User must not already be verified
+    - Generates new token, invalidates old one
+    """
+
+    email: EmailStr = Field(..., description="Email address to resend verification to")
+
+    @field_validator("email")
+    @classmethod
+    def lowercase_email(cls, v: str) -> str:
+        """Normalize email to lowercase for consistency."""
+        return v.lower()
