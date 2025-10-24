@@ -1,0 +1,15 @@
+version: "2"
+authtoken: 34WaX9OuHJTSEUTqoy3vEIrVYow_5jCM2hv3cngdwj4tgJimV
+
+tunnels:
+  frontend:
+    proto: http
+    addr: 5173
+    inspect: true
+    subdomain: augeo-frontend
+
+  backend:
+    proto: http
+    addr: 8000
+    inspect: true
+    subdomain: augeo-backend

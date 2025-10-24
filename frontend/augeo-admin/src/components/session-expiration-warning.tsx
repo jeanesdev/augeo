@@ -1,4 +1,3 @@
-import { useEffect, useState, useCallback } from 'react'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -8,8 +7,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { useAuthStore } from '@/stores/auth-store'
 import apiClient from '@/lib/axios'
+import { useAuthStore } from '@/stores/auth-store'
+import { useCallback, useEffect, useState } from 'react'
 
 interface SessionExpirationWarningProps {
   /**
@@ -82,7 +82,7 @@ export function SessionExpirationWarning({
     const expiryTime = getTokenExpiry(accessToken)
     if (!expiryTime) return
 
-    // Check every second
+    // Check every 5 seconds to avoid rate limits
     const intervalId = setInterval(() => {
       const now = Date.now()
       const timeUntilExpiry = expiryTime - now
@@ -100,7 +100,7 @@ export function SessionExpirationWarning({
         reset()
         window.location.href = '/sign-in'
       }
-    }, 1000)
+    }, 5000) // Check every 5 seconds instead of 1 second
 
     return () => clearInterval(intervalId)
   }, [accessToken, warningThresholdSeconds, getTokenExpiry, reset])

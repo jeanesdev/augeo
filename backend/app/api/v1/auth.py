@@ -329,7 +329,8 @@ async def logout(
 
     try:
         # Decode access token to get user_id and jti
-        payload = decode_token(access_token)
+        # Allow expired tokens for logout (users should be able to logout even if token expired)
+        payload = decode_token(access_token, verify_expiration=False)
         user_id = uuid.UUID(payload["sub"])
         access_token_jti = payload["jti"]
 

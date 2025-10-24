@@ -139,11 +139,13 @@ def create_refresh_token(
     return cast(str, encoded_jwt)
 
 
-def decode_token(token: str) -> dict[str, Any]:
+def decode_token(token: str, verify_expiration: bool = True) -> dict[str, Any]:
     """Decode and verify a JWT token.
 
     Args:
         token: JWT token string
+        verify_expiration: Whether to verify token expiration (default: True)
+                          Set to False for logout to allow expired tokens
 
     Returns:
         dict: Decoded token claims
@@ -158,12 +160,15 @@ def decode_token(token: str) -> dict[str, Any]:
         except JWTError:
             # Handle invalid token
     """
+    options = {"verify_exp": verify_expiration} if not verify_expiration else {}
+
     return cast(
         dict[str, Any],
         jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
+            options=options,
         ),
     )
 

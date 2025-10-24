@@ -1,5 +1,5 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/auth-store'
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -45,18 +45,14 @@ apiClient.interceptors.request.use(
 
 // Response interceptor to handle errors and token refresh
 apiClient.interceptors.response.use(
-  (response) => {
-    // Return successful responses as-is
-    return response
-  },
+  (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean
-    }
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    // Handle 401 Unauthorized - attempt token refresh
+    // Handle 401 Unauthorized - token expired or invalid
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      // Check if this is a refresh endpoint request (avoid infinite loop)
+
+      // Don't retry refresh endpoint to avoid infinite loops
       if (originalRequest.url?.includes('/auth/refresh')) {
         // Refresh token itself is invalid, logout user
         useAuthStore.getState().reset()
@@ -136,7 +132,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 429) {
       const retryAfter = error.response.headers['retry-after']
       if (retryAfter) {
-        ;(error as AxiosError & { retryAfter?: number }).retryAfter = parseInt(
+        ; (error as AxiosError & { retryAfter?: number }).retryAfter = parseInt(
           retryAfter,
           10
         )

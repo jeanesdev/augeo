@@ -248,10 +248,10 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T100 [US4] Implement refresh token validation and rotation in backend/app/services/auth_service.py
 - [x] T101 [US4] Implement JWT blacklist using Redis for revoked access tokens in backend/app/services/redis_service.py
 - [x] T102 [US4] Add session expiration check to auth middleware (validate session in Redis) in backend/app/middleware/auth.py
-- [ ] T103 [US4] Add automatic token refresh logic to axios interceptor (handle 401 responses) in frontend/augeo-admin/src/lib/axios.ts
-- [ ] T104 [US4] Add session expiration warning component (show modal 2 minutes before expiry) in frontend/augeo-admin/src/components/SessionExpirationWarning.tsx
-- [ ] T105 [US4] Add device tracking: store device info (user agent, IP) with sessions in backend/app/services/session_service.py
-- [ ] T106 [US4] Add audit logging for session_revoked events in backend/app/services/audit_service.py
+- [x] T103 [US4] Add automatic token refresh logic to axios interceptor (handle 401 responses) in frontend/augeo-admin/src/lib/axios.ts
+- [x] T104 [US4] Add session expiration warning component (show modal 2 minutes before expiry) in frontend/augeo-admin/src/components/SessionExpirationWarning.tsx
+- [x] T105 [US4] Add device tracking: store device info (user agent, IP) with sessions in backend/app/services/session_service.py
+- [x] T106 [US4] Add audit logging for session_revoked events in backend/app/services/audit_service.py
 
 **Checkpoint**: All user stories should now be independently functional - complete authentication system with session management
 
