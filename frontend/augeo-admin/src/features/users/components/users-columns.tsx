@@ -1,9 +1,9 @@
-import { type ColumnDef } from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { cn } from '@/lib/utils'
+import { type ColumnDef } from '@tanstack/react-table'
 import { callTypes, roles } from '../data/data'
 import { type User } from '../data/schema'
 import { DataTableRowActions } from './data-table-row-actions'
@@ -65,11 +65,57 @@ export const usersColumns: ColumnDef<User>[] = [
     ),
   },
   {
+    accessorKey: 'email_verified',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Email Verified' />
+    ),
+    cell: ({ row }) => {
+      const emailVerified = row.original.email_verified
+      return (
+        <div className='flex space-x-2'>
+          <Badge
+            variant='outline'
+            className={cn('capitalize', emailVerified ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200')}
+          >
+            {emailVerified ? 'Verified' : 'Unverified'}
+          </Badge>
+        </div>
+      )
+    },
+    filterFn: (row, _id, value) => {
+      const emailVerified = row.original.email_verified
+      const status = emailVerified ? 'verified' : 'unverified'
+      return value.includes(status)
+    },
+    enableSorting: false,
+  },
+  {
     accessorKey: 'phone',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Phone Number' />
     ),
-    cell: ({ row }) => <div>{row.getValue('phone') || '—'}</div>,
+    cell: ({ row }) => {
+      const phone = row.getValue('phone') as string | null
+      if (!phone) return <div>—</div>
+
+      // Format phone number for display
+      const digits = phone.replace(/\D/g, '')
+
+      // 10 digits: (XXX)XXX-XXXX
+      if (digits.length === 10) {
+        const formatted = `(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`
+        return <div className='font-mono text-sm'>{formatted}</div>
+      }
+
+      // 11 digits starting with 1: +1(XXX)XXX-XXXX
+      if (digits.length === 11 && digits.startsWith('1')) {
+        const formatted = `+1(${digits.slice(1, 4)})${digits.slice(4, 7)}-${digits.slice(7)}`
+        return <div className='font-mono text-sm'>{formatted}</div>
+      }
+
+      // Return as-is if not standard format
+      return <div className='font-mono text-sm'>{phone}</div>
+    },
     enableSorting: false,
   },
   {

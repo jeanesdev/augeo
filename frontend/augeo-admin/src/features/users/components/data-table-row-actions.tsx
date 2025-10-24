@@ -1,6 +1,3 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-import { type Row } from '@tanstack/react-table'
-import { Shield, Trash2, UserPen, UserCheck, UserX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,9 +7,12 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { type Row } from '@tanstack/react-table'
+import { KeyRound, MailCheck, Shield, Trash2, UserCheck, UserPen, UserX } from 'lucide-react'
 import { type User } from '../data/schema'
+import { useActivateUser, useVerifyUserEmail } from '../hooks/use-users'
 import { useUsers } from './users-provider'
-import { useActivateUser } from '../hooks/use-users'
 
 type DataTableRowActionsProps = {
   row: Row<User>
@@ -21,6 +21,7 @@ type DataTableRowActionsProps = {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useUsers()
   const activateUser = useActivateUser()
+  const verifyEmail = useVerifyUserEmail()
   const user = row.original
 
   const handleToggleActive = async () => {
@@ -32,6 +33,15 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     } catch (error) {
       // Error handling is done in the mutation hook
       console.error('Error toggling user active status:', error)
+    }
+  }
+
+  const handleVerifyEmail = async () => {
+    try {
+      await verifyEmail.mutateAsync(user.id)
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Error verifying email:', error)
     }
   }
 
@@ -70,12 +80,31 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <Shield size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              setCurrentRow(user)
+              setOpen('resetPassword')
+            }}
+          >
+            Reset Password
+            <DropdownMenuShortcut>
+              <KeyRound size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleToggleActive}>
             {user.is_active ? 'Deactivate' : 'Activate'}
             <DropdownMenuShortcut>
               {user.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          {!user.email_verified && (
+            <DropdownMenuItem onClick={handleVerifyEmail}>
+              Verify Email
+              <DropdownMenuShortcut>
+                <MailCheck size={16} />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {

@@ -487,6 +487,39 @@ curl -X GET http://localhost:8000/api/v1/users?page=1&per_page=20 \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
 
+### Test 4: Manually Verify User Email
+
+```bash
+# Get user_id from list users response
+USER_ID="550e8400-e29b-41d4-a716-446655440000"
+
+curl -X POST http://localhost:8000/api/v1/users/$USER_ID/verify-email \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+Expected response:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "john.doe@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "phone": "1234567890",
+  "role": "donor",
+  "npo_id": null,
+  "email_verified": true,
+  "is_active": false,
+  "last_login_at": null,
+  "created_at": "2025-10-20T10:00:00Z",
+  "updated_at": "2025-10-24T14:15:00Z"
+}
+```
+
+**Business Rules**:
+- Super Admin can verify any user's email
+- NPO Admin can only verify emails for users in their NPO
+- Audit log entry created for verification action
+
 ---
 
 ## 7. Verify Redis Session Storage

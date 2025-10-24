@@ -461,6 +461,72 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /users/{user_id}/verify-email:
+    post:
+      summary: Manually verify user email
+      description: |
+        Manually verify a user's email address by setting `email_verified=true`.
+
+        **Access Control**:
+        - Super Admin: Can verify any user's email
+        - NPO Admin: Can only verify emails for users in their NPO
+
+        **Business Rules**:
+        - Used when admin creates account on user's behalf
+        - Bypasses automated email verification flow
+        - Audit logged for compliance
+      operationId: verifyUserEmail
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+              examples:
+                success:
+                  value:
+                    id: 550e8400-e29b-41d4-a716-446655440000
+                    email: john.doe@example.com
+                    first_name: John
+                    last_name: Doe
+                    phone: "+1234567890"
+                    role: staff
+                    npo_id: null
+                    email_verified: true
+                    is_active: false
+                    last_login_at: null
+                    created_at: "2025-10-15T10:30:00Z"
+                    updated_at: "2025-10-24T14:15:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - NPO Admin can only verify users in their NPO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                npo_scope_violation:
+                  value:
+                    error:
+                      code: INSUFFICIENT_PERMISSIONS
+                      message: You can only verify emails for users in your NPO
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /events/{event_id}/staff:
     get:
       summary: List staff assigned to event

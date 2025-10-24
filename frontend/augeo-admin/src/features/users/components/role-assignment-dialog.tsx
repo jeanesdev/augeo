@@ -28,10 +28,24 @@ import { SelectDropdown } from '@/components/select-dropdown'
 import { roles } from '../data/data'
 import type { User } from '../api/users-api'
 
-const formSchema = z.object({
-  role: z.string().min(1, 'Role is required'),
-  npo_id: z.string().optional(),
-})
+const formSchema = z
+  .object({
+    role: z.string().min(1, 'Role is required'),
+    npo_id: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // npo_admin and event_coordinator require npo_id
+      if (['npo_admin', 'event_coordinator'].includes(data.role)) {
+        return data.npo_id && data.npo_id.trim().length > 0
+      }
+      return true
+    },
+    {
+      message: 'NPO ID is required for NPO Admin and Event Coordinator roles',
+      path: ['npo_id'],
+    }
+  )
 
 type RoleAssignmentForm = z.infer<typeof formSchema>
 
@@ -142,10 +156,10 @@ export function RoleAssignmentDialog({
                 name='npo_id'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>NPO ID</FormLabel>
+                    <FormLabel>NPO ID *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Enter NPO UUID'
+                        placeholder='Enter NPO UUID (required)'
                         {...field}
                       />
                     </FormControl>

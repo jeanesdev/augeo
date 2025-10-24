@@ -30,12 +30,50 @@ const formSchema = z
       .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
       .regex(/[0-9]/, 'Password must contain at least one number'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
-    phone: z.string().optional(),
+    phone: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val === '') return true
+          const digits = val.replace(/\D/g, '')
+          return digits.length >= 10 && digits.length <= 11
+        },
+        { message: 'Phone must be 10 or 11 digits' }
+      )
+      .refine(
+        (val) => {
+          if (!val || val === '') return true
+          const digits = val.replace(/\D/g, '')
+          if (digits.length === 11) return digits.startsWith('1')
+          return true
+        },
+        { message: '11-digit phone must start with 1' }
+      ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",
     path: ['confirmPassword'],
   })
+
+// Format phone number as user types
+const formatPhoneNumber = (value: string): string => {
+  const phoneNumber = value.replace(/\D/g, '')
+  if (phoneNumber.length === 0) return ''
+
+  // Handle 11-digit numbers with +1
+  if (phoneNumber.length === 11 && phoneNumber.startsWith('1')) {
+    const digits = phoneNumber.slice(1)
+    if (digits.length <= 3) return `+1(${digits}`
+    if (digits.length <= 6) return `+1(${digits.slice(0, 3)})${digits.slice(3)}`
+    return `+1(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+
+  // Handle 10-digit numbers
+  if (phoneNumber.length <= 3) return `(${phoneNumber}`
+  if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+  return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
+}
 
 export function SignUpForm({
   className,
@@ -137,7 +175,18 @@ export function SignUpForm({
             <FormItem>
               <FormLabel>Phone (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder='+1-555-0123' {...field} />
+                <Input
+                  placeholder='(123)456-7890 or +1(123)456-7890'
+                  value={field.value ? formatPhoneNumber(field.value) : ''}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '')
+                    // Only allow 10 or 11 digits (11 must start with 1)
+                    if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                      field.onChange(digits)
+                    }
+                  }}
+                  maxLength={17}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

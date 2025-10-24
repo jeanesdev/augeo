@@ -65,7 +65,7 @@ CREATE TABLE users (
     phone VARCHAR(20) NULL,
 
     -- Authentication
-    email_verified BOOLEAN NOT NULL DEFAULT false,
+    email_verified BOOLEAN NOT NULL DEFAULT false,  -- Can be manually verified by super_admin or npo_admin
     is_active BOOLEAN NOT NULL DEFAULT false,
 
     -- Role & Scope
@@ -97,10 +97,12 @@ CREATE INDEX idx_users_created_at ON users(created_at DESC);
 **Business Rules**:
 - Email must be unique (case-insensitive)
 - Email must be verified before login (`email_verified = true` AND `is_active = true`)
+- Email can be manually verified by super_admin (any user) or npo_admin (users in their NPO only)
 - Password must be hashed with bcrypt (12+ rounds)
 - NPO Admin and Event Coordinator roles MUST have `npo_id` set
 - Staff and Donor roles MUST NOT have `npo_id` (use event_staff for staff assignments)
 - Default role on registration: "donor"
+- Phone numbers are stored as raw digits (no formatting characters) for consistency
 
 **SQLAlchemy Model**:
 ```python

@@ -515,3 +515,79 @@ async def activate_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.post("/{user_id}/verify-email", response_model=UserPublicWithRole)
+@require_role("super_admin", "npo_admin")
+async def verify_user_email(
+    user_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, object]:
+    """Manually verify a user's email address.
+
+    Access Control:
+    - Super Admin: Can verify any user's email
+    - NPO Admin: Can verify emails for users in their NPO
+    - Others: Not allowed
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        Updated user with role information
+
+    Raises:
+        403: Insufficient permissions
+        404: User not found
+    """
+    from sqlalchemy import select, update
+
+    from app.models.base import Base
+
+    try:
+        # Get the user
+        user_stmt = select(User).where(User.id == user_id)
+        result = await db.execute(user_stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise ValueError("User not found")
+
+        # Check permissions
+        if current_user.role_name == "npo_admin":  # type: ignore[attr-defined]
+            if user.npo_id != current_user.npo_id:
+                raise PermissionError("You can only verify emails for users in your NPO")
+
+        # Update email_verified
+        update_stmt = (
+            update(User).where(User.id == user_id).values(email_verified=True).returning(User)
+        )
+        result = await db.execute(update_stmt)
+        updated_user = result.scalar_one()
+        await db.commit()
+
+        # Get role name
+        roles_table = Base.metadata.tables["roles"]
+        role_stmt = select(roles_table.c.name).where(roles_table.c.id == updated_user.role_id)
+        role_result = await db.execute(role_stmt)
+        role_name = role_result.scalar_one()
+
+        return {
+            "id": updated_user.id,
+            "email": updated_user.email,
+            "first_name": updated_user.first_name,
+            "last_name": updated_user.last_name,
+            "phone": updated_user.phone,
+            "role": role_name,
+            "npo_id": updated_user.npo_id,
+            "email_verified": updated_user.email_verified,
+            "is_active": updated_user.is_active,
+            "last_login_at": updated_user.last_login_at,
+            "created_at": updated_user.created_at,
+            "updated_at": updated_user.updated_at,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))

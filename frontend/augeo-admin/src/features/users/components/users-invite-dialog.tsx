@@ -1,8 +1,4 @@
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { MailPlus, Send } from 'lucide-react'
-import { useCreateUser } from '../hooks/use-users'
+import { SelectDropdown } from '@/components/select-dropdown'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,14 +18,37 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { SelectDropdown } from '@/components/select-dropdown'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { MailPlus, Send } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { roles } from '../data/data'
+import { useCreateUser } from '../hooks/use-users'
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === '') return true
+        const digits = val.replace(/\D/g, '')
+        return digits.length >= 10 && digits.length <= 11
+      },
+      { message: 'Phone must be 10 or 11 digits' }
+    )
+    .refine(
+      (val) => {
+        if (!val || val === '') return true
+        const digits = val.replace(/\D/g, '')
+        if (digits.length === 11) return digits.startsWith('1')
+        return true
+      },
+      { message: '11-digit phone must start with 1' }
+    ),
   role: z.string().min(1, 'Role is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
@@ -39,6 +58,25 @@ type UserInviteForm = z.infer<typeof formSchema>
 type UserInviteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+// Format phone number as user types
+const formatPhoneNumber = (value: string): string => {
+  const phoneNumber = value.replace(/\D/g, '')
+  if (phoneNumber.length === 0) return ''
+
+  // Handle 11-digit numbers with +1
+  if (phoneNumber.length === 11 && phoneNumber.startsWith('1')) {
+    const digits = phoneNumber.slice(1)
+    if (digits.length <= 3) return `+1(${digits}`
+    if (digits.length <= 6) return `+1(${digits.slice(0, 3)})${digits.slice(3)}`
+    return `+1(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+
+  // Handle 10-digit numbers
+  if (phoneNumber.length <= 3) return `(${phoneNumber}`
+  if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+  return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
 }
 
 export function UsersInviteDialog({
@@ -59,13 +97,13 @@ export function UsersInviteDialog({
     },
   })
 
-  const onSubmit = async (values: InviteUserForm) => {
+  const onSubmit = async (values: UserInviteForm) => {
     // Call mutation to create user
     await createUserMutation.mutateAsync({
       email: values.email,
-      first_name: values.firstName,
-      last_name: values.lastName,
-      phone: values.phone || null,
+      first_name: values.first_name,
+      last_name: values.last_name,
+      phone: values.phone || undefined,
       role: values.role,
       password: values.password,
     })
@@ -159,8 +197,16 @@ export function UsersInviteDialog({
                   <FormControl>
                     <Input
                       type='tel'
-                      placeholder='+1 (555) 123-4567'
-                      {...field}
+                      placeholder='(123)456-7890 or +1(123)456-7890'
+                      value={field.value ? formatPhoneNumber(field.value) : ''}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '')
+                        // Only allow 10 or 11 digits (11 must start with 1)
+                        if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                          field.onChange(digits)
+                        }
+                      }}
+                      maxLength={17}
                     />
                   </FormControl>
                   <FormMessage />

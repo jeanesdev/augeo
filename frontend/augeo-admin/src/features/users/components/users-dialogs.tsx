@@ -1,9 +1,10 @@
+import type { User as ApiUser } from '../api/users-api'
+import { RoleAssignmentDialog } from './role-assignment-dialog'
 import { UsersActionDialog } from './users-action-dialog'
 import { UsersDeleteDialog } from './users-delete-dialog'
 import { UsersInviteDialog } from './users-invite-dialog'
-import { RoleAssignmentDialog } from './role-assignment-dialog'
 import { useUsers } from './users-provider'
-import type { User as ApiUser } from '../api/users-api'
+import { UsersResetPasswordDialog } from './users-reset-password-dialog'
 
 export function UsersDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useUsers()
@@ -62,6 +63,18 @@ export function UsersDialogs() {
                 setCurrentRow(null)
               }, 500)
             }}
+          />
+
+          <UsersResetPasswordDialog
+            key={`user-reset-${currentRow.id}`}
+            open={open === 'resetPassword'}
+            onOpenChange={() => {
+              setOpen('resetPassword')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
           />
 
           <UsersDeleteDialog

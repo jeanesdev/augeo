@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as usersApi from '../api/users-api'
 
@@ -40,11 +40,29 @@ export function useCreateUser() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('User created successfully')
     },
-    onError: (error: unknown) => {
-      const message = error instanceof Error && 'response' in error
-        ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : 'Failed to create user'
-      toast.error(message || 'Failed to create user')
+    onError: (error: any) => {
+      // Extract error message from Axios error response
+      let message = 'Failed to create user'
+
+      // Check if it's an Axios error with response
+      if (error?.response?.data?.detail) {
+        // FastAPI returns error in 'detail' field
+        message = error.response.data.detail
+      } else if (error?.response?.status === 409) {
+        // 409 Conflict - likely duplicate email
+        message = 'Email already exists'
+      } else if (error?.response?.status === 400) {
+        // 400 Bad Request - validation error
+        message = error.response.data?.detail || 'Invalid user data'
+      } else if (error?.response?.status === 403) {
+        // 403 Forbidden - permission error
+        message = 'You do not have permission to create users'
+      } else if (error?.message) {
+        // Network or other error
+        message = error.message
+      }
+
+      toast.error(message)
     },
   })
 }
@@ -63,10 +81,17 @@ export function useUpdateUser() {
       toast.success('User updated successfully')
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error && 'response' in error
-        ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : 'Failed to update user'
-      toast.error(message || 'Failed to update user')
+      // Extract error message from Axios error response
+      let message = 'Failed to update user'
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { detail?: string } } }
+        if (axiosError.response?.data?.detail) {
+          message = axiosError.response.data.detail
+        }
+      }
+
+      toast.error(message)
     },
   })
 }
@@ -119,6 +144,28 @@ export function useActivateUser() {
 }
 
 /**
+ * Hook to verify a user's email
+ */
+export function useVerifyUserEmail() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (userId: string) => usersApi.verifyUserEmail(userId),
+    onSuccess: (_, userId) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: ['users', userId] })
+      toast.success('Email verified successfully')
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error && 'response' in error
+        ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+        : 'Failed to verify email'
+      toast.error(message || 'Failed to verify email')
+    },
+  })
+}
+
+/**
  * Hook to delete a user
  */
 export function useDeleteUser() {
@@ -131,10 +178,17 @@ export function useDeleteUser() {
       toast.success('User deleted successfully')
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error && 'response' in error
-        ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : 'Failed to delete user'
-      toast.error(message || 'Failed to delete user')
+      // Extract error message from Axios error response
+      let message = 'Failed to delete user'
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { detail?: string } } }
+        if (axiosError.response?.data?.detail) {
+          message = axiosError.response.data.detail
+        }
+      }
+
+      toast.error(message)
     },
   })
 }

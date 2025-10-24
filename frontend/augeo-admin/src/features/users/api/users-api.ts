@@ -111,6 +111,14 @@ export async function activateUser(
 }
 
 /**
+ * Verify a user's email
+ */
+export async function verifyUserEmail(userId: string): Promise<User> {
+  const response = await apiClient.post<User>(`/users/${userId}/verify-email`)
+  return response.data
+}
+
+/**
  * Delete (deactivate) a user
  */
 export async function deleteUser(userId: string): Promise<void> {
