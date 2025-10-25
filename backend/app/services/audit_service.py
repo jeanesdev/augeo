@@ -421,20 +421,43 @@ class AuditService:
         )
 
     @staticmethod
-    def log_account_deactivated(
+    async def log_account_deactivated(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         reason: str | None = None,
         admin_user_id: uuid.UUID | None = None,
+        ip_address: str | None = None,
     ) -> None:
-        """Log account deactivation.
+        """Log account deactivation to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of deactivated user
             email: User's email address
             reason: Optional reason for deactivation
             admin_user_id: Optional UUID of admin who deactivated account
+            ip_address: Optional IP address
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="account_deactivated",
+                ip_address=ip_address or "unknown",
+                user_agent=None,
+                event_metadata={
+                    "email": email,
+                    "reason": reason,
+                    "admin_user_id": str(admin_user_id) if admin_user_id else None,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger
         logger.warning(
             "User account deactivated",
             extra={
@@ -448,24 +471,49 @@ class AuditService:
         )
 
     @staticmethod
-    def log_role_changed(
+    async def log_role_changed(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         old_role: str,
         new_role: str,
         admin_user_id: uuid.UUID,
         admin_email: str,
+        ip_address: str | None = None,
     ) -> None:
-        """Log role change event.
+        """Log role change event to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of user whose role changed
             email: User's email address
             old_role: Previous role name
             new_role: New role name
             admin_user_id: UUID of admin who changed the role
             admin_email: Email of admin who changed the role
+            ip_address: Optional IP address of admin
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="role_changed",
+                ip_address=ip_address or "unknown",
+                user_agent=None,
+                event_metadata={
+                    "email": email,
+                    "old_role": old_role,
+                    "new_role": new_role,
+                    "admin_user_id": str(admin_user_id),
+                    "admin_email": admin_email,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "User role changed",
             extra={
@@ -481,22 +529,46 @@ class AuditService:
         )
 
     @staticmethod
-    def log_user_created(
+    async def log_user_created(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         role: str,
         admin_user_id: uuid.UUID,
         admin_email: str,
+        ip_address: str | None = None,
     ) -> None:
-        """Log user creation event.
+        """Log user creation event to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of created user
             email: New user's email address
             role: Assigned role name
             admin_user_id: UUID of admin who created the user
             admin_email: Email of admin who created the user
+            ip_address: Optional IP address of admin
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="user_created",
+                ip_address=ip_address or "unknown",
+                user_agent=None,
+                event_metadata={
+                    "email": email,
+                    "role": role,
+                    "admin_user_id": str(admin_user_id),
+                    "admin_email": admin_email,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "User created by admin",
             extra={
@@ -511,22 +583,46 @@ class AuditService:
         )
 
     @staticmethod
-    def log_user_updated(
+    async def log_user_updated(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         fields_updated: list[str],
         admin_user_id: uuid.UUID,
         admin_email: str,
+        ip_address: str | None = None,
     ) -> None:
-        """Log user profile update event.
+        """Log user profile update event to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of updated user
             email: User's email address
             fields_updated: List of field names that were updated
             admin_user_id: UUID of admin who updated the user
             admin_email: Email of admin who updated the user
+            ip_address: Optional IP address of admin
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="user_updated",
+                ip_address=ip_address or "unknown",
+                user_agent=None,
+                event_metadata={
+                    "email": email,
+                    "fields_updated": fields_updated,
+                    "admin_user_id": str(admin_user_id),
+                    "admin_email": admin_email,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "User profile updated",
             extra={
@@ -541,20 +637,43 @@ class AuditService:
         )
 
     @staticmethod
-    def log_user_deleted(
+    async def log_user_deleted(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         admin_user_id: uuid.UUID,
         admin_email: str,
+        ip_address: str | None = None,
     ) -> None:
-        """Log user deletion/deactivation event.
+        """Log user deletion/deactivation event to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of deleted user
             email: User's email address
             admin_user_id: UUID of admin who deleted the user
             admin_email: Email of admin who deleted the user
+            ip_address: Optional IP address of admin
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="user_deleted",
+                ip_address=ip_address or "unknown",
+                user_agent=None,
+                event_metadata={
+                    "email": email,
+                    "admin_user_id": str(admin_user_id),
+                    "admin_email": admin_email,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger
         logger.warning(
             "User deleted/deactivated",
             extra={
@@ -568,18 +687,40 @@ class AuditService:
         )
 
     @staticmethod
-    def log_account_reactivated(
+    async def log_account_reactivated(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         admin_user_id: uuid.UUID | None = None,
+        ip_address: str | None = None,
     ) -> None:
-        """Log account reactivation.
+        """Log account reactivation to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of reactivated user
             email: User's email address
             admin_user_id: Optional UUID of admin who reactivated account
+            ip_address: Optional IP address
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="account_reactivated",
+                ip_address=ip_address or "unknown",
+                user_agent=None,
+                event_metadata={
+                    "email": email,
+                    "admin_user_id": str(admin_user_id) if admin_user_id else None,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "User account reactivated",
             extra={

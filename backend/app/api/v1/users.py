@@ -160,13 +160,15 @@ async def create_user(
         role_name = role_result.scalar_one()
 
         # Log user creation
-        audit_service = AuditService()
-        audit_service.log_user_created(
+        ip_address = None
+        await AuditService.log_user_created(
+            db=db,
             user_id=user.id,
             email=user.email,
             role=role_name,
             admin_user_id=current_user.id,
             admin_email=current_user.email,
+            ip_address=ip_address,
         )
 
         return {
@@ -295,7 +297,6 @@ async def update_user(
         role_name = role_result.scalar_one()
 
         # Log user update
-        audit_service = AuditService()
         # Determine which fields were updated
         fields_updated = []
         if user_data.first_name is not None:
@@ -305,12 +306,15 @@ async def update_user(
         if user_data.phone is not None:
             fields_updated.append("phone")
 
-        audit_service.log_user_updated(
+        ip_address = None
+        await AuditService.log_user_updated(
+            db=db,
             user_id=user.id,
             email=user.email,
             fields_updated=fields_updated,
             admin_user_id=current_user.id,
             admin_email=current_user.email,
+            ip_address=ip_address,
         )
 
         return {
@@ -360,12 +364,14 @@ async def delete_user(
         user = await user_service.deactivate_user(db=db, current_user=current_user, user_id=user_id)
 
         # Log user deletion/deactivation
-        audit_service = AuditService()
-        audit_service.log_user_deleted(
+        ip_address = None
+        await AuditService.log_user_deleted(
+            db=db,
             user_id=user.id,
             email=user.email,
             admin_user_id=current_user.id,
             admin_email=current_user.email,
+            ip_address=ip_address,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -436,14 +442,16 @@ async def update_user_role(
         new_role_name = new_role_result.scalar_one()
 
         # Log role change
-        audit_service = AuditService()
-        audit_service.log_role_changed(
+        ip_address = None
+        await AuditService.log_role_changed(
+            db=db,
             user_id=user.id,
             email=user.email,
             old_role=old_role_name,
             new_role=new_role_name,
             admin_user_id=current_user.id,
             admin_email=current_user.email,
+            ip_address=ip_address,
         )
 
         return {
@@ -517,18 +525,23 @@ async def activate_user(
         role_name = role_result.scalar_one()
 
         # Log activation change
-        audit_service = AuditService()
+        ip_address = None
         if activate_data.is_active:
-            audit_service.log_account_reactivated(
+            await AuditService.log_account_reactivated(
+                db=db,
                 user_id=user.id,
                 email=user.email,
                 admin_user_id=current_user.id,
+                ip_address=ip_address,
             )
         else:
-            audit_service.log_account_deactivated(
+            await AuditService.log_account_deactivated(
+                db=db,
                 user_id=user.id,
                 email=user.email,
+                reason="Manual deactivation",
                 admin_user_id=current_user.id,
+                ip_address=ip_address,
             )
 
         return {
