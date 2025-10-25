@@ -9,14 +9,24 @@ Role hierarchy:
 - event_coordinator: Event/auction management within NPO
 - staff: Donor registration/check-in within assigned events
 - donor: Bidding and profile management only
+
+Permission caching:
+- Results cached in Redis for 5 minutes to reduce DB load
+- Cache key format: "perm:{user_id}:{permission}:{target_id}"
+- Cache invalidated on role/NPO changes
 """
 
 import uuid
 from typing import Any
 
+from app.core.redis import get_redis
+
 
 class PermissionService:
-    """Service for checking user permissions based on roles."""
+    """Service for checking user permissions based on roles with Redis caching."""
+
+    # Cache TTL in seconds (5 minutes)
+    PERMISSION_CACHE_TTL = 300
 
     # Roles that require npo_id
     ROLES_REQUIRING_NPO = {"npo_admin", "event_coordinator"}
@@ -33,7 +43,59 @@ class PermissionService:
     # Roles that can assign roles
     ROLES_CAN_ASSIGN_ROLES = {"super_admin", "npo_admin", "event_coordinator"}
 
-    def can_view_user(self, user: Any, target_user_npo_id: uuid.UUID | None) -> bool:
+    async def _get_cached_permission(self, cache_key: str) -> bool | None:
+        """Get permission result from cache.
+
+        Args:
+            cache_key: Redis cache key
+
+        Returns:
+            Cached boolean result or None if not cached
+        """
+        try:
+            redis_client = await get_redis()
+            cached = await redis_client.get(cache_key)
+            if cached is not None:
+                return bool(cached == "1")
+            return None
+        except Exception:
+            # If Redis fails, continue without cache
+            return None
+
+    async def _set_cached_permission(self, cache_key: str, result: bool) -> None:
+        """Cache permission result.
+
+        Args:
+            cache_key: Redis cache key
+            result: Permission check result
+        """
+        try:
+            redis_client = await get_redis()
+            await redis_client.setex(cache_key, self.PERMISSION_CACHE_TTL, "1" if result else "0")
+        except Exception:
+            # If Redis fails, continue without caching
+            pass
+
+    @staticmethod
+    async def invalidate_user_permissions(user_id: uuid.UUID) -> None:
+        """Invalidate all cached permissions for a user.
+
+        Call this when user role or NPO assignment changes.
+
+        Args:
+            user_id: User ID whose permissions to invalidate
+        """
+        try:
+            redis_client = await get_redis()
+            # Delete all keys matching pattern perm:{user_id}:*
+            pattern = f"perm:{user_id}:*"
+            async for key in redis_client.scan_iter(match=pattern):
+                await redis_client.delete(key)
+        except Exception:
+            # If Redis fails, cache will expire naturally
+            pass
+
+    async def can_view_user(self, user: Any, target_user_npo_id: uuid.UUID | None) -> bool:
         """Check if user can view a target user.
 
         Args:
@@ -49,21 +111,29 @@ class PermissionService:
             - event_coordinator: Can view users in their NPO only
             - staff/donor: Cannot view user lists
         """
+        # Check cache
+        cache_key = f"perm:{user.id}:view_user:{target_user_npo_id}"
+        cached_result = await self._get_cached_permission(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        # Compute permission
+        result = False
         if user.role_name not in self.ROLES_CAN_VIEW_USERS:
-            return False
-
-        if user.role_name == "super_admin":
-            return True
-
-        # NPO admin and event coordinator can only view users in their NPO
-        if user.role_name in {"npo_admin", "event_coordinator"}:
+            result = False
+        elif user.role_name == "super_admin":
+            result = True
+        elif user.role_name in {"npo_admin", "event_coordinator"}:
             if user.npo_id is None:
-                return False
-            return bool(target_user_npo_id == user.npo_id)
+                result = False
+            else:
+                result = bool(target_user_npo_id == user.npo_id)
 
-        return False
+        # Cache and return
+        await self._set_cached_permission(cache_key, result)
+        return result
 
-    def can_create_user(self, user: Any, target_npo_id: uuid.UUID | None) -> bool:
+    async def can_create_user(self, user: Any, target_npo_id: uuid.UUID | None) -> bool:
         """Check if user can create a new user.
 
         Args:
@@ -79,28 +149,34 @@ class PermissionService:
             - event_coordinator: Can create users in their NPO only (staff/donors for events)
             - Others: Cannot create users
         """
+        # Check cache
+        cache_key = f"perm:{user.id}:create_user:{target_npo_id}"
+        cached_result = await self._get_cached_permission(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        # Compute permission
+        result = False
         if user.role_name not in self.ROLES_CAN_CREATE_USERS:
-            return False
-
-        if user.role_name == "super_admin":
-            return True
-
-        # NPO admin can create users in their NPO or without NPO (donors)
-        if user.role_name == "npo_admin":
+            result = False
+        elif user.role_name == "super_admin":
+            result = True
+        elif user.role_name == "npo_admin":
             if user.npo_id is None:
-                return False
-            # Can create users with no NPO (donors) or users in their NPO
-            return target_npo_id is None or target_npo_id == user.npo_id
-
-        # Event coordinator can create users in their NPO only
-        if user.role_name == "event_coordinator":
+                result = False
+            else:
+                result = target_npo_id is None or target_npo_id == user.npo_id
+        elif user.role_name == "event_coordinator":
             if user.npo_id is None:
-                return False
-            return bool(target_npo_id == user.npo_id)
+                result = False
+            else:
+                result = bool(target_npo_id == user.npo_id)
 
-        return False
+        # Cache and return
+        await self._set_cached_permission(cache_key, result)
+        return result
 
-    def can_assign_role(self, user: Any, target_role: str) -> bool:
+    async def can_assign_role(self, user: Any, target_role: str) -> bool:
         """Check if user can assign a specific role.
 
         Args:
@@ -116,23 +192,28 @@ class PermissionService:
             - event_coordinator: Can assign staff and donor only
             - Others: Cannot assign roles
         """
+        # Check cache
+        cache_key = f"perm:{user.id}:assign_role:{target_role}"
+        cached_result = await self._get_cached_permission(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        # Compute permission
+        result = False
         if user.role_name not in self.ROLES_CAN_ASSIGN_ROLES:
-            return False
+            result = False
+        elif user.role_name == "super_admin":
+            result = True
+        elif user.role_name == "npo_admin":
+            result = target_role != "super_admin"
+        elif user.role_name == "event_coordinator":
+            result = target_role in {"staff", "donor"}
 
-        if user.role_name == "super_admin":
-            return True
+        # Cache and return
+        await self._set_cached_permission(cache_key, result)
+        return result
 
-        if user.role_name == "npo_admin":
-            # NPO admin cannot assign super_admin role
-            return target_role != "super_admin"
-
-        if user.role_name == "event_coordinator":
-            # Event coordinator can only assign staff and donor
-            return target_role in {"staff", "donor"}
-
-        return False
-
-    def can_modify_user(self, user: Any, target_user_npo_id: uuid.UUID | None) -> bool:
+    async def can_modify_user(self, user: Any, target_user_npo_id: uuid.UUID | None) -> bool:
         """Check if user can modify (update/delete) a target user.
 
         Args:
@@ -147,16 +228,25 @@ class PermissionService:
             - npo_admin: Can modify users in their NPO only
             - Others: Cannot modify users
         """
+        # Check cache
+        cache_key = f"perm:{user.id}:modify_user:{target_user_npo_id}"
+        cached_result = await self._get_cached_permission(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        # Compute permission
+        result = False
         if user.role_name == "super_admin":
-            return True
-
-        if user.role_name == "npo_admin":
+            result = True
+        elif user.role_name == "npo_admin":
             if user.npo_id is None:
-                return False
-            # Can modify users in their NPO or users without NPO (donors)
-            return target_user_npo_id is None or target_user_npo_id == user.npo_id
+                result = False
+            else:
+                result = target_user_npo_id is None or target_user_npo_id == user.npo_id
 
-        return False
+        # Cache and return
+        await self._set_cached_permission(cache_key, result)
+        return result
 
     def role_requires_npo_id(self, role: str) -> bool:
         """Check if a role requires npo_id to be set.

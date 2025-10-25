@@ -336,7 +336,7 @@ def require_permission(resource: str, action: str) -> Callable[..., Any]:
                 # Super admin has all permissions
                 pass
             elif resource == "users":
-                if action == "create" and not permission_service.can_create_user(
+                if action == "create" and not await permission_service.can_create_user(
                     current_user, None
                 ):
                     raise HTTPException(
@@ -348,7 +348,7 @@ def require_permission(resource: str, action: str) -> Callable[..., Any]:
                             }
                         },
                     )
-                elif action in ("read", "list") and not permission_service.can_view_user(
+                elif action in ("read", "list") and not await permission_service.can_view_user(
                     current_user, None
                 ):
                     raise HTTPException(

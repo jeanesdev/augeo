@@ -183,10 +183,10 @@ class UserService:
             PermissionError: If user doesn't have permission to create users
         """
         # Check permissions
-        if not self.permission_service.can_create_user(current_user, user_data.npo_id):
+        if not await self.permission_service.can_create_user(current_user, user_data.npo_id):
             raise PermissionError("Insufficient permissions to create users")
 
-        if not self.permission_service.can_assign_role(current_user, user_data.role):
+        if not await self.permission_service.can_assign_role(current_user, user_data.role):
             raise PermissionError(f"Cannot assign role: {user_data.role}")
 
         # Validate role and npo_id combination
@@ -255,7 +255,7 @@ class UserService:
             raise ValueError("User not found")
 
         # Check permissions
-        if not self.permission_service.can_view_user(current_user, user.npo_id):
+        if not await self.permission_service.can_view_user(current_user, user.npo_id):
             raise PermissionError("Insufficient permissions to view this user")
 
         return user
@@ -285,7 +285,7 @@ class UserService:
         user = await self.get_user(db, current_user, user_id)
 
         # Check permissions
-        if not self.permission_service.can_modify_user(current_user, user.npo_id):
+        if not await self.permission_service.can_modify_user(current_user, user.npo_id):
             raise PermissionError("Insufficient permissions to modify this user")
 
         # Update fields
@@ -334,10 +334,10 @@ class UserService:
             raise PermissionError("Cannot change your own role")
 
         # Check permissions
-        if not self.permission_service.can_modify_user(current_user, user.npo_id):
+        if not await self.permission_service.can_modify_user(current_user, user.npo_id):
             raise PermissionError("Insufficient permissions to modify this user")
 
-        if not self.permission_service.can_assign_role(current_user, role):
+        if not await self.permission_service.can_assign_role(current_user, role):
             raise PermissionError(f"Cannot assign role: {role}")
 
         # Validate role and npo_id combination
@@ -384,7 +384,7 @@ class UserService:
         user = await self.get_user(db, current_user, user_id)
 
         # Check permissions
-        if not self.permission_service.can_modify_user(current_user, user.npo_id):
+        if not await self.permission_service.can_modify_user(current_user, user.npo_id):
             raise PermissionError("Insufficient permissions to modify this user")
 
         user.is_active = False
@@ -412,7 +412,7 @@ class UserService:
         user = await self.get_user(db, current_user, user_id)
 
         # Check permissions
-        if not self.permission_service.can_modify_user(current_user, user.npo_id):
+        if not await self.permission_service.can_modify_user(current_user, user.npo_id):
             raise PermissionError("Insufficient permissions to modify this user")
 
         user.is_active = True
