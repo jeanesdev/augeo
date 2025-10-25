@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import decode_token
+from app.middleware.rate_limit import api_rate_limit, strict_rate_limit
 from app.schemas.auth import (
     EmailResendRequest,
     EmailVerifyRequest,
@@ -38,6 +39,7 @@ router = APIRouter()
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserRegisterResponse)
+@api_rate_limit()
 async def register(
     user_data: UserCreate,
     request: Request,
@@ -367,6 +369,7 @@ async def logout(
 
 
 @router.post("/verify-email", status_code=status.HTTP_200_OK, response_model=EmailVerifyResponse)
+@strict_rate_limit()
 async def verify_email(
     verify_data: EmailVerifyRequest,
     request: Request,
@@ -466,6 +469,7 @@ async def verify_email(
 @router.post(
     "/verify-email/resend", status_code=status.HTTP_200_OK, response_model=EmailVerifyResponse
 )
+@strict_rate_limit()
 async def resend_verification_email(
     resend_data: EmailResendRequest,
     db: AsyncSession = Depends(get_db),
@@ -598,6 +602,7 @@ async def request_password_reset(
 @router.post(
     "/password/reset/confirm", status_code=status.HTTP_200_OK, response_model=MessageResponse
 )
+@strict_rate_limit()
 async def confirm_password_reset(
     request: Request,
     confirm_data: PasswordResetConfirm,
