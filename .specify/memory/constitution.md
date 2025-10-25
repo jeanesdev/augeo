@@ -136,9 +136,34 @@ test(websocket): add connection drop recovery tests
 ### Documentation
 - **Code:** Docstrings on all public functions (Google style), inline comments for complex logic
 - **API:** OpenAPI spec auto-generated, keep examples updated
-- **Architecture:** Decision records (ADRs) for major choices in `/docs/architecture/`
+- **Architecture:** Decision records (ADRs) for major choices in `.specify/adr/`
+- **Deferred Work:** PARKING_LOT.md tracks deferred features, blocked items, and technical debt
 - **Runbooks:** Deployment, rollback, incident response procedures in `/docs/operations/`
 - **README:** Setup instructions, local dev environment, testing, contribution guidelines
+
+### Architecture Decision Records (ADR) Process
+- **When to Create ADR:**
+  - Deferring originally planned features (e.g., database permission table, middleware)
+  - Choosing between competing technical approaches (e.g., service-based vs database permissions)
+  - Making infrastructure decisions (e.g., email service, caching strategy, deployment architecture)
+  - Blocking work on missing dependencies (e.g., real email blocked on Spec 004)
+- **Required Sections:** Status, Date, Context, Decision, Consequences, Revisit Criteria
+- **Cross-Reference:** Link ADR in PARKING_LOT.md for deferred items, reference in tasks.md notes
+- **Living Documents:** Update ADR status (Proposed → Accepted → Superseded) as implementation evolves
+
+### PARKING_LOT.md Workflow
+- **Update When:**
+  - Deferring a task from the original specification
+  - Blocking work on missing infrastructure or dependencies
+  - Identifying technical debt during implementation
+  - Discovering features that can wait until later phases
+- **Required Fields:** Status, Phase, Reason, Revisit When, Estimated Effort, ADR link (if applicable)
+- **Categories:**
+  - **Deferred Features:** Originally planned but delayed (T074-T075 permissions)
+  - **Blocked Items:** Waiting on external dependencies (email blocked on Spec 004)
+  - **Technical Debt:** Implementation shortcuts to revisit later
+  - **Future Enhancements:** Nice-to-have features not in current spec
+- **Review Cadence:** Update after each phase completion, review quarterly for reprioritization
 
 ## Security & Compliance
 

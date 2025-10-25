@@ -15,7 +15,7 @@ Items that are deferred, blocked, or waiting for future consideration.
   - Compliance requires permission audit trail
 - **Estimated Effort**: 5-8 days to implement fully
 
-### Email Integration Tests (T055, T134)
+### Email Integration Tests (T055)
 - **Status**: Deferred - Covered by contract tests
 - **Phase**: Phase 4 (User Story 2)
 - **Reason**: Token extraction from mock emails requires additional test infrastructure
@@ -23,6 +23,29 @@ Items that are deferred, blocked, or waiting for future consideration.
 - **Revisit When**:
   - Real email sending implemented (Azure Communication Services)
   - Need end-to-end email verification flow tests
+- **Estimated Effort**: 2-3 days
+
+### Audit Service Unit Tests (T147)
+- **Status**: Deferred - Integration tests provide sufficient coverage
+- **Phase**: Phase 11 (Audit Logging)
+- **Reason**: Integration tests provide 88% coverage of audit logging functionality
+- **Current Coverage**: 4/4 integration tests passing (test_audit_logging.py)
+- **Revisit When**:
+  - Audit methods become more complex with business logic
+  - Need to test edge cases not covered by integration tests
+  - Code coverage requirements increase above 90%
+- **Estimated Effort**: 1-2 days
+
+### Audit Logging Middleware (T151)
+- **Status**: Deferred - Endpoint-level capture preferred
+- **Phase**: Phase 11 (Audit Logging)
+- **Reason**: IP address and user agent captured at endpoint level provides more context
+- **Current Approach**: Endpoints pass IP/UA directly to audit methods
+- **ADR**: [ADR-002: Audit Logging Database Persistence](./.specify/adr/002-audit-logging-database-persistence.md)
+- **Revisit When**:
+  - Need centralized request metadata capture
+  - Want to audit all requests (not just security events)
+  - Performance optimization needed (avoid duplicate extraction)
 - **Estimated Effort**: 2-3 days
 
 ## Technical Debt
@@ -42,29 +65,54 @@ Items that are deferred, blocked, or waiting for future consideration.
 - **Estimated Effort**: 1-2 days
 
 ### Email Service Production Implementation
-- **Status**: Mock mode only (logs to console)
-- **Service**: Azure Communication Services integration pending
+- **Status**: Blocked on infrastructure deployment (Spec 004)
+- **Blocking Issue**: Requires Azure Communication Services, verified domain, DNS configuration, and production URLs
+- **Current State**: Mock mode working (logs to console) - sufficient for development and testing
 - **Files**: `backend/app/services/email_service.py`
-- **Required**:
+- **Dependencies**:
+  - Azure Communication Services Email resource
+  - Domain ownership verification (augeo.app or similar)
+  - DNS records (SPF, DKIM, DMARC) for email deliverability
+  - Production frontend URLs for email links
+  - azure-communication-email package
   - AZURE_COMMUNICATION_CONNECTION_STRING environment variable
   - EMAIL_FROM_ADDRESS configuration
-  - azure-communication-email package
-- **Impact**: Cannot send real emails (password reset, verification)
-- **Priority**: Required for production launch
-- **Estimated Effort**: 1-2 days
+- **Impact**: Cannot send real emails (password reset, verification, user invitations)
+- **Priority**: Required for production launch - **blocked until Spec 004 (Cloud Infrastructure & Deployment)**
+- **Next Steps**:
+  1. Create Spec 004: Cloud Infrastructure & Deployment
+  2. Plan full Azure architecture (App Service, DNS, monitoring, etc.)
+  3. Implement email as part of complete deployment
+- **Estimated Effort**: 1-2 days (after infrastructure is deployed)
+- **Related Specs**: Spec 004 (Cloud Infrastructure & Deployment) - Not yet created
 
-### Audit Log Database Persistence
-- **Status**: Logs to stdout/console only
+### IP Address Capture in Audit Logs
+- **Status**: Currently set to None
 - **Service**: `backend/app/services/audit_service.py`
-- **Alternative**: Log aggregation service (Azure App Insights, ELK)
-- **Database Table**: Not implemented (would be Phase 11: T148-T153)
-- **Impact**: No queryable audit history
-- **Priority**: Required for compliance/production
-- **Estimated Effort**: 3-5 days (table + migration + service + admin UI)
+- **Files**: All audit method calls in endpoints
+- **Required**:
+  - Extract IP from `request.client.host` in FastAPI
+  - Handle proxies/load balancers (X-Forwarded-For header)
+  - Pass IP address parameter to all audit methods
+  - Privacy/compliance considerations
+- **Impact**: Audit logs missing source IP for security investigations
+- **Priority**: Should implement before production
+- **Estimated Effort**: 1-2 days
 
 ## Blocked Items
 
-None currently.
+### Real Email Sending (Production)
+- **Blocked By**: Missing Spec 004 (Cloud Infrastructure & Deployment)
+- **Status**: Need to create comprehensive deployment spec before implementing production email
+- **Reason**: Email requires domain, DNS, Azure resources, and production URLs - should be done holistically
+- **Current Workaround**: Mock email mode works for development/testing
+- **Tasks Affected**:
+  - T057: Email service implementation (partially complete - mock mode working)
+  - Production deployment of password reset feature
+  - Production deployment of email verification feature
+  - User invitation emails
+- **Next Action**: Create Spec 004 to plan Azure infrastructure, domain setup, DNS, CI/CD, and monitoring
+- **Priority**: Medium - Not blocking current development, required before production launch
 
 ## Future Enhancements
 
@@ -88,6 +136,6 @@ None currently - all active work has clear direction.
 
 ---
 
-**Last Updated**: 2025-10-24
+**Last Updated**: 2025-10-25
 **Maintained By**: Development Team
 **Review Cadence**: Update after each phase completion

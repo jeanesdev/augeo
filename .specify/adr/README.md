@@ -20,6 +20,7 @@ Each ADR follows this structure:
 ## Index
 
 - [ADR-001: Service-Based Permissions Over Database Permission Table](./001-service-based-permissions.md) - Accepted (2025-10-24)
+- [ADR-002: Audit Logging Database Persistence](./002-audit-logging-database-persistence.md) - Accepted (2025-10-25)
 
 ## Creating a New ADR
 
