@@ -277,7 +277,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 ---
 
-## Phase 7: Email Verification (Cross-Cutting Enhancement)
+## Phase 7: Email Verification (Cross-Cutting Enhancement) ✅ COMPLETE
 
 **Goal**: Require email verification before users can login, reducing spam accounts.
 
@@ -287,7 +287,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 - [x] T107 [P] Create contract test for POST /api/v1/auth/verify-email in backend/app/tests/contract/test_email_verification.py
 - [x] T108 [P] Create contract test for POST /api/v1/auth/verify-email/resend in backend/app/tests/contract/test_email_verification.py
-- [ ] T109 [P] Create integration test for email verification flow in backend/app/tests/integration/test_email_verification.py
+- [x] T109 [P] Create integration test for email verification flow in backend/app/tests/integration/test_email_verification.py
 
 ### Implementation for Email Verification
 
@@ -300,10 +300,29 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T116 Add email verification check to login endpoint (block unverified users) in backend/app/api/v1/auth.py
 - [x] T117 Add verification email sending to registration endpoint in backend/app/api/v1/auth.py
 - [x] T118 Add audit logging for email_verified events in backend/app/services/audit_service.py
-- [ ] T119 [P] Create email verification page component in frontend/augeo-admin/src/features/auth/EmailVerificationPage.tsx
-- [ ] T120 Add email verification route to React Router in frontend/augeo-admin/src/routes/(auth)/
+- [x] T119 [P] Create email verification page component in frontend/augeo-admin/src/features/auth/EmailVerificationPage.tsx
+- [x] T120 Add email verification route to React Router in frontend/augeo-admin/src/routes/(auth)/
 
-**Checkpoint**: Email verification complete - new users must verify email before login
+**Completed**: October 24, 2025 | **Commit**: 9dda30c
+
+**Notes**:
+- Backend complete (T107-T118): All contract tests passing (9/9), integration tests passing (7/7)
+- Frontend complete (T119-T120): EmailVerificationForm with verify/resend, route with token and email params
+- Manual testing successful:
+  - ✅ Register new user → verification token stored in Redis
+  - ✅ Verify email with token → user.email_verified = True
+  - ✅ Login after verification → access granted with tokens
+  - ✅ Resend verification email → new token generated
+  - ✅ Login before verification → 403 Forbidden (email not verified)
+- Integration test fixes: Updated error format assertions from "detail" to "error" → "message"
+- Email service in mock mode: Tokens stored in Redis with format `email_verify:{token_hash}` → `{user_id}`
+- Frontend components:
+  - EmailVerificationForm: Token input, verify button, resend functionality
+  - EmailVerificationPage: Card layout with AuthLayout wrapper
+  - Route: /verify-email?token=xxx&email=xxx with TanStack Router validation
+- No compilation errors: All TypeScript/ESLint checks passing
+
+**Checkpoint**: ✅ Email verification complete - new users must verify email before login
 
 ---
 
