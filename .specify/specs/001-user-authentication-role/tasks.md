@@ -479,19 +479,28 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [ ] T169 Run quickstart.md validation: Setup Docker Compose, run migrations, test auth flow end-to-end
 - [ ] T170 Update .github/copilot-instructions.md with auth feature completion
 
-**Completed**: October 25, 2025 (In Progress) | **Commits**: d209165, ffcafc1
+**Completed**: October 25, 2025 (In Progress) | **Commits**: d209165, ffcafc1, 2febc78
 
-**Progress**: 9/17 tasks complete (53%)
+**Progress**: 10/17 tasks complete (59%)
 
 - ✅ Documentation: OpenAPI enhanced, backend README updated, frontend README rewritten
 - ✅ Health checks: 4 endpoints (/health, /health/detailed, /health/ready, /health/live)
+- ✅ Metrics: Prometheus endpoint with HTTP counter, failure counters, up/down gauge
 - ✅ Error handling: Database retries, Redis resilience, email retry logic
 - ✅ Security: Request ID tracing (X-Request-ID), CORS configured
-- ⏳ Remaining: Metrics endpoint, code cleanup, indexes, caching, rate limiting, E2E tests, validation
+- ⏳ Remaining: Code cleanup, indexes, caching, rate limiting, E2E tests, validation
 
 **Notes**:
 
-- T154-T160, T165, T167: Complete with commits d209165 and ffcafc1
+- T154-T160, T161, T165, T167: Complete with commits d209165, ffcafc1, and 2febc78
+- T161 (Metrics): Prometheus endpoint with:
+  - `/metrics` endpoint in Prometheus text format
+  - HTTP request counter (`augeo_http_requests_total`) with method/path/status labels
+  - Failure counters for DB (`augeo_db_failures_total`), Redis (`augeo_redis_failures_total`), Email (`augeo_email_failures_total`)
+  - Up/down gauge (`augeo_up`) for liveness tracking
+  - Metrics middleware for automatic request tracking
+  - X-Process-Time header for debugging
+  - Tested and verified: all metrics incrementing correctly
 - OpenAPI documentation: Added contact info, license, and tag descriptions
 - Health checks: Comprehensive monitoring ready for Kubernetes deployment
 - Error handling: All external services (DB, Redis, email) have retry logic with exponential backoff

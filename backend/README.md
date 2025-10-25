@@ -168,6 +168,14 @@ Interactive API documentation is automatically generated:
 - `GET /health/ready` - Kubernetes readiness probe
 - `GET /health/live` - Kubernetes liveness probe
 
+**Metrics** (Prometheus):
+- `GET /metrics` - Prometheus-formatted metrics
+  - `augeo_http_requests_total` - HTTP requests by method/path/status
+  - `augeo_db_failures_total` - Database connection failures
+  - `augeo_redis_failures_total` - Redis connection failures
+  - `augeo_email_failures_total` - Email send failures
+  - `augeo_up` - Application up/down status (1=up, 0=down)
+
 ## 🛠️ Tech Stack
 
 - **Framework**: FastAPI 0.104+
