@@ -1,11 +1,14 @@
 """Audit logging service for security events.
 
 Logs authentication and authorization events for compliance and security monitoring.
+Persists audit events to database and logs to structured logger.
 """
 
 import uuid
 from datetime import datetime
 from enum import Enum
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
 
@@ -42,22 +45,42 @@ class AuditService:
     """
 
     @staticmethod
-    def log_login_success(
+    async def log_login_success(
+        db: AsyncSession | None,
         user_id: uuid.UUID,
         email: str,
         ip_address: str | None = None,
         user_agent: str | None = None,
         session_id: uuid.UUID | None = None,
     ) -> None:
-        """Log successful login event.
+        """Log successful login event to database and logger.
 
         Args:
+            db: Database session for persisting audit log (optional for backward compatibility)
             user_id: UUID of authenticated user
             email: User's email address
             ip_address: Optional client IP address
             user_agent: Optional client user agent
             session_id: Optional session UUID
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record if db session provided
+        if db is not None:
+            audit_log = AuditLog(
+                user_id=user_id,
+                action="login_success",
+                ip_address=ip_address or "unknown",
+                user_agent=user_agent,
+                event_metadata={
+                    "email": email,
+                    "session_id": str(session_id) if session_id else None,
+                },
+            )
+            db.add(audit_log)
+            await db.commit()
+
+        # Also log to structured logger for redundancy
         logger.info(
             "User login successful",
             extra={
@@ -72,20 +95,39 @@ class AuditService:
         )
 
     @staticmethod
-    def log_login_failed(
+    async def log_login_failed(
+        db: AsyncSession,
         email: str,
         reason: str,
         ip_address: str | None = None,
         user_agent: str | None = None,
     ) -> None:
-        """Log failed login attempt.
+        """Log failed login attempt to database and logger.
 
         Args:
+            db: Database session for persisting audit log
             email: Email address used in attempt
             reason: Reason for failure (e.g., "invalid_credentials", "email_not_verified")
             ip_address: Optional client IP address
             user_agent: Optional client user agent
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record (user_id is NULL for failed attempts)
+        audit_log = AuditLog(
+            user_id=None,  # NULL for failed login attempts
+            action="login_failed",
+            ip_address=ip_address or "unknown",
+            user_agent=user_agent,
+            event_metadata={
+                "email": email,
+                "reason": reason,
+            },
+        )
+        db.add(audit_log)
+        await db.commit()
+
+        # Also log to structured logger
         logger.warning(
             "User login failed",
             extra={
@@ -99,20 +141,40 @@ class AuditService:
         )
 
     @staticmethod
-    def log_logout(
+    @staticmethod
+    async def log_logout(
+        db: AsyncSession,
         user_id: uuid.UUID,
         email: str,
         ip_address: str | None = None,
         session_id: uuid.UUID | None = None,
     ) -> None:
-        """Log user logout event.
+        """Log user logout event to database and logger.
 
         Args:
+            db: Database session for persisting audit log
             user_id: UUID of user logging out
             email: User's email address
             ip_address: Optional client IP address
             session_id: Optional session UUID being terminated
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record
+        audit_log = AuditLog(
+            user_id=user_id,
+            action="logout",
+            ip_address=ip_address or "unknown",
+            user_agent=None,
+            event_metadata={
+                "email": email,
+                "session_id": str(session_id) if session_id else None,
+            },
+        )
+        db.add(audit_log)
+        await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "User logout",
             extra={
@@ -228,18 +290,34 @@ class AuditService:
         )
 
     @staticmethod
-    def log_password_changed(
+    async def log_password_changed(
+        db: AsyncSession,
         user_id: uuid.UUID,
         email: str,
         ip_address: str | None = None,
     ) -> None:
-        """Log password change by authenticated user.
+        """Log password change by authenticated user to database and logger.
 
         Args:
+            db: Database session for persisting audit log
             user_id: UUID of user who changed their password
             email: User's email address
             ip_address: Optional client IP address
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record
+        audit_log = AuditLog(
+            user_id=user_id,
+            action="password_changed",
+            ip_address=ip_address or "unknown",
+            user_agent=None,
+            event_metadata={"email": email},
+        )
+        db.add(audit_log)
+        await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "Password changed",
             extra={
@@ -252,18 +330,34 @@ class AuditService:
         )
 
     @staticmethod
-    def log_email_verification(
+    async def log_email_verification(
+        db: AsyncSession,
         user_id: uuid.UUID,
         email: str,
         ip_address: str | None = None,
     ) -> None:
-        """Log email verification completion.
+        """Log email verification completion to database and logger.
 
         Args:
+            db: Database session for persisting audit log
             user_id: UUID of user whose email was verified
             email: Email address that was verified
             ip_address: Optional client IP address
         """
+        from app.models.audit_log import AuditLog
+
+        # Create database record
+        audit_log = AuditLog(
+            user_id=user_id,
+            action="email_verified",
+            ip_address=ip_address or "unknown",
+            user_agent=None,
+            event_metadata={"email": email},
+        )
+        db.add(audit_log)
+        await db.commit()
+
+        # Also log to structured logger
         logger.info(
             "Email verified",
             extra={

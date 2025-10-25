@@ -452,7 +452,8 @@ async def verify_email(
 
     # Log audit event
     client_ip = request.client.host if request.client else None
-    AuditService.log_email_verification(
+    await AuditService.log_email_verification(
+        db=db,
         user_id=user.id,
         email=user.email,
         ip_address=client_ip,
@@ -717,7 +718,12 @@ async def change_password(
 
         # Log audit event
         ip_address = request.client.host if request.client else None
-        AuditService.log_password_changed(user.id, user.email, ip_address)
+        await AuditService.log_password_changed(
+            db=db,
+            user_id=user.id,
+            email=user.email,
+            ip_address=ip_address,
+        )
 
         return MessageResponse(message="Password changed successfully.")
 

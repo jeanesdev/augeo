@@ -1,23 +1,23 @@
-import { useState } from 'react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from '@tanstack/react-router'
-import { ArrowRight, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import apiClient from '@/lib/axios'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from '@tanstack/react-router'
+import { ArrowRight, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 const formSchema = z.object({
   token: z.string().min(1, 'Verification token is required'),

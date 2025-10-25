@@ -1,6 +1,6 @@
-import { z } from 'zod'
-import { createFileRoute } from '@tanstack/react-router'
 import { EmailVerificationPage } from '@/features/auth/email-verification'
+import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 
 const searchSchema = z.object({
   token: z.string().optional(),

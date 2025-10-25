@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
+    from app.models.audit_log import AuditLog
     from app.models.role import Role
     from app.models.session import Session
 
@@ -91,6 +92,12 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     sessions: Mapped[list["Session"]] = relationship(
         "Session",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    audit_logs: Mapped[list["AuditLog"]] = relationship(
+        "AuditLog",
         back_populates="user",
         cascade="all, delete-orphan",
     )

@@ -306,6 +306,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 **Completed**: October 24, 2025 | **Commit**: 9dda30c
 
 **Notes**:
+
 - Backend complete (T107-T118): All contract tests passing (9/9), integration tests passing (7/7)
 - Frontend complete (T119-T120): EmailVerificationForm with verify/resend, route with token and email params
 - Manual testing successful:
@@ -395,6 +396,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 **Completed**: October 24, 2025 | **Commit**: 73e2a61
 
 **Notes**:
+
 - Migration 004_seed_superadmin.py created (not 007 - sequential numbering)
 - Reads environment variables: SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, SUPER_ADMIN_FIRST_NAME, SUPER_ADMIN_LAST_NAME
 - Password hashing: Uses hash_password() from app.core.security (bcrypt)
@@ -405,7 +407,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - Documentation: quickstart.md already includes super admin setup section
 - Testing successful:
   - ✅ Migration applied: `alembic upgrade head`
-  - ✅ User created in database: admin@augeo.app with super_admin role
+  - ✅ User created in database: <admin@augeo.app> with super_admin role
   - ✅ Login successful: POST /auth/login returns valid tokens
   - ✅ User verified and active: email_verified=True, is_active=True
 
