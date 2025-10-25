@@ -468,7 +468,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T159 [P] Add error handling for email service failures in backend/app/services/email_service.py
 - [x] T160 [P] Implement health check endpoint at /health in backend/app/api/health.py
 - [ ] T161 [P] Add monitoring/metrics endpoint at /metrics in backend/app/api/metrics.py
- - [x] T161 [P] Add monitoring/metrics endpoint at /metrics in backend/app/api/metrics.py
+- [x] T161 [P] Add monitoring/metrics endpoint at /metrics in backend/app/api/metrics.py
 - [ ] T162 Code cleanup: Remove unused imports, add type hints, fix linting issues across backend/
 - [ ] T163 [P] Performance optimization: Add database query indexes per data-model.md
 - [ ] T164 [P] Performance optimization: Add Redis caching for permission checks in backend/app/services/permission_service.py
