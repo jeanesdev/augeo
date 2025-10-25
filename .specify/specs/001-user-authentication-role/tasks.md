@@ -459,23 +459,49 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T154 [P] Add API documentation with OpenAPI/Swagger at /docs endpoint in backend/app/main.py
-- [ ] T155 [P] Create comprehensive README.md in backend/ with setup instructions
-- [ ] T156 [P] Create comprehensive README.md in frontend/augeo-admin/ with setup instructions
-- [ ] T157 [P] Add error handling for database connection failures in backend/app/core/database.py
-- [ ] T158 [P] Add error handling for Redis connection failures in backend/app/core/redis.py
-- [ ] T159 [P] Add error handling for email service failures in backend/app/services/email_service.py
-- [ ] T160 [P] Implement health check endpoint at /health in backend/app/api/health.py
+- [x] T154 [P] Add API documentation with OpenAPI/Swagger at /docs endpoint in backend/app/main.py
+- [x] T155 [P] Create comprehensive README.md in backend/ with setup instructions
+- [x] T156 [P] Create comprehensive README.md in frontend/augeo-admin/ with setup instructions
+- [x] T157 [P] Add error handling for database connection failures in backend/app/core/database.py
+- [x] T158 [P] Add error handling for Redis connection failures in backend/app/core/redis.py
+- [x] T159 [P] Add error handling for email service failures in backend/app/services/email_service.py
+- [x] T160 [P] Implement health check endpoint at /health in backend/app/api/health.py
 - [ ] T161 [P] Add monitoring/metrics endpoint at /metrics in backend/app/api/metrics.py
 - [ ] T162 Code cleanup: Remove unused imports, add type hints, fix linting issues across backend/
 - [ ] T163 [P] Performance optimization: Add database query indexes per data-model.md
 - [ ] T164 [P] Performance optimization: Add Redis caching for permission checks in backend/app/services/permission_service.py
-- [ ] T165 [P] Security hardening: Add CORS configuration with allowed origins in backend/app/main.py
+- [x] T165 [P] Security hardening: Add CORS configuration with allowed origins in backend/app/main.py
 - [ ] T166 [P] Security hardening: Add rate limiting to all public endpoints in backend/app/middleware/rate_limit.py
-- [ ] T167 [P] Security hardening: Add request ID tracing for debugging in backend/app/middleware/request_id.py
+- [x] T167 [P] Security hardening: Add request ID tracing for debugging in backend/app/middleware/request_id.py
 - [ ] T168 [P] Add E2E tests with Playwright for critical user journeys in frontend/augeo-admin/e2e/
 - [ ] T169 Run quickstart.md validation: Setup Docker Compose, run migrations, test auth flow end-to-end
 - [ ] T170 Update .github/copilot-instructions.md with auth feature completion
+
+**Completed**: October 25, 2025 (In Progress) | **Commits**: d209165, ffcafc1
+
+**Progress**: 9/17 tasks complete (53%)
+- ✅ Documentation: OpenAPI enhanced, backend README updated, frontend README rewritten
+- ✅ Health checks: 4 endpoints (/health, /health/detailed, /health/ready, /health/live)
+- ✅ Error handling: Database retries, Redis resilience, email retry logic
+- ✅ Security: Request ID tracing (X-Request-ID), CORS configured
+- ⏳ Remaining: Metrics endpoint, code cleanup, indexes, caching, rate limiting, E2E tests, validation
+
+**Notes**:
+- T154-T160, T165, T167: Complete with commits d209165 and ffcafc1
+- OpenAPI documentation: Added contact info, license, and tag descriptions
+- Health checks: Comprehensive monitoring ready for Kubernetes deployment
+- Error handling: All external services (DB, Redis, email) have retry logic with exponential backoff
+- Request ID middleware: Distributed tracing with X-Request-ID header in all responses
+- Backend README: 400+ lines with complete setup, API docs, troubleshooting
+- Frontend README: Completely rewritten from template to Augeo-specific content
+- Rate limiting (T166): Already implemented for login endpoint, needs expansion to all public endpoints
+- Code cleanup (T162): Ongoing as part of each commit
+- Metrics (T161): Prometheus endpoint TODO
+- Indexes (T163): Need to review data-model.md and add to migration
+- Caching (T164): Permission checks cache with Redis
+- E2E tests (T168): Playwright setup needed
+- Validation (T169): End-to-end quickstart test
+- Copilot instructions (T170): Update with Phase 12 completion
 
 ---
 
