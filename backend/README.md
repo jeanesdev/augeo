@@ -40,8 +40,14 @@ FastAPI-based backend API for the Augeo nonprofit auction platform, featuring au
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-API will be available at: http://localhost:8000
-API docs (Swagger): http://localhost:8000/docs
+API will be available at:
+- **API**: http://localhost:8000
+- **API Docs (Swagger)**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Health Check**: http://localhost:8000/health
+- **Detailed Health**: http://localhost:8000/health/detailed
+- **Readiness**: http://localhost:8000/health/ready
+- **Liveness**: http://localhost:8000/health/live
 
 ## 🏗️ Project Structure
 
@@ -132,6 +138,36 @@ Interactive API documentation is automatically generated:
 - **ReDoc**: http://localhost:8000/redoc
 - **OpenAPI JSON**: http://localhost:8000/openapi.json
 
+### Main Endpoints
+
+**Authentication**:
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login with email/password
+- `POST /api/v1/auth/logout` - Logout current session
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/verify-email` - Verify email with token
+- `POST /api/v1/auth/verify-email/resend` - Resend verification email
+
+**Password Management**:
+- `POST /api/v1/auth/password/reset/request` - Request password reset
+- `POST /api/v1/auth/password/reset/confirm` - Confirm password reset
+- `POST /api/v1/auth/password/change` - Change password (authenticated)
+
+**User Management** (Admin only):
+- `GET /api/v1/users` - List users
+- `POST /api/v1/users` - Create user
+- `GET /api/v1/users/{user_id}` - Get user
+- `PATCH /api/v1/users/{user_id}` - Update user
+- `DELETE /api/v1/users/{user_id}` - Delete user
+- `PATCH /api/v1/users/{user_id}/role` - Update user role
+- `POST /api/v1/users/{user_id}/activate` - Reactivate user
+
+**Health Checks**:
+- `GET /health` - Basic health check
+- `GET /health/detailed` - Detailed service status (DB, Redis, email)
+- `GET /health/ready` - Kubernetes readiness probe
+- `GET /health/live` - Kubernetes liveness probe
+
 ## 🛠️ Tech Stack
 
 - **Framework**: FastAPI 0.104+
@@ -155,11 +191,28 @@ For detailed documentation, see:
 
 ## 🤝 Contributing
 
-1. Create a feature branch from `develop`
-2. Write tests first (TDD)
+1. Create a feature branch from `001-user-authentication-role` (or current feature branch)
+2. Write tests first (TDD approach)
 3. Implement feature
-4. Run code quality checks
-5. Submit PR for review
+4. Run code quality checks: `poetry run ruff check . && poetry run black . && poetry run mypy app`
+5. **ALWAYS commit with safe-commit script**: `./scripts/safe-commit.sh "message"`
+6. Submit PR for review
+
+### Commit Guidelines
+
+**CRITICAL**: Always use the safe-commit script to ensure pre-commit hooks pass:
+
+```bash
+./scripts/safe-commit.sh "feat: add user export feature"
+```
+
+This script:
+- Runs pre-commit hooks to completion
+- Auto-fixes formatting issues (ruff, black, trailing whitespace)
+- Re-runs hooks after auto-fixes to verify
+- Only commits if all checks pass
+
+**Never use** `git commit -m` directly - it bypasses verification.
 
 ## 📄 License
 

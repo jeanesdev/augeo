@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.health import router as health_router
 from app.api.v1 import api_router
 from app.core.config import get_settings
 from app.core.database import async_engine
@@ -20,6 +21,7 @@ from app.core.errors import (
 )
 from app.core.logging import get_logger, setup_logging
 from app.core.redis import get_redis
+from app.middleware.request_id import RequestIDMiddleware
 
 # Setup logging
 setup_logging()
@@ -79,7 +81,23 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
     lifespan=lifespan,
+    contact={
+        "name": "Augeo Platform Support",
+        "email": "support@augeo.app",
+    },
+    license_info={
+        "name": "Proprietary",
+    },
+    openapi_tags=[
+        {"name": "auth", "description": "Authentication and authorization operations"},
+        {"name": "users", "description": "User management operations"},
+        {"name": "health", "description": "Health check and monitoring"},
+        {"name": "root", "description": "Root API information"},
+    ],
 )
+
+# Request ID middleware (must be before CORS)
+app.add_middleware(RequestIDMiddleware)  # type: ignore[call-arg, arg-type]
 
 # CORS middleware
 app.add_middleware(  # type: ignore[call-arg]
@@ -101,24 +119,7 @@ app.add_exception_handler(RateLimitError, http_exception_handler)  # type: ignor
 
 # Include API routers
 app.include_router(api_router, prefix="/api/v1")
-
-
-# Health check endpoint
-@app.get("/health", tags=["health"])
-async def health_check() -> JSONResponse:
-    """
-    Health check endpoint.
-
-    Returns:
-        JSONResponse with status and environment
-    """
-    return JSONResponse(
-        content={
-            "status": "healthy",
-            "environment": settings.environment,
-            "version": "1.0.0",
-        }
-    )
+app.include_router(health_router)
 
 
 # Root endpoint
