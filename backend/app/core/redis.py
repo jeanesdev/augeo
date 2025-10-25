@@ -1,11 +1,16 @@
 """Redis client configuration and connection pooling."""
 
+import asyncio
 from typing import TYPE_CHECKING
 
 import redis.asyncio as redis  # noqa: F401
 from redis.asyncio import Redis  # noqa: F401
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import RedisError
+from redis.exceptions import TimeoutError as RedisTimeoutError
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
 
 if TYPE_CHECKING:
     from redis.asyncio import Redis as RedisType
@@ -13,16 +18,21 @@ else:
     RedisType = Redis
 
 settings = get_settings()
+logger = get_logger(__name__)
 
 # Redis connection pool (singleton pattern)
 _redis_client: RedisType | None = None  # type: ignore[type-arg]
 
 
 async def get_redis() -> RedisType:  # type: ignore[type-arg]
-    """Get Redis client with connection pooling.
+    """Get Redis client with connection pooling and error handling.
 
     Returns:
         Redis: Async Redis client
+
+    Raises:
+        RedisConnectionError: Failed to connect to Redis after retries
+        RedisTimeoutError: Redis operation timed out
 
     Example:
         redis_client = await get_redis()
@@ -32,13 +42,53 @@ async def get_redis() -> RedisType:  # type: ignore[type-arg]
     global _redis_client
 
     if _redis_client is None:
-        _redis_client = redis.from_url(
-            str(settings.redis_url),
-            encoding="utf-8",
-            decode_responses=True,
-            max_connections=10,
-        )
+        max_retries = 3
+        retry_delay = 1.0
 
+        for attempt in range(max_retries):
+            try:
+                _redis_client = redis.from_url(
+                    str(settings.redis_url),
+                    encoding="utf-8",
+                    decode_responses=True,
+                    max_connections=10,
+                    socket_connect_timeout=5,
+                    socket_timeout=5,
+                )
+                # Test connection
+                await _redis_client.ping()
+                logger.info("Redis connection established")
+                break
+
+            except (RedisConnectionError, RedisTimeoutError) as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        "Redis connection failed, retrying",
+                        extra={
+                            "error": str(e),
+                            "attempt": attempt + 1,
+                            "max_retries": max_retries,
+                            "retry_delay": retry_delay,
+                        },
+                    )
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    logger.error(
+                        "Redis connection failed after all retries",
+                        extra={
+                            "error": str(e),
+                            "max_retries": max_retries,
+                        },
+                    )
+                    raise
+
+            except RedisError as e:
+                logger.error("Redis error during initialization", extra={"error": str(e)})
+                raise
+
+    # Type narrowing: _redis_client is not None here
+    assert _redis_client is not None, "Redis client should be initialized"
     return _redis_client
 
 

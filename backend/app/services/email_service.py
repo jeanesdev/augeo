@@ -1,14 +1,28 @@
 """Email service using Azure Communication Services.
 
 T057: Azure Communication Services email client for sending password reset emails
+T159: Error handling and retry logic for email service failures
 """
 
+import asyncio
 import logging
 
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+
+class EmailServiceError(Exception):
+    """Base exception for email service errors."""
+
+    pass
+
+
+class EmailSendError(EmailServiceError):
+    """Exception raised when email sending fails."""
+
+    pass
 
 
 class EmailService:
@@ -25,7 +39,7 @@ class EmailService:
         self, to_email: str, reset_token: str, user_name: str | None = None
     ) -> bool:
         """
-        Send password reset email with reset link.
+        Send password reset email with reset link and retry logic.
 
         Args:
             to_email: Recipient email address
@@ -34,6 +48,9 @@ class EmailService:
 
         Returns:
             True if email sent successfully, False otherwise
+
+        Raises:
+            EmailSendError: If email fails to send after all retries
         """
         # Construct reset link (admin portal)
         reset_url = f"{settings.frontend_admin_url}/reset-password?token={reset_token}"
@@ -57,28 +74,14 @@ Best regards,
 The Augeo Platform Team
         """.strip()
 
-        # TODO: Send via Azure Communication Services
-        # For now, log to console for development
-        if self.enabled:
-            # When Azure credentials are configured:
-            # await self._send_via_azure(to_email, subject, body)
-            pass
-        else:
-            logger.info(
-                f"[MOCK EMAIL] Password reset email\n"
-                f"To: {to_email}\n"
-                f"Subject: {subject}\n"
-                f"Reset URL: {reset_url}\n"
-                f"Body:\n{body}"
-            )
-
-        return True
+        # Send with retry logic
+        return await self._send_email_with_retry(to_email, subject, body, "password_reset")
 
     async def send_verification_email(
         self, to_email: str, verification_token: str, user_name: str | None = None
     ) -> bool:
         """
-        Send email verification email.
+        Send email verification email with retry logic.
 
         Args:
             to_email: Recipient email address
@@ -87,6 +90,9 @@ The Augeo Platform Team
 
         Returns:
             True if email sent successfully, False otherwise
+
+        Raises:
+            EmailSendError: If email fails to send after all retries
         """
         # Construct verification link (admin portal)
         verification_url = f"{settings.frontend_admin_url}/verify-email?token={verification_token}"
@@ -110,22 +116,76 @@ Best regards,
 The Augeo Platform Team
         """.strip()
 
-        # TODO: Send via Azure Communication Services
-        # For now, log to console for development
-        if self.enabled:
-            # When Azure credentials are configured:
-            # await self._send_via_azure(to_email, subject, body)
-            pass
-        else:
-            logger.info(
-                f"[MOCK EMAIL] Verification email\n"
-                f"To: {to_email}\n"
-                f"Subject: {subject}\n"
-                f"Verification URL: {verification_url}\n"
-                f"Body:\n{body}"
-            )
+        # Send with retry logic
+        return await self._send_email_with_retry(to_email, subject, body, "verification")
 
-        return True
+    async def _send_email_with_retry(
+        self, to_email: str, subject: str, body: str, email_type: str
+    ) -> bool:
+        """
+        Send email with retry logic and error handling.
+
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            body: Email body
+            email_type: Type of email (for logging)
+
+        Returns:
+            True if email sent successfully
+
+        Raises:
+            EmailSendError: If email fails after all retries
+        """
+        max_retries = 3
+        retry_delay = 1.0
+
+        for attempt in range(max_retries):
+            try:
+                # TODO: Send via Azure Communication Services when configured
+                if self.enabled:
+                    # When Azure credentials are configured:
+                    # await self._send_via_azure(to_email, subject, body)
+                    pass
+                else:
+                    # Mock mode for development
+                    logger.info(
+                        f"[MOCK EMAIL] {email_type} email\n"
+                        f"To: {to_email}\n"
+                        f"Subject: {subject}\n"
+                        f"Body:\n{body}"
+                    )
+                return True
+
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        "Email sending failed, retrying",
+                        extra={
+                            "email_type": email_type,
+                            "to_email": to_email,
+                            "error": str(e),
+                            "attempt": attempt + 1,
+                            "max_retries": max_retries,
+                        },
+                    )
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    logger.error(
+                        "Email sending failed after all retries",
+                        extra={
+                            "email_type": email_type,
+                            "to_email": to_email,
+                            "error": str(e),
+                            "max_retries": max_retries,
+                        },
+                    )
+                    raise EmailSendError(
+                        f"Failed to send {email_type} email after {max_retries} attempts"
+                    ) from e
+
+        return False  # Should not reach here
 
     async def _send_via_azure(self, to_email: str, subject: str, body: str) -> None:
         """
