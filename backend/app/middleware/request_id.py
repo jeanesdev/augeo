@@ -1,4 +1,5 @@
 """Request ID middleware for distributed tracing."""
+
 import uuid
 from collections.abc import Awaitable, Callable
 from contextvars import ContextVar

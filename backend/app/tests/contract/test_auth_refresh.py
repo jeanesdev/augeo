@@ -8,6 +8,7 @@ These tests verify:
 - Refresh token remains unchanged (no rotation)
 - Invalid/expired refresh tokens are rejected
 """
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

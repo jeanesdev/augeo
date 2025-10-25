@@ -16,6 +16,7 @@ This tests the integration of:
 - Database (PostgreSQL)
 - Cache (Redis)
 """
+
 import pytest
 from httpx import AsyncClient
 from redis.asyncio import Redis

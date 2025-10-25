@@ -9,6 +9,7 @@ These tests verify:
 
 Tests the complete rate limiting flow using Redis.
 """
+
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 

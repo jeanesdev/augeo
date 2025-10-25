@@ -1,4 +1,5 @@
 """FastAPI application entry point."""
+
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -7,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.health import router as health_router
+from app.api.metrics import router as metrics_router
 from app.api.v1 import api_router
 from app.core.config import get_settings
 from app.core.database import async_engine
@@ -20,7 +22,9 @@ from app.core.errors import (
     http_exception_handler,
 )
 from app.core.logging import get_logger, setup_logging
+from app.core.metrics import set_up
 from app.core.redis import get_redis
+from app.middleware.metrics import MetricsMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 
 # Setup logging
@@ -58,6 +62,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     redis_client = await get_redis()
     logger.info("Redis connection established")
 
+    # Mark service as up for metrics
+    set_up(1)
+
     yield
 
     # Shutdown
@@ -70,6 +77,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Close Redis connection
     await redis_client.aclose()  # type: ignore[attr-defined]
     logger.info("Redis connection closed")
+
+    # Mark service as down
+    set_up(0)
 
 
 # Create FastAPI app
@@ -92,12 +102,16 @@ app = FastAPI(
         {"name": "auth", "description": "Authentication and authorization operations"},
         {"name": "users", "description": "User management operations"},
         {"name": "health", "description": "Health check and monitoring"},
+        {"name": "metrics", "description": "Prometheus metrics for monitoring"},
         {"name": "root", "description": "Root API information"},
     ],
 )
 
 # Request ID middleware (must be before CORS)
 app.add_middleware(RequestIDMiddleware)  # type: ignore[call-arg, arg-type]
+
+# Metrics middleware (after request ID for accurate tracking)
+app.add_middleware(MetricsMiddleware)  # type: ignore[call-arg, arg-type]
 
 # CORS middleware
 app.add_middleware(  # type: ignore[call-arg]
@@ -120,6 +134,7 @@ app.add_exception_handler(RateLimitError, http_exception_handler)  # type: ignor
 # Include API routers
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(health_router)
+app.include_router(metrics_router)
 
 
 # Root endpoint

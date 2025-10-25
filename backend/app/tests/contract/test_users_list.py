@@ -8,6 +8,7 @@ These tests verify:
 - Access control is enforced (super_admin sees all, npo_admin sees their NPO only)
 - Status codes are correct for different scenarios
 """
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text

@@ -10,6 +10,7 @@ These tests verify:
 
 Tests the Redis blacklist service in isolation.
 """
+
 from unittest.mock import AsyncMock
 
 import pytest

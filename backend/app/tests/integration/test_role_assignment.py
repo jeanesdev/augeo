@@ -9,6 +9,7 @@ These tests verify the complete workflow of:
 Unlike contract tests which test individual endpoints,
 integration tests verify the complete user journey works end-to-end.
 """
+
 import uuid
 
 import pytest

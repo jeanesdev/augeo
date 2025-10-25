@@ -14,6 +14,7 @@ from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.core.metrics import DB_FAILURES_TOTAL
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -86,6 +87,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, Any]:
             break  # Success, exit retry loop
 
         except OperationalError as e:
+            # Increment failure counter
+            DB_FAILURES_TOTAL.inc()
+
             if attempt < max_retries - 1:
                 logger.warning(
                     "Database connection failed, retrying",

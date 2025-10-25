@@ -7,6 +7,7 @@ These tests verify:
 - Error responses follow error schema
 - Business rules are enforced
 """
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

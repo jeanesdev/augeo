@@ -7,6 +7,7 @@ These tests verify:
 - Sessions are properly revoked
 - Tokens are blacklisted
 """
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

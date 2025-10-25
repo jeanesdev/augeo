@@ -9,6 +9,7 @@ These tests verify the complete workflow of:
 
 Integration tests verify the complete token lifecycle across services.
 """
+
 import time
 from datetime import UTC, datetime, timedelta
 

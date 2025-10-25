@@ -440,6 +440,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 **Checkpoint**: ✅ Audit logging complete - all security events tracked in database
 
 **Notes**:
+
 - T153 complete: Updated 6 AuditService methods (log_user_created, log_user_updated, log_user_deleted, log_role_changed, log_account_deactivated, log_account_reactivated) to async with database persistence
 - Integrated audit logging into 5 user management endpoints:
   - POST /users (create_user)
@@ -467,6 +468,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - [x] T159 [P] Add error handling for email service failures in backend/app/services/email_service.py
 - [x] T160 [P] Implement health check endpoint at /health in backend/app/api/health.py
 - [ ] T161 [P] Add monitoring/metrics endpoint at /metrics in backend/app/api/metrics.py
+ - [x] T161 [P] Add monitoring/metrics endpoint at /metrics in backend/app/api/metrics.py
 - [ ] T162 Code cleanup: Remove unused imports, add type hints, fix linting issues across backend/
 - [ ] T163 [P] Performance optimization: Add database query indexes per data-model.md
 - [ ] T164 [P] Performance optimization: Add Redis caching for permission checks in backend/app/services/permission_service.py
@@ -480,6 +482,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 **Completed**: October 25, 2025 (In Progress) | **Commits**: d209165, ffcafc1
 
 **Progress**: 9/17 tasks complete (53%)
+
 - ✅ Documentation: OpenAPI enhanced, backend README updated, frontend README rewritten
 - ✅ Health checks: 4 endpoints (/health, /health/detailed, /health/ready, /health/live)
 - ✅ Error handling: Database retries, Redis resilience, email retry logic
@@ -487,6 +490,7 @@ Based on plan.md: Web application structure with `backend/` and `frontend/` dire
 - ⏳ Remaining: Metrics endpoint, code cleanup, indexes, caching, rate limiting, E2E tests, validation
 
 **Notes**:
+
 - T154-T160, T165, T167: Complete with commits d209165 and ffcafc1
 - OpenAPI documentation: Added contact info, license, and tag descriptions
 - Health checks: Comprehensive monitoring ready for Kubernetes deployment

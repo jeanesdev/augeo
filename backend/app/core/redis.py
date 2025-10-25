@@ -11,6 +11,7 @@ from redis.exceptions import TimeoutError as RedisTimeoutError
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.core.metrics import REDIS_FAILURES_TOTAL
 
 if TYPE_CHECKING:
     from redis.asyncio import Redis as RedisType
@@ -61,6 +62,9 @@ async def get_redis() -> RedisType:  # type: ignore[type-arg]
                 break
 
             except (RedisConnectionError, RedisTimeoutError) as e:
+                # Increment failure counter
+                REDIS_FAILURES_TOTAL.inc()
+
                 if attempt < max_retries - 1:
                     logger.warning(
                         "Redis connection failed, retrying",

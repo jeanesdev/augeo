@@ -8,6 +8,7 @@ These tests verify:
 - npo_id constraints enforced (npo_admin/event_coordinator MUST have npo_id)
 - Status codes are correct for different scenarios
 """
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text

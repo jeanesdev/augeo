@@ -7,6 +7,7 @@ Tests:
 1. POST /api/v1/auth/verify-email - Verify email with token
 2. POST /api/v1/auth/verify-email/resend - Resend verification email
 """
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text

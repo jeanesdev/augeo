@@ -1,4 +1,5 @@
 """Authentication endpoints."""
+
 import logging
 import uuid
 

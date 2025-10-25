@@ -5,11 +5,12 @@ T159: Error handling and retry logic for email service failures
 """
 
 import asyncio
-import logging
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
+from app.core.metrics import EMAIL_FAILURES_TOTAL
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 settings = get_settings()
 
 
@@ -158,6 +159,9 @@ The Augeo Platform Team
                 return True
 
             except Exception as e:
+                # Increment failure counter
+                EMAIL_FAILURES_TOTAL.inc()
+
                 if attempt < max_retries - 1:
                     logger.warning(
                         "Email sending failed, retrying",

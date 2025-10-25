@@ -6,6 +6,7 @@ whether a user can perform specific actions based on their role.
 Unlike contract/integration tests, unit tests focus on isolated
 business logic without making HTTP requests or database calls.
 """
+
 import uuid
 
 # Note: PermissionService doesn't exist yet, will be created in implementation

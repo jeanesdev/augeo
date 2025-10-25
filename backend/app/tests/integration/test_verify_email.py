@@ -2,6 +2,7 @@
 
 Tests POST /users/{user_id}/verify-email endpoint for manually verifying user emails.
 """
+
 import uuid
 
 import pytest

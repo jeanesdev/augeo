@@ -8,6 +8,7 @@ These tests verify:
 - npo_id requirements enforced when assigning npo_admin/event_coordinator
 - Status codes are correct for different scenarios
 """
+
 import uuid
 
 import pytest

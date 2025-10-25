@@ -6,6 +6,7 @@ Tests the password hashing utilities:
 - Hash strength (12+ rounds)
 - Invalid password handling
 """
+
 import pytest
 from passlib.context import CryptContext
 

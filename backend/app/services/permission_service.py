@@ -10,6 +10,7 @@ Role hierarchy:
 - staff: Donor registration/check-in within assigned events
 - donor: Bidding and profile management only
 """
+
 import uuid
 from typing import Any
 

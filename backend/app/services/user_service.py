@@ -3,6 +3,7 @@
 This service provides methods for administrators to manage users,
 including listing, creating, updating roles, and deactivating users.
 """
+
 import uuid
 from math import ceil
 

@@ -1,4 +1,5 @@
 """Health check and monitoring endpoints."""
+
 from datetime import datetime
 from typing import Any
 
