@@ -3,13 +3,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { KeyRound, MailCheck, Shield, Trash2, UserCheck, UserPen, UserX } from 'lucide-react'
+import { KeyRound, MailCheck, Shield, UserCheck, UserPen, UserX } from 'lucide-react'
 import { type User } from '../data/schema'
 import { useActivateUser, useVerifyUserEmail } from '../hooks/use-users'
 import { useUsers } from './users-provider'
@@ -105,19 +104,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               </DropdownMenuShortcut>
             </DropdownMenuItem>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => {
-              setCurrentRow(user)
-              setOpen('delete')
-            }}
-            className='text-red-500!'
-          >
-            Delete
-            <DropdownMenuShortcut>
-              <Trash2 size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
