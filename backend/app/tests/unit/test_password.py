@@ -8,10 +8,8 @@ Tests the password hashing utilities:
 """
 
 import pytest
-from passlib.context import CryptContext
 
-# Initialize bcrypt context (same as in app)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.core.security import hash_password, verify_password
 
 
 class TestPasswordHashing:
@@ -25,7 +23,7 @@ class TestPasswordHashing:
         - Hash is not equal to plaintext password
         """
         password = "SecurePass123"
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Bcrypt hashes start with $2b$ or $2a$
         assert hashed.startswith("$2b$") or hashed.startswith("$2a$")
@@ -40,8 +38,8 @@ class TestPasswordHashing:
         - This is due to bcrypt's random salt
         """
         password = "SecurePass123"
-        hash1 = pwd_context.hash(password)
-        hash2 = pwd_context.hash(password)
+        hash1 = hash_password(password)
+        hash2 = hash_password(password)
 
         # Hashes should be different due to salt
         assert hash1 != hash2
@@ -53,10 +51,10 @@ class TestPasswordHashing:
         - Correct password returns True
         """
         password = "SecurePass123"
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Verification should succeed
-        assert pwd_context.verify(password, hashed) is True
+        assert verify_password(password, hashed) is True
 
     def test_verify_password_incorrect_password(self) -> None:
         """Test incorrect password verification fails.
@@ -66,10 +64,10 @@ class TestPasswordHashing:
         """
         password = "SecurePass123"
         wrong_password = "WrongPass456"
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Verification should fail
-        assert pwd_context.verify(wrong_password, hashed) is False
+        assert verify_password(wrong_password, hashed) is False
 
     def test_verify_password_case_sensitive(self) -> None:
         """Test password verification is case-sensitive.
@@ -79,10 +77,10 @@ class TestPasswordHashing:
         """
         password = "SecurePass123"
         wrong_case = "securepass123"
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Verification should fail with different case
-        assert pwd_context.verify(wrong_case, hashed) is False
+        assert verify_password(wrong_case, hashed) is False
 
     def test_hash_empty_password(self) -> None:
         """Test empty password can be hashed (validation should happen elsewhere).
@@ -91,12 +89,12 @@ class TestPasswordHashing:
         - Empty string can be hashed (business logic should prevent this)
         """
         password = ""
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Should still create a valid bcrypt hash
         assert hashed.startswith("$2b$") or hashed.startswith("$2a$")
         # Verification should work
-        assert pwd_context.verify(password, hashed) is True
+        assert verify_password(password, hashed) is True
 
     def test_hash_long_password(self) -> None:
         """Test very long passwords can be hashed.
@@ -105,10 +103,10 @@ class TestPasswordHashing:
         - Passwords up to reasonable length can be hashed
         """
         password = "A" * 200  # Very long password
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Should still work
-        assert pwd_context.verify(password, hashed) is True
+        assert verify_password(password, hashed) is True
 
     def test_hash_special_characters(self) -> None:
         """Test passwords with special characters are handled correctly.
@@ -125,8 +123,8 @@ class TestPasswordHashing:
         ]
 
         for password in passwords:
-            hashed = pwd_context.hash(password)
-            assert pwd_context.verify(password, hashed) is True
+            hashed = hash_password(password)
+            assert verify_password(password, hashed) is True
 
     def test_verify_invalid_hash_format(self) -> None:
         """Test verification with invalid hash format raises error.
@@ -145,7 +143,7 @@ class TestPasswordHashing:
         for invalid_hash in invalid_hashes:
             # Should raise ValueError or return False
             with pytest.raises((ValueError, Exception)):
-                pwd_context.verify(password, invalid_hash)
+                verify_password(password, invalid_hash)
 
     def test_bcrypt_work_factor(self) -> None:
         """Test bcrypt uses appropriate work factor (rounds).
@@ -154,7 +152,7 @@ class TestPasswordHashing:
         - Hash uses at least 12 rounds (recommended minimum)
         """
         password = "SecurePass123"
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Extract rounds from bcrypt hash
         # Format: $2b$12$... where 12 is the rounds
@@ -178,8 +176,8 @@ class TestPasswordHashing:
         ]
 
         for password in utf8_passwords:
-            hashed = pwd_context.hash(password)
-            assert pwd_context.verify(password, hashed) is True
+            hashed = hash_password(password)
+            assert verify_password(password, hashed) is True
 
     def test_timing_attack_resistance(self) -> None:
         """Test password verification takes consistent time.
@@ -193,16 +191,16 @@ class TestPasswordHashing:
         import time
 
         password = "SecurePass123"
-        hashed = pwd_context.hash(password)
+        hashed = hash_password(password)
 
         # Time correct password verification
         start = time.time()
-        pwd_context.verify(password, hashed)
+        verify_password(password, hashed)
         correct_time = time.time() - start
 
         # Time incorrect password verification
         start = time.time()
-        pwd_context.verify("WrongPass456", hashed)
+        verify_password("WrongPass456", hashed)
         incorrect_time = time.time() - start
 
         # Times should be similar (within 50% variance)
