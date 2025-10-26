@@ -189,7 +189,7 @@ class TestEmailVerificationContract:
         1. Send request without token field
         2. Returns 422 validation error
         """
-        verify_payload = {}  # Missing token
+        verify_payload: dict[str, str] = {}  # Missing token
         response = await async_client.post("/api/v1/auth/verify-email", json=verify_payload)
 
         # Should fail with validation error
@@ -302,7 +302,7 @@ class TestEmailResendContract:
         1. Send request without email field
         2. Returns 422 validation error
         """
-        resend_payload = {}  # Missing email
+        resend_payload: dict[str, str] = {}  # Missing email
         response = await async_client.post("/api/v1/auth/verify-email/resend", json=resend_payload)
 
         # Should fail with validation error

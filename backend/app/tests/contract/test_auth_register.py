@@ -103,7 +103,7 @@ class TestAuthRegisterContract:
         assert "Email already registered" in error["message"]
 
     @pytest.mark.asyncio
-    async def test_register_weak_password_returns_422(self, async_client: AsyncClient):
+    async def test_register_weak_password_returns_422(self, async_client: AsyncClient) -> None:
         """Test weak password returns 422 Validation Error.
 
         Contract: Password must be 8-100 chars with at least 1 letter and 1 number
@@ -149,7 +149,9 @@ class TestAuthRegisterContract:
             assert len(error["details"]) > 0
 
     @pytest.mark.asyncio
-    async def test_register_missing_required_fields_returns_422(self, async_client: AsyncClient):
+    async def test_register_missing_required_fields_returns_422(
+        self, async_client: AsyncClient
+    ) -> None:
         """Test missing required fields returns 422 Validation Error.
 
         Contract: email, password, first_name, last_name are required
@@ -177,7 +179,9 @@ class TestAuthRegisterContract:
             assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_register_invalid_email_format_returns_422(self, async_client: AsyncClient):
+    async def test_register_invalid_email_format_returns_422(
+        self, async_client: AsyncClient
+    ) -> None:
         """Test invalid email format returns 422 Validation Error.
 
         Contract: email must be valid email format
@@ -236,7 +240,7 @@ class TestAuthRegisterContract:
         assert response2.status_code == 409
 
     @pytest.mark.asyncio
-    async def test_register_phone_optional(self, async_client: AsyncClient):
+    async def test_register_phone_optional(self, async_client: AsyncClient) -> None:
         """Test phone number is optional.
 
         Contract: phone field is nullable
@@ -260,7 +264,7 @@ class TestAuthRegisterContract:
         assert data["user"]["phone"] is None
 
     @pytest.mark.asyncio
-    async def test_register_default_role_is_donor(self, async_client: AsyncClient):
+    async def test_register_default_role_is_donor(self, async_client: AsyncClient) -> None:
         """Test new users get 'donor' role by default.
 
         Contract: Default role should be 'donor'
@@ -281,7 +285,7 @@ class TestAuthRegisterContract:
         assert data["user"]["role"] == "donor"
 
     @pytest.mark.asyncio
-    async def test_register_user_inactive_until_verified(self, async_client: AsyncClient):
+    async def test_register_user_inactive_until_verified(self, async_client: AsyncClient) -> None:
         """Test new users are inactive until email verified.
 
         Contract: email_verified=false, is_active=false on registration

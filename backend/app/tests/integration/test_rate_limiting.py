@@ -23,7 +23,9 @@ class TestRateLimitingIntegration:
     """Integration tests for rate limiting workflows."""
 
     @pytest.mark.asyncio
-    async def test_rate_limit_triggers_after_5_failed_attempts(self, async_client: AsyncClient):
+    async def test_rate_limit_triggers_after_5_failed_attempts(
+        self, async_client: AsyncClient
+    ) -> None:
         """Test rate limit engages after 5 failed login attempts.
 
         Flow:
@@ -106,7 +108,7 @@ class TestRateLimitingIntegration:
         pytest.skip("Requires IP address mocking infrastructure")
 
     @pytest.mark.asyncio
-    async def test_rate_limit_expires_after_15_minutes(self, async_client: AsyncClient):
+    async def test_rate_limit_expires_after_15_minutes(self, async_client: AsyncClient) -> None:
         """Test rate limit resets after 15 minutes.
 
         Flow:
@@ -186,7 +188,9 @@ class TestRateLimitingIntegration:
         assert reset_response.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_rate_limit_response_includes_retry_after(self, async_client: AsyncClient):
+    async def test_rate_limit_response_includes_retry_after(
+        self, async_client: AsyncClient
+    ) -> None:
         """Test 429 response includes Retry-After header.
 
         Flow:
@@ -212,7 +216,7 @@ class TestRateLimitingIntegration:
             assert retry_after.isdigit() or "-" in retry_after
 
     @pytest.mark.asyncio
-    async def test_rate_limit_persists_across_requests(self, async_client: AsyncClient):
+    async def test_rate_limit_persists_across_requests(self, async_client: AsyncClient) -> None:
         """Test rate limit counter persists across multiple HTTP requests.
 
         Flow:

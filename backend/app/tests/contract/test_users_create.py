@@ -19,7 +19,7 @@ class TestUsersCreateContract:
     """Contract tests for POST /api/v1/users endpoint."""
 
     @pytest.mark.asyncio
-    async def test_create_user_requires_authentication(self, async_client: AsyncClient):
+    async def test_create_user_requires_authentication(self, async_client: AsyncClient) -> None:
         """Test that creating users requires authentication.
 
         Contract: POST /api/v1/users
@@ -38,7 +38,9 @@ class TestUsersCreateContract:
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_create_user_donor_role_forbidden(self, authenticated_client: AsyncClient):
+    async def test_create_user_donor_role_forbidden(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test that donor role cannot create users.
 
         Contract: POST /api/v1/users
@@ -83,7 +85,9 @@ class TestUsersCreateContract:
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_create_user_invalid_email_returns_400(self, authenticated_client: AsyncClient):
+    async def test_create_user_invalid_email_returns_400(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test that invalid email format returns 400.
 
         Contract: POST /api/v1/users
@@ -103,7 +107,9 @@ class TestUsersCreateContract:
         assert "email" in data["error"]["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_create_user_invalid_role_returns_400(self, authenticated_client: AsyncClient):
+    async def test_create_user_invalid_role_returns_400(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test that invalid role returns 400.
 
         Contract: POST /api/v1/users
@@ -222,7 +228,9 @@ class TestUsersCreateContract:
         assert "npo_id" in data["error"]["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_create_donor_with_npo_id_returns_400(self, authenticated_client: AsyncClient):
+    async def test_create_donor_with_npo_id_returns_400(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test that creating donor with npo_id returns 400.
 
         Contract: POST /api/v1/users
@@ -243,7 +251,9 @@ class TestUsersCreateContract:
         assert "npo_id" in data["error"]["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_create_staff_with_npo_id_returns_400(self, authenticated_client: AsyncClient):
+    async def test_create_staff_with_npo_id_returns_400(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test that creating staff with npo_id returns 400.
 
         Contract: POST /api/v1/users

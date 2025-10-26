@@ -17,7 +17,7 @@ class TestPasswordResetTokenGeneration:
     """Test password reset token generation."""
 
     @pytest.mark.asyncio
-    async def test_generate_reset_token_creates_unique_tokens(self):
+    async def test_generate_reset_token_creates_unique_tokens(self) -> None:
         """Should generate unique tokens for each call."""
         pytest.skip("Requires password_service implementation")
         # token1 = generate_reset_token()
@@ -26,7 +26,7 @@ class TestPasswordResetTokenGeneration:
         # assert len(token1) >= 32  # Sufficient length for security
 
     @pytest.mark.asyncio
-    async def test_generate_reset_token_is_url_safe(self):
+    async def test_generate_reset_token_is_url_safe(self) -> None:
         """Should generate URL-safe tokens (no special chars that need encoding)."""
         pytest.skip("Requires password_service implementation")
         # token = generate_reset_token()
@@ -35,7 +35,7 @@ class TestPasswordResetTokenGeneration:
         # assert re.match(r'^[A-Za-z0-9_-]+$', token)
 
     @pytest.mark.asyncio
-    async def test_hash_reset_token_is_deterministic(self):
+    async def test_hash_reset_token_is_deterministic(self) -> None:
         """Should produce same hash for same input."""
         pytest.skip("Requires password_service implementation")
         # token = "test_token_123"
@@ -44,7 +44,7 @@ class TestPasswordResetTokenGeneration:
         # assert hash1 == hash2
 
     @pytest.mark.asyncio
-    async def test_hash_reset_token_is_different_for_different_tokens(self):
+    async def test_hash_reset_token_is_different_for_different_tokens(self) -> None:
         """Should produce different hashes for different tokens."""
         pytest.skip("Requires password_service implementation")
         # token1 = "test_token_123"
@@ -58,7 +58,7 @@ class TestPasswordResetTokenValidation:
     """Test password reset token validation."""
 
     @pytest.mark.asyncio
-    async def test_validate_reset_token_accepts_valid_token(self):
+    async def test_validate_reset_token_accepts_valid_token(self) -> None:
         """Should return user_id for valid token."""
         pytest.skip("Requires password_service implementation")
         # user_id = "550e8400-e29b-41d4-a716-446655440000"
@@ -71,14 +71,14 @@ class TestPasswordResetTokenValidation:
         # assert result == user_id
 
     @pytest.mark.asyncio
-    async def test_validate_reset_token_rejects_invalid_token(self):
+    async def test_validate_reset_token_rejects_invalid_token(self) -> None:
         """Should return None for invalid token."""
         pytest.skip("Requires password_service implementation")
         # result = await validate_reset_token("invalid_token_xyz")
         # assert result is None
 
     @pytest.mark.asyncio
-    async def test_validate_reset_token_rejects_expired_token(self):
+    async def test_validate_reset_token_rejects_expired_token(self) -> None:
         """Should return None for expired token."""
         pytest.skip("Requires password_service implementation and time mocking")
         # user_id = "550e8400-e29b-41d4-a716-446655440000"
@@ -94,7 +94,7 @@ class TestPasswordResetTokenValidation:
         # assert result is None
 
     @pytest.mark.asyncio
-    async def test_validate_reset_token_removes_token_after_use(self):
+    async def test_validate_reset_token_removes_token_after_use(self) -> None:
         """Should delete token from Redis after successful validation."""
         pytest.skip("Requires password_service implementation")
         # user_id = "550e8400-e29b-41d4-a716-446655440000"
@@ -114,7 +114,7 @@ class TestPasswordResetTokenStorage:
     """Test password reset token storage in Redis."""
 
     @pytest.mark.asyncio
-    async def test_store_reset_token_with_expiry(self):
+    async def test_store_reset_token_with_expiry(self) -> None:
         """Should store token in Redis with TTL."""
         pytest.skip("Requires redis_service implementation")
         # user_id = "550e8400-e29b-41d4-a716-446655440000"
@@ -133,7 +133,7 @@ class TestPasswordResetTokenStorage:
         # assert 3500 < ttl <= 3600  # Allow some time for execution
 
     @pytest.mark.asyncio
-    async def test_invalidate_previous_reset_tokens_for_user(self):
+    async def test_invalidate_previous_reset_tokens_for_user(self) -> None:
         """Should delete all existing reset tokens for a user when new one is requested."""
         pytest.skip("Requires redis_service implementation")
         # user_id = "550e8400-e29b-41d4-a716-446655440000"
@@ -159,7 +159,7 @@ class TestPasswordResetSecurity:
     """Test security aspects of password reset tokens."""
 
     @pytest.mark.asyncio
-    async def test_token_has_sufficient_entropy(self):
+    async def test_token_has_sufficient_entropy(self) -> None:
         """Should generate tokens with sufficient randomness."""
         pytest.skip("Requires password_service implementation")
         # # Generate many tokens and check for duplicates
@@ -170,7 +170,7 @@ class TestPasswordResetSecurity:
         #     tokens.add(token)
 
     @pytest.mark.asyncio
-    async def test_token_cannot_be_guessed_from_user_id(self):
+    async def test_token_cannot_be_guessed_from_user_id(self) -> None:
         """Token should not be derivable from user information."""
         pytest.skip("Requires password_service implementation")
         # # Two tokens for same user should be different
@@ -183,7 +183,7 @@ class TestPasswordResetSecurity:
         # assert user_id not in token2
 
     @pytest.mark.asyncio
-    async def test_hash_is_irreversible(self):
+    async def test_hash_is_irreversible(self) -> None:
         """Should not be able to reverse token from hash."""
         pytest.skip("Requires password_service implementation")
         # token = "test_token_123"

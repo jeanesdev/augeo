@@ -17,7 +17,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class TestPasswordHashing:
     """Unit tests for password hashing utilities."""
 
-    def test_hash_password_creates_bcrypt_hash(self):
+    def test_hash_password_creates_bcrypt_hash(self) -> None:
         """Test password is hashed using bcrypt algorithm.
 
         Verifies:
@@ -32,7 +32,7 @@ class TestPasswordHashing:
         # Hash should not be the plaintext
         assert hashed != password
 
-    def test_hash_password_is_deterministically_different(self):
+    def test_hash_password_is_deterministically_different(self) -> None:
         """Test same password generates different hashes (due to salt).
 
         Verifies:
@@ -46,7 +46,7 @@ class TestPasswordHashing:
         # Hashes should be different due to salt
         assert hash1 != hash2
 
-    def test_verify_password_correct_password(self):
+    def test_verify_password_correct_password(self) -> None:
         """Test correct password verification succeeds.
 
         Verifies:
@@ -58,7 +58,7 @@ class TestPasswordHashing:
         # Verification should succeed
         assert pwd_context.verify(password, hashed) is True
 
-    def test_verify_password_incorrect_password(self):
+    def test_verify_password_incorrect_password(self) -> None:
         """Test incorrect password verification fails.
 
         Verifies:
@@ -71,7 +71,7 @@ class TestPasswordHashing:
         # Verification should fail
         assert pwd_context.verify(wrong_password, hashed) is False
 
-    def test_verify_password_case_sensitive(self):
+    def test_verify_password_case_sensitive(self) -> None:
         """Test password verification is case-sensitive.
 
         Verifies:
@@ -84,7 +84,7 @@ class TestPasswordHashing:
         # Verification should fail with different case
         assert pwd_context.verify(wrong_case, hashed) is False
 
-    def test_hash_empty_password(self):
+    def test_hash_empty_password(self) -> None:
         """Test empty password can be hashed (validation should happen elsewhere).
 
         Verifies:
@@ -98,7 +98,7 @@ class TestPasswordHashing:
         # Verification should work
         assert pwd_context.verify(password, hashed) is True
 
-    def test_hash_long_password(self):
+    def test_hash_long_password(self) -> None:
         """Test very long passwords can be hashed.
 
         Verifies:
@@ -110,7 +110,7 @@ class TestPasswordHashing:
         # Should still work
         assert pwd_context.verify(password, hashed) is True
 
-    def test_hash_special_characters(self):
+    def test_hash_special_characters(self) -> None:
         """Test passwords with special characters are handled correctly.
 
         Verifies:
@@ -128,7 +128,7 @@ class TestPasswordHashing:
             hashed = pwd_context.hash(password)
             assert pwd_context.verify(password, hashed) is True
 
-    def test_verify_invalid_hash_format(self):
+    def test_verify_invalid_hash_format(self) -> None:
         """Test verification with invalid hash format raises error.
 
         Verifies:
@@ -147,7 +147,7 @@ class TestPasswordHashing:
             with pytest.raises((ValueError, Exception)):
                 pwd_context.verify(password, invalid_hash)
 
-    def test_bcrypt_work_factor(self):
+    def test_bcrypt_work_factor(self) -> None:
         """Test bcrypt uses appropriate work factor (rounds).
 
         Verifies:
@@ -164,7 +164,7 @@ class TestPasswordHashing:
         # Should use at least 12 rounds
         assert rounds >= 12
 
-    def test_hash_preserves_utf8(self):
+    def test_hash_preserves_utf8(self) -> None:
         """Test UTF-8 passwords are handled correctly.
 
         Verifies:
@@ -181,7 +181,7 @@ class TestPasswordHashing:
             hashed = pwd_context.hash(password)
             assert pwd_context.verify(password, hashed) is True
 
-    def test_timing_attack_resistance(self):
+    def test_timing_attack_resistance(self) -> None:
         """Test password verification takes consistent time.
 
         Verifies:

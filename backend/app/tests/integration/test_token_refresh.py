@@ -220,7 +220,7 @@ class TestTokenRefreshIntegration:
         assert response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
-    async def test_refresh_with_tampered_token_fails(self, async_client: AsyncClient):
+    async def test_refresh_with_tampered_token_fails(self, async_client: AsyncClient) -> None:
         """Test refresh with tampered token fails signature validation.
 
         Flow:

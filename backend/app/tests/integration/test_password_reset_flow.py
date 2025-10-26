@@ -119,7 +119,9 @@ class TestPasswordResetFlow:
         # assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_reset_token_expires_after_use(self, async_client: AsyncClient, test_user: User):
+    async def test_reset_token_expires_after_use(
+        self, async_client: AsyncClient, test_user: User
+    ) -> None:
         """
         Test that reset tokens can only be used once:
         1. User requests password reset

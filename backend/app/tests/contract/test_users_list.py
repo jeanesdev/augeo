@@ -21,7 +21,7 @@ class TestUsersListContract:
     """Contract tests for GET /api/v1/users endpoint."""
 
     @pytest.mark.asyncio
-    async def test_list_users_requires_authentication(self, async_client: AsyncClient):
+    async def test_list_users_requires_authentication(self, async_client: AsyncClient) -> None:
         """Test that listing users requires authentication.
 
         Contract: GET /api/v1/users
@@ -364,7 +364,9 @@ class TestUsersListContract:
             assert search_match
 
     @pytest.mark.asyncio
-    async def test_list_users_invalid_page_returns_400(self, authenticated_client: AsyncClient):
+    async def test_list_users_invalid_page_returns_400(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test invalid page parameter returns 400.
 
         Contract: GET /api/v1/users?page=0
@@ -377,7 +379,9 @@ class TestUsersListContract:
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_list_users_invalid_per_page_returns_400(self, authenticated_client: AsyncClient):
+    async def test_list_users_invalid_per_page_returns_400(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Test invalid per_page parameter returns 400.
 
         Contract: GET /api/v1/users?per_page=0
@@ -390,7 +394,7 @@ class TestUsersListContract:
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_list_users_per_page_max_100(self, authenticated_client: AsyncClient):
+    async def test_list_users_per_page_max_100(self, authenticated_client: AsyncClient) -> None:
         """Test per_page cannot exceed 100.
 
         Contract: GET /api/v1/users?per_page=101

@@ -69,7 +69,7 @@ class TestAuthLoginContract:
         assert data["refresh_token"].count(".") == 2
 
     @pytest.mark.asyncio
-    async def test_login_invalid_credentials_returns_401(self, async_client: AsyncClient):
+    async def test_login_invalid_credentials_returns_401(self, async_client: AsyncClient) -> None:
         """Test invalid credentials return 401 Unauthorized.
 
         Contract: POST /api/v1/auth/login
@@ -167,7 +167,7 @@ class TestAuthLoginContract:
         pytest.skip("Requires user deactivation implementation")
 
     @pytest.mark.asyncio
-    async def test_login_missing_fields_returns_422(self, async_client: AsyncClient):
+    async def test_login_missing_fields_returns_422(self, async_client: AsyncClient) -> None:
         """Test missing required fields returns 422 Validation Error.
 
         Contract: email and password are required
@@ -190,7 +190,9 @@ class TestAuthLoginContract:
         assert response3.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_login_rate_limiting_after_5_failed_attempts(self, async_client: AsyncClient):
+    async def test_login_rate_limiting_after_5_failed_attempts(
+        self, async_client: AsyncClient
+    ) -> None:
         """Test rate limiting after 5 failed login attempts.
 
         Contract: 5 failed attempts per 15 minutes per IP

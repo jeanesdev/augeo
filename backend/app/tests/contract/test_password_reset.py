@@ -16,7 +16,9 @@ class TestPasswordResetRequest:
     """Test POST /api/v1/password/reset/request endpoint."""
 
     @pytest.mark.asyncio
-    async def test_request_password_reset_success(self, async_client: AsyncClient, test_user: User):
+    async def test_request_password_reset_success(
+        self, async_client: AsyncClient, test_user: User
+    ) -> None:
         """Should return 200 and send reset email when email exists."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/request",
@@ -29,7 +31,9 @@ class TestPasswordResetRequest:
         assert "password reset" in data["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_request_password_reset_nonexistent_email(self, async_client: AsyncClient):
+    async def test_request_password_reset_nonexistent_email(
+        self, async_client: AsyncClient
+    ) -> None:
         """Should return 200 even for nonexistent email (prevent enumeration)."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/request",
@@ -41,7 +45,7 @@ class TestPasswordResetRequest:
         assert "message" in data
 
     @pytest.mark.asyncio
-    async def test_request_password_reset_invalid_email(self, async_client: AsyncClient):
+    async def test_request_password_reset_invalid_email(self, async_client: AsyncClient) -> None:
         """Should return 422 for invalid email format."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/request",
@@ -53,7 +57,7 @@ class TestPasswordResetRequest:
         assert "detail" in data  # Pydantic validation error
 
     @pytest.mark.asyncio
-    async def test_request_password_reset_missing_email(self, async_client: AsyncClient):
+    async def test_request_password_reset_missing_email(self, async_client: AsyncClient) -> None:
         """Should return 422 when email is missing."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/request",
@@ -93,7 +97,7 @@ class TestPasswordResetConfirm:
         assert "password reset successfully" in data["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_confirm_password_reset_invalid_token(self, async_client: AsyncClient):
+    async def test_confirm_password_reset_invalid_token(self, async_client: AsyncClient) -> None:
         """Should return 400 for invalid or expired token."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/confirm",
@@ -110,7 +114,7 @@ class TestPasswordResetConfirm:
 
     @pytest.mark.asyncio
     @pytest.mark.asyncio
-    async def test_confirm_password_reset_weak_password(self, async_client: AsyncClient):
+    async def test_confirm_password_reset_weak_password(self, async_client: AsyncClient) -> None:
         """Should return 422 for weak password."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/confirm",
@@ -125,7 +129,7 @@ class TestPasswordResetConfirm:
         assert "detail" in data  # Pydantic validation error
 
     @pytest.mark.asyncio
-    async def test_confirm_password_reset_missing_fields(self, async_client: AsyncClient):
+    async def test_confirm_password_reset_missing_fields(self, async_client: AsyncClient) -> None:
         """Should return 422 when required fields are missing."""
         response = await async_client.post(
             "/api/v1/auth/password/reset/confirm",
@@ -157,7 +161,9 @@ class TestPasswordChange:
         assert "password changed successfully" in data["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_change_password_incorrect_current(self, authenticated_client: AsyncClient):
+    async def test_change_password_incorrect_current(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Should return 401 for incorrect current password."""
         response = await authenticated_client.post(
             "/api/v1/auth/password/change",
@@ -174,7 +180,9 @@ class TestPasswordChange:
 
     @pytest.mark.asyncio
     @pytest.mark.asyncio
-    async def test_change_password_weak_new_password(self, authenticated_client: AsyncClient):
+    async def test_change_password_weak_new_password(
+        self, authenticated_client: AsyncClient
+    ) -> None:
         """Should return 422 for weak new password."""
         response = await authenticated_client.post(
             "/api/v1/auth/password/change",
@@ -189,7 +197,7 @@ class TestPasswordChange:
         assert "detail" in data  # Pydantic validation error
 
     @pytest.mark.asyncio
-    async def test_change_password_unauthenticated(self, async_client: AsyncClient):
+    async def test_change_password_unauthenticated(self, async_client: AsyncClient) -> None:
         """Should return 401 when not authenticated."""
         response = await async_client.post(
             "/api/v1/auth/password/change",
@@ -202,7 +210,7 @@ class TestPasswordChange:
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_change_password_missing_fields(self, authenticated_client: AsyncClient):
+    async def test_change_password_missing_fields(self, authenticated_client: AsyncClient) -> None:
         """Should return 422 when required fields are missing."""
         response = await authenticated_client.post(
             "/api/v1/auth/password/change",

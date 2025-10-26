@@ -81,7 +81,7 @@ class TestAuthRefreshContract:
         assert new_access_token != old_access_token
 
     @pytest.mark.asyncio
-    async def test_refresh_invalid_token_returns_401(self, async_client: AsyncClient):
+    async def test_refresh_invalid_token_returns_401(self, async_client: AsyncClient) -> None:
         """Test invalid refresh token returns 401 Unauthorized.
 
         Contract: POST /api/v1/auth/refresh
@@ -165,7 +165,7 @@ class TestAuthRefreshContract:
         assert data["error"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
-    async def test_refresh_missing_token_returns_422(self, async_client: AsyncClient):
+    async def test_refresh_missing_token_returns_422(self, async_client: AsyncClient) -> None:
         """Test missing refresh_token field returns 422 Validation Error.
 
         Contract: refresh_token is required
@@ -267,7 +267,7 @@ class TestAuthRefreshContract:
         assert access_token1 != access_token2
 
     @pytest.mark.asyncio
-    async def test_refresh_validates_token_signature(self, async_client: AsyncClient):
+    async def test_refresh_validates_token_signature(self, async_client: AsyncClient) -> None:
         """Test refresh validates JWT signature.
 
         Contract: Token must be signed with correct secret

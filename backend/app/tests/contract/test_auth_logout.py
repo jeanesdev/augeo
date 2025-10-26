@@ -56,7 +56,7 @@ class TestAuthLogoutContract:
         assert "Logged out successfully" in data["message"]
 
     @pytest.mark.asyncio
-    async def test_logout_missing_auth_token_returns_401(self, async_client: AsyncClient):
+    async def test_logout_missing_auth_token_returns_401(self, async_client: AsyncClient) -> None:
         """Test logout without auth token returns 401 Unauthorized.
 
         Contract: POST /api/v1/auth/logout requires Bearer token
@@ -81,7 +81,7 @@ class TestAuthLogoutContract:
         assert "Authentication token required" in error["message"]
 
     @pytest.mark.asyncio
-    async def test_logout_invalid_auth_token_returns_401(self, async_client: AsyncClient):
+    async def test_logout_invalid_auth_token_returns_401(self, async_client: AsyncClient) -> None:
         """Test logout with invalid auth token returns 401 Unauthorized.
 
         Contract: POST /api/v1/auth/logout requires valid Bearer token
@@ -97,7 +97,7 @@ class TestAuthLogoutContract:
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_logout_expired_token_returns_401(self, async_client: AsyncClient):
+    async def test_logout_expired_token_returns_401(self, async_client: AsyncClient) -> None:
         """Test logout with expired token returns 401 Unauthorized.
 
         Contract: Expired tokens should be rejected
@@ -106,7 +106,9 @@ class TestAuthLogoutContract:
         pytest.skip("Requires token expiration implementation")
 
     @pytest.mark.asyncio
-    async def test_logout_missing_refresh_token_returns_422(self, async_client: AsyncClient):
+    async def test_logout_missing_refresh_token_returns_422(
+        self, async_client: AsyncClient
+    ) -> None:
         """Test logout without refresh token returns 422 Validation Error.
 
         Contract: refresh_token is required in request body

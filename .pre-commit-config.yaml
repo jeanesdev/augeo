@@ -29,6 +29,6 @@ repos:
           - sqlalchemy>=2.0.0
           - fastapi>=0.104.0
           - types-redis>=4.0.0
-        args: [--config-file=backend/pyproject.toml]
+        args: [--config-file=backend/pyproject.toml, --strict]
         files: ^backend/
         exclude: ^backend/(alembic/|app/tests/)

@@ -36,7 +36,9 @@ class TestJWTBlacklistUnit:
         return service
 
     @pytest.mark.asyncio
-    async def test_blacklist_token_stores_jti_in_redis(self, redis_service, mock_redis_client):
+    async def test_blacklist_token_stores_jti_in_redis(
+        self, redis_service, mock_redis_client
+    ) -> None:
         """Test blacklisting a token stores its JTI in Redis.
 
         Flow:
@@ -105,7 +107,9 @@ class TestJWTBlacklistUnit:
         mock_redis_client.get.assert_called_once_with(expected_key)
 
     @pytest.mark.asyncio
-    async def test_blacklist_token_with_access_token_ttl(self, redis_service, mock_redis_client):
+    async def test_blacklist_token_with_access_token_ttl(
+        self, redis_service, mock_redis_client
+    ) -> None:
         """Test blacklist TTL matches access token expiry (15 minutes).
 
         Flow:
@@ -123,7 +127,9 @@ class TestJWTBlacklistUnit:
         assert call_args[0][1] == ttl_seconds
 
     @pytest.mark.asyncio
-    async def test_blacklist_token_with_zero_ttl_not_stored(self, redis_service, mock_redis_client):
+    async def test_blacklist_token_with_zero_ttl_not_stored(
+        self, redis_service, mock_redis_client
+    ) -> None:
         """Test token with 0 or negative TTL is not blacklisted.
 
         Flow:
@@ -139,7 +145,9 @@ class TestJWTBlacklistUnit:
         mock_redis_client.setex.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_blacklist_uses_correct_redis_key_pattern(self, redis_service, mock_redis_client):
+    async def test_blacklist_uses_correct_redis_key_pattern(
+        self, redis_service, mock_redis_client
+    ) -> None:
         """Test blacklist keys follow pattern: blacklist:token:{jti}.
 
         Flow:
@@ -206,7 +214,9 @@ class TestJWTBlacklistUnit:
             pass
 
     @pytest.mark.asyncio
-    async def test_blacklist_entry_expires_after_ttl(self, redis_service, mock_redis_client):
+    async def test_blacklist_entry_expires_after_ttl(
+        self, redis_service, mock_redis_client
+    ) -> None:
         """Test blacklist entries automatically expire after TTL.
 
         Flow:
@@ -228,7 +238,9 @@ class TestJWTBlacklistUnit:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_blacklist_multiple_tokens_independently(self, redis_service, mock_redis_client):
+    async def test_blacklist_multiple_tokens_independently(
+        self, redis_service, mock_redis_client
+    ) -> None:
         """Test multiple tokens can be blacklisted independently.
 
         Flow:
@@ -260,7 +272,7 @@ class TestJWTBlacklistUnit:
         assert await redis_service.is_token_blacklisted(jti_c) is False
 
     @pytest.mark.asyncio
-    async def test_blacklist_token_idempotent(self, redis_service, mock_redis_client):
+    async def test_blacklist_token_idempotent(self, redis_service, mock_redis_client) -> None:
         """Test blacklisting same token multiple times is idempotent.
 
         Flow:
