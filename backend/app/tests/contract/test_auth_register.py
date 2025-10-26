@@ -19,7 +19,7 @@ class TestAuthRegisterContract:
     @pytest.mark.asyncio
     async def test_register_success_returns_201(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful registration returns 201 with correct schema.
 
         Contract: POST /api/v1/auth/register
@@ -70,7 +70,7 @@ class TestAuthRegisterContract:
     @pytest.mark.asyncio
     async def test_register_duplicate_email_returns_409(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test duplicate email returns 409 Conflict.
 
         Contract: POST /api/v1/auth/register
@@ -205,7 +205,7 @@ class TestAuthRegisterContract:
     @pytest.mark.asyncio
     async def test_register_email_case_insensitive(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test email is stored and compared case-insensitively.
 
         Contract: Email uniqueness check should be case-insensitive

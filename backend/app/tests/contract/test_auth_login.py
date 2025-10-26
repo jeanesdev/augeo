@@ -20,7 +20,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_success_returns_200(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful login returns 200 with JWT tokens.
 
         Contract: POST /api/v1/auth/login
@@ -94,7 +94,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_wrong_password_returns_401(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test wrong password returns 401 Unauthorized.
 
         Contract: POST /api/v1/auth/login
@@ -124,7 +124,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_unverified_email_returns_400(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test unverified email returns 400 Bad Request.
 
         Contract: POST /api/v1/auth/login
@@ -156,7 +156,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_deactivated_account_returns_403(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test deactivated account returns 403 Forbidden.
 
         Contract: POST /api/v1/auth/login
@@ -222,7 +222,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_case_insensitive_email(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test login with different email case still works.
 
         Contract: Email comparison should be case-insensitive
@@ -252,7 +252,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_updates_last_login_timestamp(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful login updates last_login_at timestamp.
 
         Contract: User's last_login_at should be updated on successful login
@@ -265,7 +265,7 @@ class TestAuthLoginContract:
     @pytest.mark.asyncio
     async def test_login_creates_session_record(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful login creates session record.
 
         Contract: Login should create session in PostgreSQL and Redis

@@ -19,7 +19,7 @@ class TestAuthLogoutContract:
     @pytest.mark.asyncio
     async def test_logout_success_returns_200(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful logout returns 200 with message.
 
         Contract: POST /api/v1/auth/logout
@@ -128,7 +128,7 @@ class TestAuthLogoutContract:
     @pytest.mark.asyncio
     async def test_logout_revokes_session_in_postgres(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test logout sets revoked_at on session record.
 
         Contract: Logout should set revoked_at timestamp on session
@@ -139,7 +139,7 @@ class TestAuthLogoutContract:
     @pytest.mark.asyncio
     async def test_logout_deletes_session_from_redis(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test logout removes session from Redis.
 
         Contract: Logout should delete session from Redis
@@ -150,7 +150,7 @@ class TestAuthLogoutContract:
     @pytest.mark.asyncio
     async def test_logout_blacklists_access_token(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test logout adds access token to blacklist.
 
         Contract: Logout should blacklist access token JTI in Redis
@@ -161,7 +161,7 @@ class TestAuthLogoutContract:
     @pytest.mark.asyncio
     async def test_logout_creates_audit_log(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test logout creates audit log entry.
 
         Contract: Logout should log 'logout' action to audit_logs
@@ -172,7 +172,7 @@ class TestAuthLogoutContract:
     @pytest.mark.asyncio
     async def test_logout_idempotent_already_logged_out(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test logout twice with same refresh token is idempotent.
 
         Contract: Logging out with already-revoked session should still return 200

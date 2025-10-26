@@ -73,7 +73,7 @@ class TestPasswordResetConfirm:
     @pytest.mark.asyncio
     async def test_confirm_password_reset_success(
         self, async_client: AsyncClient, db_session: AsyncSession, test_user: User
-    ):
+    ) -> None:
         """Should reset password with valid token."""
         from app.services.password_service import PasswordService
         from app.services.redis_service import RedisService
@@ -145,7 +145,7 @@ class TestPasswordChange:
     @pytest.mark.asyncio
     async def test_change_password_success(
         self, async_client: AsyncClient, authenticated_client: AsyncClient, test_user: User
-    ):
+    ) -> None:
         """Should change password with correct current password."""
         response = await authenticated_client.post(
             "/api/v1/auth/password/change",

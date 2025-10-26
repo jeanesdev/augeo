@@ -64,7 +64,7 @@ class TestSessionExpirationIntegration:
         self,
         async_client: AsyncClient,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test session remains valid within 15-minute window.
 
         Flow:
@@ -88,7 +88,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test session expires after 15 minutes of inactivity.
 
         Flow:
@@ -121,7 +121,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test session expiration resets on each request (sliding window).
 
         Flow:
@@ -140,7 +140,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test expired session blocks token refresh.
 
         Flow:
@@ -173,7 +173,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test logout immediately invalidates session (no grace period).
 
         Flow:
@@ -202,7 +202,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test multiple sessions expire independently.
 
         Flow:
@@ -250,7 +250,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test session expiration timestamp is stored in Redis.
 
         Flow:
@@ -268,7 +268,7 @@ class TestSessionExpirationIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_active_session: dict[str, str],
-    ):
+    ) -> None:
         """Test refreshing access token extends session expiration.
 
         Flow:

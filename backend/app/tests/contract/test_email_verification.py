@@ -72,7 +72,7 @@ class TestEmailVerificationContract:
         self,
         async_client: AsyncClient,
         unverified_user_with_token: dict[str, str],
-    ):
+    ) -> None:
         """Test successful email verification returns 200 OK.
 
         Flow:
@@ -97,7 +97,7 @@ class TestEmailVerificationContract:
     async def test_verify_email_invalid_token_returns_400(
         self,
         async_client: AsyncClient,
-    ):
+    ) -> None:
         """Test verification with invalid token returns 400 Bad Request.
 
         Flow:
@@ -117,7 +117,7 @@ class TestEmailVerificationContract:
         self,
         async_client: AsyncClient,
         unverified_user_with_token: dict[str, str],
-    ):
+    ) -> None:
         """Test verification with expired token returns 400 Bad Request.
 
         Flow:
@@ -149,7 +149,7 @@ class TestEmailVerificationContract:
         async_client: AsyncClient,
         db_session: AsyncSession,
         unverified_user_with_token: dict[str, str],
-    ):
+    ) -> None:
         """Test verification of already verified email returns 400 Bad Request.
 
         Flow:
@@ -182,7 +182,7 @@ class TestEmailVerificationContract:
     async def test_verify_email_missing_token_returns_422(
         self,
         async_client: AsyncClient,
-    ):
+    ) -> None:
         """Test verification without token returns 422 Unprocessable Entity.
 
         Flow:
@@ -224,7 +224,7 @@ class TestEmailResendContract:
         self,
         async_client: AsyncClient,
         unverified_user: dict[str, str],
-    ):
+    ) -> None:
         """Test successful resend returns 200 OK.
 
         Flow:
@@ -248,7 +248,7 @@ class TestEmailResendContract:
         async_client: AsyncClient,
         db_session: AsyncSession,
         unverified_user: dict[str, str],
-    ):
+    ) -> None:
         """Test resend for already verified email returns 400 Bad Request.
 
         Flow:
@@ -276,7 +276,7 @@ class TestEmailResendContract:
     async def test_resend_verification_user_not_found_returns_404(
         self,
         async_client: AsyncClient,
-    ):
+    ) -> None:
         """Test resend for non-existent email returns 404 Not Found.
 
         Flow:
@@ -295,7 +295,7 @@ class TestEmailResendContract:
     async def test_resend_verification_missing_email_returns_422(
         self,
         async_client: AsyncClient,
-    ):
+    ) -> None:
         """Test resend without email returns 422 Unprocessable Entity.
 
         Flow:

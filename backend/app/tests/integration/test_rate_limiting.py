@@ -51,7 +51,7 @@ class TestRateLimitingIntegration:
     @pytest.mark.asyncio
     async def test_successful_login_resets_rate_limit_counter(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful login resets failed attempt counter.
 
         Flow:
@@ -96,7 +96,7 @@ class TestRateLimitingIntegration:
     @pytest.mark.asyncio
     async def test_rate_limit_tracked_per_ip_address(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test rate limit is tracked separately per IP address.
 
         Flow:
@@ -140,7 +140,7 @@ class TestRateLimitingIntegration:
     @pytest.mark.asyncio
     async def test_rate_limit_counter_increments_correctly(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test rate limit counter increments with each failed attempt.
 
         Flow:
@@ -154,7 +154,7 @@ class TestRateLimitingIntegration:
     @pytest.mark.asyncio
     async def test_rate_limit_applies_only_to_login_endpoint(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test rate limit applies to login, not other endpoints.
 
         Flow:
@@ -244,7 +244,7 @@ class TestRateLimitingIntegration:
     @pytest.mark.asyncio
     async def test_rate_limit_different_users_independent_counters(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test rate limit counters are independent per user email.
 
         Flow:

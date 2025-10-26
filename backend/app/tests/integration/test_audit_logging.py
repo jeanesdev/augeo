@@ -22,7 +22,7 @@ class TestAuditLogging:
         self,
         db_session: AsyncSession,
         test_user,
-    ):
+    ) -> None:
         """Test that AuditService.log_* methods persist to database.
 
         Verifies:
@@ -61,7 +61,7 @@ class TestAuditLogging:
     async def test_failed_login_logs_with_null_user_id(
         self,
         db_session: AsyncSession,
-    ):
+    ) -> None:
         """Test that failed login logs have NULL user_id.
 
         Verifies:
@@ -101,7 +101,7 @@ class TestAuditLogging:
         self,
         db_session: AsyncSession,
         test_user,
-    ):
+    ) -> None:
         """Test various AuditService methods persist correctly.
 
         Verifies:
@@ -167,7 +167,7 @@ class TestAuditLogging:
         self,
         db_session: AsyncSession,
         test_user,
-    ):
+    ) -> None:
         """Test that audit logs can be queried by various criteria.
 
         Verifies:

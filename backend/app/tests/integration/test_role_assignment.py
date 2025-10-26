@@ -26,7 +26,7 @@ class TestRoleAssignmentIntegration:
     @pytest.mark.asyncio
     async def test_complete_donor_to_staff_upgrade_flow(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test complete flow: register as donor, upgrade to staff, verify permissions.
 
         Flow:
@@ -137,7 +137,7 @@ class TestRoleAssignmentIntegration:
     @pytest.mark.asyncio
     async def test_npo_admin_role_assignment_with_npo_id(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test assigning npo_admin role requires and sets npo_id correctly.
 
         Flow:
@@ -233,7 +233,7 @@ class TestRoleAssignmentIntegration:
     @pytest.mark.asyncio
     async def test_role_downgrade_clears_npo_id(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that downgrading from npo_admin to donor clears npo_id.
 
         Flow:
@@ -349,7 +349,7 @@ class TestRoleAssignmentIntegration:
     @pytest.mark.asyncio
     async def test_cannot_change_own_role(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that users cannot change their own role.
 
         Security requirement: Prevent privilege escalation or accidental

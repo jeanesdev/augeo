@@ -20,7 +20,7 @@ class TestAuthRefreshContract:
     @pytest.mark.asyncio
     async def test_refresh_success_returns_200(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test successful token refresh returns 200 with new access token.
 
         Contract: POST /api/v1/auth/refresh
@@ -106,7 +106,7 @@ class TestAuthRefreshContract:
     @pytest.mark.asyncio
     async def test_refresh_expired_token_returns_401(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test expired refresh token returns 401 Unauthorized.
 
         Contract: Refresh tokens expire after 7 days
@@ -119,7 +119,7 @@ class TestAuthRefreshContract:
     @pytest.mark.asyncio
     async def test_refresh_blacklisted_token_returns_401(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test blacklisted refresh token returns 401 Unauthorized.
 
         Contract: Tokens in Redis blacklist should be rejected
@@ -178,7 +178,7 @@ class TestAuthRefreshContract:
     @pytest.mark.asyncio
     async def test_refresh_invalid_session_returns_401(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test refresh with invalid session returns 401.
 
         Contract: Session must exist in Redis
@@ -191,7 +191,7 @@ class TestAuthRefreshContract:
     @pytest.mark.asyncio
     async def test_refresh_preserves_original_refresh_token(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test refresh does NOT rotate refresh token.
 
         Contract: Refresh token remains valid for full 7 days (no rotation)
@@ -230,7 +230,7 @@ class TestAuthRefreshContract:
     @pytest.mark.asyncio
     async def test_refresh_generates_different_access_tokens(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test each refresh generates a unique access token.
 
         Contract: Each refresh should create a new access token with new expiry

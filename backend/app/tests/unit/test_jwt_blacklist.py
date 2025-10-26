@@ -61,7 +61,7 @@ class TestJWTBlacklistUnit:
     @pytest.mark.asyncio
     async def test_is_token_blacklisted_returns_true_for_blacklisted_token(
         self, redis_service, mock_redis_client
-    ):
+    ) -> None:
         """Test checking a blacklisted token returns True.
 
         Flow:
@@ -85,7 +85,7 @@ class TestJWTBlacklistUnit:
     @pytest.mark.asyncio
     async def test_is_token_blacklisted_returns_false_for_valid_token(
         self, redis_service, mock_redis_client
-    ):
+    ) -> None:
         """Test checking a non-blacklisted token returns False.
 
         Flow:
@@ -173,7 +173,7 @@ class TestJWTBlacklistUnit:
     @pytest.mark.asyncio
     async def test_blacklist_token_handles_redis_connection_error(
         self, redis_service, mock_redis_client
-    ):
+    ) -> None:
         """Test graceful handling of Redis connection errors.
 
         Flow:
@@ -192,7 +192,7 @@ class TestJWTBlacklistUnit:
     @pytest.mark.asyncio
     async def test_is_token_blacklisted_handles_redis_connection_error(
         self, redis_service, mock_redis_client
-    ):
+    ) -> None:
         """Test checking blacklist when Redis is unavailable.
 
         Flow:

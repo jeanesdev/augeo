@@ -36,7 +36,7 @@ class TestUsersListContract:
     @pytest.mark.asyncio
     async def test_list_users_default_pagination(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test default pagination (page=1, per_page=20).
 
         Contract: GET /api/v1/users
@@ -96,7 +96,7 @@ class TestUsersListContract:
     @pytest.mark.asyncio
     async def test_list_users_custom_pagination(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test custom pagination parameters.
 
         Contract: GET /api/v1/users?page=2&per_page=2
@@ -140,7 +140,7 @@ class TestUsersListContract:
     @pytest.mark.asyncio
     async def test_list_users_filter_by_role(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test filtering by role.
 
         Contract: GET /api/v1/users?role=donor
@@ -209,7 +209,7 @@ class TestUsersListContract:
     @pytest.mark.asyncio
     async def test_list_users_filter_by_email_verified(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test filtering by email_verified status.
 
         Contract: GET /api/v1/users?email_verified=false
@@ -252,7 +252,7 @@ class TestUsersListContract:
     @pytest.mark.asyncio
     async def test_list_users_filter_by_is_active(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test filtering by is_active status.
 
         Contract: GET /api/v1/users?is_active=false
@@ -295,7 +295,7 @@ class TestUsersListContract:
     @pytest.mark.asyncio
     async def test_list_users_filter_by_search(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test search functionality across name and email.
 
         Contract: GET /api/v1/users?search=john

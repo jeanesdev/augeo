@@ -36,7 +36,7 @@ class TestAuthenticationFlow:
         async_client: AsyncClient,
         db_session: AsyncSession,
         redis_client: Redis,
-    ):
+    ) -> None:
         """Test complete flow: register → verify email → login → logout.
 
         This integration test verifies:
@@ -111,7 +111,7 @@ class TestAuthenticationFlow:
         async_client: AsyncClient,
         db_session: AsyncSession,
         redis_client: Redis,
-    ):
+    ) -> None:
         """Test failed login attempts don't create sessions.
 
         This verifies:
@@ -141,7 +141,7 @@ class TestAuthenticationFlow:
         self,
         async_client: AsyncClient,
         db_session: AsyncSession,
-    ):
+    ) -> None:
         """Test database enforces email uniqueness.
 
         This verifies:
@@ -177,7 +177,7 @@ class TestAuthenticationFlow:
         self,
         async_client: AsyncClient,
         db_session: AsyncSession,
-    ):
+    ) -> None:
         """Test password is hashed in database, not stored as plaintext.
 
         This verifies:
@@ -212,7 +212,7 @@ class TestAuthenticationFlow:
         self,
         async_client: AsyncClient,
         db_session: AsyncSession,
-    ):
+    ) -> None:
         """Test concurrent registrations with same email handle race condition.
 
         This verifies:

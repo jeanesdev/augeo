@@ -25,7 +25,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_role_requires_authentication(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that updating roles requires authentication.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -68,7 +68,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_role_donor_role_forbidden(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that donor role cannot update user roles.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -116,7 +116,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_role_invalid_role_returns_400(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that invalid role returns 400.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -160,7 +160,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_role_nonexistent_user_returns_404(
         self, authenticated_client: AsyncClient
-    ):
+    ) -> None:
         """Test that updating nonexistent user returns 404.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -179,7 +179,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_without_npo_id_returns_400(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that updating to npo_admin without providing npo_id returns 400.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -224,7 +224,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_to_event_coordinator_without_npo_id_returns_400(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that updating to event_coordinator without providing npo_id returns 400.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -269,7 +269,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_with_npo_id_succeeds(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that updating to npo_admin with npo_id succeeds.
 
         Contract: PATCH /api/v1/users/{user_id}/role
@@ -317,7 +317,7 @@ class TestUsersRoleUpdateContract:
     @pytest.mark.asyncio
     async def test_update_from_npo_admin_to_donor_clears_npo_id(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that updating from npo_admin to donor clears npo_id.
 
         Contract: PATCH /api/v1/users/{user_id}/role

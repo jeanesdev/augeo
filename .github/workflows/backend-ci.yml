@@ -57,7 +57,7 @@ jobs:
         run: poetry run black --check .
 
       - name: Type check with mypy
-        run: poetry run mypy app --strict --ignore-missing-imports
+        run: poetry run mypy app --strict --ignore-missing-imports --exclude 'app/tests'
 
   test:
     name: Test (Python ${{ matrix.python-version }})

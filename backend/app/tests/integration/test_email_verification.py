@@ -26,7 +26,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_super_admin_can_verify_any_user_email(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that super_admin can verify email for any user.
 
         Flow:
@@ -129,7 +129,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_npo_admin_can_verify_users_in_their_npo(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that npo_admin can verify emails for users in their NPO.
 
         Flow:
@@ -221,7 +221,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_npo_admin_cannot_verify_users_in_different_npo(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that npo_admin CANNOT verify emails for users in different NPO.
 
         Flow:
@@ -315,7 +315,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_staff_and_donor_cannot_verify_emails(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that staff and donor roles cannot verify emails.
 
         Flow:
@@ -395,7 +395,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_verify_email_for_nonexistent_user(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that verifying email for non-existent user returns 404.
 
         Flow:
@@ -454,7 +454,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_verify_email_idempotent(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that verifying already-verified email is idempotent.
 
         Flow:
@@ -538,7 +538,7 @@ class TestEmailVerificationIntegration:
     @pytest.mark.asyncio
     async def test_complete_admin_creates_and_verifies_user_flow(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test complete flow: admin creates user, verifies email, user can login.
 
         Flow:

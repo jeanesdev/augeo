@@ -66,7 +66,7 @@ class TestUsersCreateContract:
     @pytest.mark.asyncio
     async def test_create_user_missing_required_fields_returns_400(
         self, authenticated_client: AsyncClient
-    ):
+    ) -> None:
         """Test that missing required fields returns 400.
 
         Contract: POST /api/v1/users
@@ -131,7 +131,7 @@ class TestUsersCreateContract:
     @pytest.mark.asyncio
     async def test_create_user_duplicate_email_returns_409(
         self, authenticated_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test that duplicate email returns 409.
 
         Contract: POST /api/v1/users
@@ -184,7 +184,7 @@ class TestUsersCreateContract:
     @pytest.mark.asyncio
     async def test_create_npo_admin_without_npo_id_returns_400(
         self, authenticated_client: AsyncClient
-    ):
+    ) -> None:
         """Test that creating npo_admin without npo_id returns 400.
 
         Contract: POST /api/v1/users
@@ -207,7 +207,7 @@ class TestUsersCreateContract:
     @pytest.mark.asyncio
     async def test_create_event_coordinator_without_npo_id_returns_400(
         self, authenticated_client: AsyncClient
-    ):
+    ) -> None:
         """Test that creating event_coordinator without npo_id returns 400.
 
         Contract: POST /api/v1/users

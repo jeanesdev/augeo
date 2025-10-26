@@ -16,7 +16,7 @@ class TestPasswordResetFlow:
     @pytest.mark.asyncio
     async def test_complete_password_reset_flow(
         self, async_client: AsyncClient, db_session: AsyncSession, test_user: User
-    ):
+    ) -> None:
         """
         Test complete password reset flow:
         1. User requests password reset
@@ -85,7 +85,7 @@ class TestPasswordResetFlow:
         db_session: AsyncSession,
         test_user: User,
         authenticated_client: AsyncClient,
-    ):
+    ) -> None:
         """
         Test that password reset revokes all active sessions:
         1. User is logged in (has active session)
@@ -161,7 +161,7 @@ class TestPasswordResetFlow:
     @pytest.mark.asyncio
     async def test_reset_token_expires_after_1_hour(
         self, async_client: AsyncClient, test_user: User
-    ):
+    ) -> None:
         """
         Test that reset tokens expire after 1 hour:
         1. User requests password reset
@@ -175,7 +175,7 @@ class TestPasswordResetFlow:
     @pytest.mark.asyncio
     async def test_multiple_reset_requests_invalidate_previous_tokens(
         self, async_client: AsyncClient, test_user: User
-    ):
+    ) -> None:
         """
         Test that requesting a new reset invalidates previous tokens:
         1. User requests password reset (gets token1)

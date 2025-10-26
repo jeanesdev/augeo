@@ -72,7 +72,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test complete flow: login → refresh token → use new access token.
 
         Flow:
@@ -124,7 +124,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test refresh token can be used multiple times (no rotation).
 
         Flow:
@@ -161,7 +161,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test refresh token becomes invalid after logout.
 
         Flow:
@@ -189,7 +189,7 @@ class TestTokenRefreshIntegration:
     @pytest.mark.asyncio
     async def test_refresh_with_expired_token_fails(
         self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test refresh with expired refresh token fails.
 
         Flow:
@@ -248,7 +248,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test refresh fails when providing access token instead of refresh token.
 
         Flow:
@@ -272,7 +272,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test refreshed access token has updated timestamps and same user info.
 
         Flow:
@@ -316,7 +316,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test refresh fails if session was deleted from Redis.
 
         Flow:
@@ -335,7 +335,7 @@ class TestTokenRefreshIntegration:
         async_client: AsyncClient,
         db_session: AsyncSession,
         verified_user_with_tokens: dict[str, str],
-    ):
+    ) -> None:
         """Test refreshed access token works for all authenticated endpoints.
 
         Flow:
