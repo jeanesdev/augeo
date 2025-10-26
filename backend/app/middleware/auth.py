@@ -265,7 +265,10 @@ def require_role(*allowed_roles: str) -> Callable[..., Any]:
                     detail={
                         "error": {
                             "code": "INSUFFICIENT_PERMISSIONS",
-                            "message": f"Role '{user_role}' not authorized. Required: {', '.join(allowed_roles)}",
+                            "message": (
+                                f"Role '{user_role}' not authorized. "
+                                f"Required: {', '.join(allowed_roles)}"
+                            ),
                         }
                     },
                 )

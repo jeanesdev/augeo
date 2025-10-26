@@ -25,24 +25,35 @@ class TestAuthLogoutContract:
         Contract: POST /api/v1/auth/logout
         Expected: 200 OK with MessageResponse schema
         """
-        # First register, verify, and login a user
-        # TODO: Implement full registration -> verify -> login flow
-        pytest.skip("Requires full auth flow implementation")
+        # Register, verify, and login a user
+        register_payload = {
+            "email": "logout.test@example.com",
+            "password": "SecurePass123",
+            "first_name": "Logout",
+            "last_name": "Test",
+        }
+        register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
+        verification_token = register_response.json()["verification_token"]
+        await async_client.post("/api/v1/auth/verify-email", json={"token": verification_token})
 
-        # For now, define the expected contract:
-        # With valid access token and refresh token:
-        # logout_payload = {"refresh_token": "valid_refresh_token"}
-        # headers = {"Authorization": "Bearer valid_access_token"}
-        # response = await async_client.post(
-        #     "/api/v1/auth/logout",
-        #     json=logout_payload,
-        #     headers=headers
-        # )
-        #
-        # assert response.status_code == 200
-        # data = response.json()
-        # assert "message" in data
-        # assert "Logged out successfully" in data["message"]
+        login_response = await async_client.post(
+            "/api/v1/auth/login",
+            json={"email": "logout.test@example.com", "password": "SecurePass123"},
+        )
+        access_token = login_response.json()["access_token"]
+        refresh_token = login_response.json()["refresh_token"]
+
+        # Test logout
+        logout_payload = {"refresh_token": refresh_token}
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = await async_client.post(
+            "/api/v1/auth/logout", json=logout_payload, headers=headers
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "message" in data
+        assert "Logged out successfully" in data["message"]
 
     @pytest.mark.asyncio
     async def test_logout_missing_auth_token_returns_401(self, async_client: AsyncClient):

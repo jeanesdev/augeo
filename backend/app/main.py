@@ -108,10 +108,10 @@ app = FastAPI(
 )
 
 # Request ID middleware (must be before CORS)
-app.add_middleware(RequestIDMiddleware)  # type: ignore[call-arg, arg-type]
+app.add_middleware(RequestIDMiddleware)  # type: ignore[arg-type, call-arg]
 
 # Metrics middleware (after request ID for accurate tracking)
-app.add_middleware(MetricsMiddleware)  # type: ignore[call-arg, arg-type]
+app.add_middleware(MetricsMiddleware)  # type: ignore[arg-type, call-arg]
 
 # CORS middleware
 app.add_middleware(  # type: ignore[call-arg]

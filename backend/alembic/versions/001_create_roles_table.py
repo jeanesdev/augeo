@@ -59,8 +59,12 @@ def upgrade() -> None:
     op.execute(
         """
         INSERT INTO roles (name, description, scope) VALUES
-            ('super_admin', 'Augeo platform staff with full access to all NPOs and events', 'platform'),
-            ('npo_admin', 'Full management access within assigned nonprofit organization(s)', 'npo'),
+            ('super_admin',
+             'Augeo platform staff with full access to all NPOs and events',
+             'platform'),
+            ('npo_admin',
+             'Full management access within assigned nonprofit organization(s)',
+             'npo'),
             ('event_coordinator', 'Event and auction management within assigned NPO', 'npo'),
             ('staff', 'Donor registration and check-in within assigned events', 'event'),
             ('donor', 'Bidding and profile management only', 'own')

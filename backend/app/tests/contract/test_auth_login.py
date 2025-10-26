@@ -36,8 +36,9 @@ class TestAuthLoginContract:
         register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
         assert register_response.status_code == 201
 
-        # TODO: In actual implementation, need to verify email first
-        # For now, this test will fail until email verification is implemented
+        # Verify email before login
+        verification_token = register_response.json()["verification_token"]
+        await async_client.post("/api/v1/auth/verify-email", json={"token": verification_token})
 
         # Attempt login
         login_payload = {"email": "login.test@example.com", "password": "SecurePass123"}
@@ -232,9 +233,11 @@ class TestAuthLoginContract:
             "first_name": "Test",
             "last_name": "User",
         }
-        await async_client.post("/api/v1/auth/register", json=register_payload)
+        register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
 
-        # TODO: Verify email first
+        # Verify email
+        verification_token = register_response.json()["verification_token"]
+        await async_client.post("/api/v1/auth/verify-email", json={"token": verification_token})
 
         # Try to login with uppercase email
         login_payload = {"email": "CASE@EXAMPLE.COM", "password": "SecurePass123"}

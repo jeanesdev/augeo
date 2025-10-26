@@ -164,7 +164,10 @@ def rate_limit(
                     detail={
                         "error": {
                             "code": "RATE_LIMIT_EXCEEDED",
-                            "message": f"Too many requests. Please try again in {seconds_until_reset} seconds.",
+                            "message": (
+                                f"Too many requests. "
+                                f"Please try again in {seconds_until_reset} seconds."
+                            ),
                             "details": {
                                 "retry_after_seconds": seconds_until_reset,
                                 "limit": max_requests,

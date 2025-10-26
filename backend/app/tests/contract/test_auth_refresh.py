@@ -36,8 +36,12 @@ class TestAuthRefreshContract:
         register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
         assert register_response.status_code == 201
 
-        # TODO: Verify email first (once email verification is implemented)
-        # For now, this will need manual verification or mock
+        # Verify email (email verification is implemented)
+        verification_token = register_response.json()["verification_token"]
+        verify_response = await async_client.post(
+            "/api/v1/auth/verify-email", json={"token": verification_token}
+        )
+        assert verify_response.status_code == 200
 
         # Login to get tokens
         login_payload = {"email": "refresh.test@example.com", "password": "SecurePass123"}

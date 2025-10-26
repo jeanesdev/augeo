@@ -24,7 +24,8 @@ def upgrade() -> None:
     """Add performance indexes for frequently queried columns."""
 
     # Users table - only create missing indexes
-    # idx_users_email, idx_users_role_id, idx_users_created_at, idx_users_email_verified already exist
+    # idx_users_email, idx_users_role_id, idx_users_created_at,
+    # idx_users_email_verified already exist
     op.create_index(
         "idx_users_npo_id",
         "users",

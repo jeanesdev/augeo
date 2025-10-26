@@ -1,6 +1,7 @@
 """Contract tests for password reset endpoints.
 
-T051: Tests for POST /api/v1/auth/password/reset/request and POST /api/v1/auth/password/reset/confirm
+T051: Tests for POST /api/v1/auth/password/reset/request
+and POST /api/v1/auth/password/reset/confirm
 Tests verify API contract compliance per contracts/auth.yaml
 """
 

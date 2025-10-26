@@ -88,8 +88,13 @@ async def test_engine(test_database_url: str) -> AsyncGenerator[AsyncEngine, Non
                     scope VARCHAR(20) NOT NULL,
                     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-                    CONSTRAINT role_name_valid CHECK (name IN ('super_admin', 'npo_admin', 'event_coordinator', 'staff', 'donor')),
-                    CONSTRAINT role_scope_valid CHECK (scope IN ('platform', 'npo', 'event', 'own'))
+                    CONSTRAINT role_name_valid CHECK (
+                        name IN ('super_admin', 'npo_admin', 'event_coordinator',
+                                 'staff', 'donor')
+                    ),
+                    CONSTRAINT role_scope_valid CHECK (
+                        scope IN ('platform', 'npo', 'event', 'own')
+                    )
                 )
             """
             )
@@ -100,9 +105,15 @@ async def test_engine(test_database_url: str) -> AsyncGenerator[AsyncEngine, Non
             text(
                 """
                 INSERT INTO roles (name, description, scope) VALUES
-                    ('super_admin', 'Augeo platform staff with full access to all NPOs and events', 'platform'),
-                    ('npo_admin', 'Full management access within assigned nonprofit organization(s)', 'npo'),
-                    ('event_coordinator', 'Event and auction management within assigned NPO', 'npo'),
+                    ('super_admin',
+                     'Augeo platform staff with full access to all NPOs and events',
+                     'platform'),
+                    ('npo_admin',
+                     'Full management access within assigned nonprofit organization(s)',
+                     'npo'),
+                    ('event_coordinator',
+                     'Event and auction management within assigned NPO',
+                     'npo'),
                     ('staff', 'Donor registration and check-in within assigned events', 'event'),
                     ('donor', 'Bidding and profile management only', 'own')
                 ON CONFLICT (name) DO NOTHING

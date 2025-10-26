@@ -229,7 +229,11 @@ class TestTokenRefreshIntegration:
         3. Refresh fails with 401
         """
         # Create a token with wrong signature
-        tampered_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2gifQ.invalid_signature_here"
+        tampered_token = (
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+            "eyJzdWIiOiIxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2gifQ."
+            "invalid_signature_here"
+        )
 
         refresh_payload = {"refresh_token": tampered_token}
         response = await async_client.post("/api/v1/auth/refresh", json=refresh_payload)

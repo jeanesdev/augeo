@@ -202,9 +202,11 @@ class AuditService:
             user_id: UUID of user whose session was revoked
             email: User's email address
             session_jti: JWT ID of the revoked session
-            reason: Optional reason for revocation (e.g., "password_reset", "security_breach", "manual_logout")
+            reason: Optional reason for revocation
+                (e.g., "password_reset", "security_breach", "manual_logout")
             ip_address: Optional IP address where revocation occurred
-            revoked_by_user_id: Optional UUID of admin who revoked session (if different from user)
+            revoked_by_user_id: Optional UUID of admin who revoked session
+                (if different from user)
         """
         logger.warning(
             "Session revoked",
