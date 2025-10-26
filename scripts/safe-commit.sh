@@ -1,14 +1,7 @@
 #!/bin/bash
-# Safe commit script that ensures pre-commit hooks pass before committing
-# Usage: ./scripts/safe-commit.sh "commit message"
+# Pre-commit validation script that runs hooks with auto-retry
+# Usage: ./scripts/safe-commit.sh
 
-if [ -z "$1" ]; then
-    echo "Error: Commit message required"
-    echo "Usage: ./scripts/safe-commit.sh \"your commit message\""
-    exit 1
-fi
-
-COMMIT_MESSAGE="$1"
 MAX_ATTEMPTS=3
 ATTEMPT=1
 
@@ -24,12 +17,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
         # All hooks passed!
         echo ""
         echo "✅ All pre-commit checks passed!"
-        echo "💾 Committing changes..."
-        git commit -m "$COMMIT_MESSAGE"
-
-        echo ""
-        echo "✅ Commit successful!"
-        git log -1 --oneline
+        echo "Ready to commit. Run: git commit -m \"your message\""
         exit 0
     else
         # Hooks failed or made changes

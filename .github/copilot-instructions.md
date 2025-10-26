@@ -45,26 +45,22 @@ Python 3.11+ (Backend), TypeScript (Frontend): Follow standard conventions
 ## Git Workflow
 
 ### Committing Changes
-**CRITICAL**: Always use the safe-commit script to ensure pre-commit hooks pass before committing.
+**CRITICAL**: Always run pre-commit hooks before committing to ensure code quality.
 
-**Always use**:
+**Recommended workflow**:
 ```bash
-./scripts/safe-commit.sh "your commit message"
+./scripts/safe-commit.sh      # Run pre-commit hooks with auto-retry
+git commit -m "your message"  # Commit when hooks pass
 ```
 
-**Never use**:
-```bash
-git commit -m "message"  # ❌ Don't use - bypasses pre-commit verification
-```
-
-**Why**: The safe-commit script:
+**Why use safe-commit.sh**: The script:
 - Runs pre-commit hooks to completion
 - Auto-stages formatting changes (ruff, black, trailing whitespace, etc.)
-- Re-runs hooks after auto-fixes to verify
-- Only commits if all checks pass
-- Prevents failed commits that need re-doing
+- Re-runs hooks after auto-fixes to verify (up to 3 attempts)
+- Exits successfully when all checks pass
+- Prevents committing code that fails linting/formatting
 
-**If you must commit manually** (for testing or special cases):
+**Manual pre-commit workflow** (if not using safe-commit.sh):
 ```bash
 git add -A
 pre-commit run --all-files
