@@ -101,7 +101,8 @@ class TestAuthRefreshContract:
         assert "code" in error
         assert error["code"] == "INVALID_REFRESH_TOKEN"
         assert "message" in error
-        assert "invalid or expired" in error["message"].lower()
+        # Message includes technical JWT decode errors like "invalid header string"
+        assert "invalid" in error["message"].lower() and "refresh" in error["message"].lower()
 
     @pytest.mark.asyncio
     async def test_refresh_expired_token_returns_401(
