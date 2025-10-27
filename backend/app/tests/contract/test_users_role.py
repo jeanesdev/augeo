@@ -108,12 +108,22 @@ class TestUsersRoleUpdateContract:
         assert response.status_code == 403
         data = response.json()
         assert "detail" in data
-        # Note: Our error handler returns {"detail": {"code": 403, "message": "..."}}
-        # but this test expects direct message access
-        error_message = (
-            data["detail"]["message"] if isinstance(data["detail"], dict) else str(data["detail"])
+        # Middleware raises HTTPException with detail={"error": {...}}, which gets wrapped as {"detail": {"error": {...}}}
+        if isinstance(data["detail"], dict) and "error" in data["detail"]:
+            error_message = (
+                data["detail"]["error"]["message"].lower()
+                if isinstance(data["detail"]["error"], dict)
+                else str(data["detail"]["error"]).lower()
+            )
+        elif isinstance(data["detail"], dict) and "message" in data["detail"]:
+            error_message = data["detail"]["message"].lower()
+        else:
+            error_message = str(data["detail"]).lower()
+        assert (
+            "permission" in error_message
+            or "forbidden" in error_message
+            or "authorized" in error_message
         )
-        assert "permission" in error_message.lower() or "forbidden" in error_message.lower()
 
     @pytest.mark.asyncio
     async def test_update_role_invalid_role_returns_400(

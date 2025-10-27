@@ -123,7 +123,8 @@ class TestUsersCreateContract:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
-        assert "email" in data["detail"]["message"].lower()
+        # Check validation error details for email field
+        assert any("email" in error["field"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_create_user_invalid_role_returns_400(
@@ -145,7 +146,8 @@ class TestUsersCreateContract:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
-        assert "role" in data["detail"]["message"].lower()
+        # Check validation error details for role field
+        assert any("role" in error["field"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_create_user_duplicate_email_returns_409(
@@ -226,7 +228,8 @@ class TestUsersCreateContract:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
-        assert "npo_id" in data["detail"]["message"].lower()
+        # Check validation error details for npo_id field
+        assert any("npo_id" in error["field"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_create_event_coordinator_without_npo_id_returns_400(
@@ -250,7 +253,8 @@ class TestUsersCreateContract:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
-        assert "npo_id" in data["detail"]["message"].lower()
+        # Check validation error details for npo_id field
+        assert any("npo_id" in error["field"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_create_donor_with_npo_id_returns_400(
@@ -274,7 +278,8 @@ class TestUsersCreateContract:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
-        assert "npo_id" in data["detail"]["message"].lower()
+        # Check validation error details for npo_id field
+        assert any("npo_id" in error["field"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_create_staff_with_npo_id_returns_400(
@@ -298,4 +303,5 @@ class TestUsersCreateContract:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
-        assert "npo_id" in data["detail"]["message"].lower()
+        # Check validation error details for npo_id field
+        assert any("npo_id" in error["field"].lower() for error in data["detail"]["details"])

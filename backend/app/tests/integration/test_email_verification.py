@@ -307,8 +307,8 @@ class TestEmailVerificationIntegration:
         # Step 4: Verify request is rejected
         assert verify_response.status_code == 403
         error_data = verify_response.json()
-        # Error format: {"error": {"code": 403, "message": "...", "type": "HTTPException"}}
-        assert "error" in error_data
+        # Error format: {"detail": {"code": 403, "message": "...", "type": "HTTPException"}}
+        assert "detail" in error_data
         error_message = error_data["detail"]["message"].lower()
         assert "npo" in error_message or "permission" in error_message
 
@@ -448,8 +448,8 @@ class TestEmailVerificationIntegration:
         # Step 4: Verify 404 response
         assert verify_response.status_code == 404
         error_data = verify_response.json()
-        # Error format: {"error": {"code": 404, "message": "...", "type": "HTTPException"}}
-        assert "error" in error_data
+        # Error format: {"detail": {"code": 404, "message": "...", "type": "HTTPException"}}
+        assert "detail" in error_data
 
     @pytest.mark.asyncio
     async def test_verify_email_idempotent(
