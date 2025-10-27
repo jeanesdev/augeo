@@ -109,16 +109,14 @@ async def register(
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail={
-                    "error": {
-                        "code": "DUPLICATE_EMAIL",
-                        "message": "Email already registered",
-                        "details": {"email": user_data.email},
-                    }
+                    "code": "DUPLICATE_EMAIL",
+                    "message": "Email already registered",
+                    "details": {"email": user_data.email},
                 },
             ) from e
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"error": {"code": "REGISTRATION_FAILED", "message": str(e)}},
+            detail={"code": "REGISTRATION_FAILED", "message": str(e)},
         ) from e
 
 
@@ -170,11 +168,9 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={
-                "error": {
-                    "code": "RATE_LIMIT_EXCEEDED",
-                    "message": "Too many login attempts. Please try again in 15 minutes.",
-                    "details": {"retry_after_seconds": 900},
-                }
+                "code": "RATE_LIMIT_EXCEEDED",
+                "message": "Too many login attempts. Please try again in 15 minutes.",
+                "details": {"retry_after_seconds": 900},
             },
         )
 
@@ -197,38 +193,32 @@ async def login(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
-                    "error": {
-                        "code": "INVALID_CREDENTIALS",
-                        "message": "Invalid email or password",
-                    }
+                    "code": "INVALID_CREDENTIALS",
+                    "message": "Invalid email or password",
                 },
             ) from e
         elif "Email not verified" in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={
-                    "error": {
-                        "code": "EMAIL_NOT_VERIFIED",
-                        "message": "Please verify your email before logging in",
-                        "details": {"email": login_data.email},
-                    }
+                    "code": "EMAIL_NOT_VERIFIED",
+                    "message": "Please verify your email before logging in",
+                    "details": {"email": login_data.email},
                 },
             ) from e
         elif "Account deactivated" in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
-                    "error": {
-                        "code": "ACCOUNT_DEACTIVATED",
-                        "message": "Your account has been deactivated. Please contact support.",
-                    }
+                    "code": "ACCOUNT_DEACTIVATED",
+                    "message": "Your account has been deactivated. Please contact support.",
                 },
             ) from e
 
         # Fallback for unexpected errors
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"error": {"code": "LOGIN_FAILED", "message": error_msg}},
+            detail={"code": "LOGIN_FAILED", "message": error_msg},
         ) from e
 
 
@@ -281,10 +271,8 @@ async def refresh_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
-                "error": {
-                    "code": "INVALID_REFRESH_TOKEN",
-                    "message": error_msg if error_msg else "Invalid or expired refresh token",
-                }
+                "code": "INVALID_REFRESH_TOKEN",
+                "message": error_msg if error_msg else "Invalid or expired refresh token",
             },
         ) from e
 
@@ -328,10 +316,8 @@ async def logout(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
-                "error": {
-                    "code": "MISSING_TOKEN",
-                    "message": "Authorization header required",
-                }
+                "code": "MISSING_TOKEN",
+                "message": "Authorization header required",
             },
         )
 
@@ -361,17 +347,15 @@ async def logout(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
-                    "error": {
-                        "code": "INVALID_TOKEN",
-                        "message": "Invalid or expired token",
-                    }
+                    "code": "INVALID_TOKEN",
+                    "message": "Invalid or expired token",
                 },
             ) from e
 
         # Fallback for unexpected errors
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"error": {"code": "LOGOUT_FAILED", "message": error_msg}},
+            detail={"code": "LOGOUT_FAILED", "message": error_msg},
         ) from e
 
 
@@ -415,10 +399,8 @@ async def verify_email(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error": {
-                    "code": "INVALID_TOKEN",
-                    "message": "Invalid or expired verification token",
-                }
+                "code": "INVALID_TOKEN",
+                "message": "Invalid or expired verification token",
             },
         )
 
@@ -433,10 +415,8 @@ async def verify_email(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
-                "error": {
-                    "code": "USER_NOT_FOUND",
-                    "message": "User not found",
-                }
+                "code": "USER_NOT_FOUND",
+                "message": "User not found",
             },
         )
 
@@ -445,10 +425,8 @@ async def verify_email(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error": {
-                    "code": "ALREADY_VERIFIED",
-                    "message": "Email already verified",
-                }
+                "code": "ALREADY_VERIFIED",
+                "message": "Email already verified",
             },
         )
 
@@ -520,10 +498,8 @@ async def resend_verification_email(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
-                "error": {
-                    "code": "USER_NOT_FOUND",
-                    "message": "User not found",
-                }
+                "code": "USER_NOT_FOUND",
+                "message": "User not found",
             },
         )
 
@@ -532,10 +508,8 @@ async def resend_verification_email(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error": {
-                    "code": "ALREADY_VERIFIED",
-                    "message": "Email already verified",
-                }
+                "code": "ALREADY_VERIFIED",
+                "message": "Email already verified",
             },
         )
 
