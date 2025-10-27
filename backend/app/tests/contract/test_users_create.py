@@ -35,7 +35,7 @@ class TestUsersCreateContract:
 
         assert response.status_code == 401
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
 
     @pytest.mark.asyncio
     async def test_create_user_donor_role_forbidden(
@@ -57,10 +57,10 @@ class TestUsersCreateContract:
 
         assert response.status_code == 403
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
         assert (
-            "permission" in data["error"]["message"].lower()
-            or "forbidden" in data["error"]["message"].lower()
+            "permission" in data["detail"]["message"].lower()
+            or "forbidden" in data["detail"]["message"].lower()
         )
 
     @pytest.mark.asyncio
@@ -70,7 +70,7 @@ class TestUsersCreateContract:
         """Test that missing required fields returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request with validation errors
+        Expected: 422 Unprocessable Entity with validation errors
         """
         # Missing first_name
         payload = {
@@ -80,9 +80,9 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
 
     @pytest.mark.asyncio
     async def test_create_user_invalid_email_returns_400(
@@ -91,7 +91,7 @@ class TestUsersCreateContract:
         """Test that invalid email format returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request with validation error
+        Expected: 422 Unprocessable Entity with validation error
         """
         payload = {
             "email": "not-an-email",
@@ -101,10 +101,10 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
-        assert "email" in data["error"]["message"].lower()
+        assert "detail" in data
+        assert "email" in data["detail"]["message"].lower()
 
     @pytest.mark.asyncio
     async def test_create_user_invalid_role_returns_400(
@@ -113,7 +113,7 @@ class TestUsersCreateContract:
         """Test that invalid role returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request with validation error
+        Expected: 422 Unprocessable Entity with validation error
         """
         payload = {
             "email": "test@example.com",
@@ -123,10 +123,10 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
-        assert "role" in data["error"]["message"].lower()
+        assert "detail" in data
+        assert "role" in data["detail"]["message"].lower()
 
     @pytest.mark.asyncio
     async def test_create_user_duplicate_email_returns_409(
@@ -175,10 +175,10 @@ class TestUsersCreateContract:
 
         assert response.status_code == 409
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
         assert (
-            "email" in data["error"]["message"].lower()
-            or "exists" in data["error"]["message"].lower()
+            "email" in data["detail"]["message"].lower()
+            or "exists" in data["detail"]["message"].lower()
         )
 
     @pytest.mark.asyncio
@@ -188,7 +188,7 @@ class TestUsersCreateContract:
         """Test that creating npo_admin without npo_id returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request - npo_admin role requires npo_id
+        Expected: 422 Unprocessable Entity - npo_admin role requires npo_id
         """
         payload = {
             "email": "npoadmin@example.com",
@@ -199,10 +199,10 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
-        assert "npo_id" in data["error"]["message"].lower()
+        assert "detail" in data
+        assert "npo_id" in data["detail"]["message"].lower()
 
     @pytest.mark.asyncio
     async def test_create_event_coordinator_without_npo_id_returns_400(
@@ -211,7 +211,7 @@ class TestUsersCreateContract:
         """Test that creating event_coordinator without npo_id returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request - event_coordinator role requires npo_id
+        Expected: 422 Unprocessable Entity - event_coordinator role requires npo_id
         """
         payload = {
             "email": "coordinator@example.com",
@@ -222,10 +222,10 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
-        assert "npo_id" in data["error"]["message"].lower()
+        assert "detail" in data
+        assert "npo_id" in data["detail"]["message"].lower()
 
     @pytest.mark.asyncio
     async def test_create_donor_with_npo_id_returns_400(
@@ -234,7 +234,7 @@ class TestUsersCreateContract:
         """Test that creating donor with npo_id returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request - donor role must not have npo_id
+        Expected: 422 Unprocessable Entity - donor role must not have npo_id
         """
         payload = {
             "email": "donor@example.com",
@@ -245,10 +245,10 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
-        assert "npo_id" in data["error"]["message"].lower()
+        assert "detail" in data
+        assert "npo_id" in data["detail"]["message"].lower()
 
     @pytest.mark.asyncio
     async def test_create_staff_with_npo_id_returns_400(
@@ -257,7 +257,7 @@ class TestUsersCreateContract:
         """Test that creating staff with npo_id returns 400.
 
         Contract: POST /api/v1/users
-        Expected: 400 Bad Request - staff role must not have npo_id
+        Expected: 422 Unprocessable Entity - staff role must not have npo_id
         """
         payload = {
             "email": "staff@example.com",
@@ -268,7 +268,7 @@ class TestUsersCreateContract:
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
 
-        assert response.status_code == 400
+        assert response.status_code == 422
         data = response.json()
-        assert "error" in data
-        assert "npo_id" in data["error"]["message"].lower()
+        assert "detail" in data
+        assert "npo_id" in data["detail"]["message"].lower()

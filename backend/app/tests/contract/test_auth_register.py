@@ -95,8 +95,8 @@ class TestAuthRegisterContract:
 
         # Verify error schema
         data = response2.json()
-        assert "error" in data
-        error = data["error"]
+        assert "detail" in data
+        error = data["detail"]
         assert "code" in error
         assert error["code"] == "DUPLICATE_EMAIL"
         assert "message" in error
@@ -139,8 +139,8 @@ class TestAuthRegisterContract:
 
             # Verify error schema
             data = response.json()
-            assert "error" in data
-            error = data["error"]
+            assert "detail" in data
+            error = data["detail"]
             assert "code" in error
             assert error["code"] == "VALIDATION_ERROR"
             assert "details" in error
@@ -176,7 +176,7 @@ class TestAuthRegisterContract:
 
             # Verify error schema
             data = response.json()
-            assert "error" in data
+            assert "detail" in data
 
     @pytest.mark.asyncio
     async def test_register_invalid_email_format_returns_422(

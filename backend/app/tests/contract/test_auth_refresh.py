@@ -96,8 +96,8 @@ class TestAuthRefreshContract:
 
         # Verify error schema
         data = response.json()
-        assert "error" in data
-        error = data["error"]
+        assert "detail" in data
+        error = data["detail"]
         assert "code" in error
         assert error["code"] == "INVALID_REFRESH_TOKEN"
         assert "message" in error
@@ -162,7 +162,7 @@ class TestAuthRefreshContract:
 
         # Verify error schema
         data = response.json()
-        assert data["error"]["code"] == "INVALID_REFRESH_TOKEN"
+        assert data["detail"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
     async def test_refresh_missing_token_returns_422(self, async_client: AsyncClient) -> None:
@@ -287,4 +287,4 @@ class TestAuthRefreshContract:
 
         # Verify error schema
         data = response.json()
-        assert data["error"]["code"] == "INVALID_REFRESH_TOKEN"
+        assert data["detail"]["code"] == "INVALID_REFRESH_TOKEN"

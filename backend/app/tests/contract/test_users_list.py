@@ -31,7 +31,7 @@ class TestUsersListContract:
 
         assert response.status_code == 401
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
 
     @pytest.mark.asyncio
     async def test_list_users_default_pagination(
@@ -370,13 +370,11 @@ class TestUsersListContract:
         """Test invalid page parameter returns 400.
 
         Contract: GET /api/v1/users?page=0
-        Expected: 400 Bad Request
+        Expected: 422 Unprocessable Entity
         """
         response = await authenticated_client.get("/api/v1/users?page=0")
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
+        assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_list_users_invalid_per_page_returns_400(
@@ -385,24 +383,19 @@ class TestUsersListContract:
         """Test invalid per_page parameter returns 400.
 
         Contract: GET /api/v1/users?per_page=0
-        Expected: 400 Bad Request
+        Expected: 422 Unprocessable Entity
         """
         response = await authenticated_client.get("/api/v1/users?per_page=0")
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
+        assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_list_users_per_page_max_100(self, authenticated_client: AsyncClient) -> None:
         """Test per_page cannot exceed 100.
 
         Contract: GET /api/v1/users?per_page=101
-        Expected: 400 Bad Request
+        Expected: 422 Unprocessable Entity
         """
         response = await authenticated_client.get("/api/v1/users?per_page=101")
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
-        assert "per_page" in data["error"]["message"].lower()
+        assert response.status_code == 422

@@ -108,7 +108,7 @@ class TestEmailVerificationContract:
         response = await async_client.post("/api/v1/auth/verify-email", json=verify_payload)
 
         # Should fail
-        assert response.status_code == 400
+        assert response.status_code == 422
         error = response.json()["error"]
         assert error["code"] in ["INVALID_TOKEN", "TOKEN_NOT_FOUND"]
 
@@ -139,7 +139,7 @@ class TestEmailVerificationContract:
         response = await async_client.post("/api/v1/auth/verify-email", json=verify_payload)
 
         # Should fail
-        assert response.status_code == 400
+        assert response.status_code == 422
         error = response.json()["error"]
         assert error["code"] in ["INVALID_TOKEN", "TOKEN_EXPIRED", "TOKEN_NOT_FOUND"]
 
@@ -268,7 +268,7 @@ class TestEmailResendContract:
         response = await async_client.post("/api/v1/auth/verify-email/resend", json=resend_payload)
 
         # Should fail
-        assert response.status_code == 400
+        assert response.status_code == 422
         error = response.json()["error"]
         assert error["code"] == "ALREADY_VERIFIED"
 

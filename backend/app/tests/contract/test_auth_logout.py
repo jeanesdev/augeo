@@ -74,8 +74,8 @@ class TestAuthLogoutContract:
 
         # Verify error schema
         data = response.json()
-        assert "error" in data
-        error = data["error"]
+        assert "detail" in data
+        error = data["detail"]
         assert "code" in error
         assert error["code"] == "MISSING_TOKEN"
         assert "Authentication token required" in error["message"]

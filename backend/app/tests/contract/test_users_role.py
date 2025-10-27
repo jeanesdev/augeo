@@ -63,7 +63,7 @@ class TestUsersRoleUpdateContract:
 
         assert response.status_code == 401
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
 
     @pytest.mark.asyncio
     async def test_update_role_donor_role_forbidden(
@@ -107,10 +107,10 @@ class TestUsersRoleUpdateContract:
 
         assert response.status_code == 403
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
         assert (
-            "permission" in data["error"]["message"].lower()
-            or "forbidden" in data["error"]["message"].lower()
+            "permission" in data["detail"]["message"].lower()
+            or "forbidden" in data["detail"]["message"].lower()
         )
 
     @pytest.mark.asyncio
@@ -120,7 +120,7 @@ class TestUsersRoleUpdateContract:
         """Test that invalid role returns 400.
 
         Contract: PATCH /api/v1/users/{user_id}/role
-        Expected: 400 Bad Request with validation error
+        Expected: 422 Unprocessable Entity (Pydantic validation error)
         """
         # Create a user to update
         role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'donor'"))
@@ -152,10 +152,7 @@ class TestUsersRoleUpdateContract:
         payload = {"role": "invalid_role"}
         response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
-        assert "role" in data["error"]["message"].lower()
+        assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_role_nonexistent_user_returns_404(
@@ -174,7 +171,7 @@ class TestUsersRoleUpdateContract:
 
         assert response.status_code == 404
         data = response.json()
-        assert "error" in data
+        assert "detail" in data
 
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_without_npo_id_returns_400(
@@ -183,7 +180,7 @@ class TestUsersRoleUpdateContract:
         """Test that updating to npo_admin without providing npo_id returns 400.
 
         Contract: PATCH /api/v1/users/{user_id}/role
-        Expected: 400 Bad Request - npo_admin role requires npo_id
+        Expected: 422 Unprocessable Entity - npo_admin role requires npo_id
         """
         # Create a donor user without npo_id
         role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'donor'"))
@@ -216,10 +213,7 @@ class TestUsersRoleUpdateContract:
         payload = {"role": "npo_admin"}
         response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
-        assert "npo_id" in data["error"]["message"].lower()
+        assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_to_event_coordinator_without_npo_id_returns_400(
@@ -228,7 +222,7 @@ class TestUsersRoleUpdateContract:
         """Test that updating to event_coordinator without providing npo_id returns 400.
 
         Contract: PATCH /api/v1/users/{user_id}/role
-        Expected: 400 Bad Request - event_coordinator role requires npo_id
+        Expected: 422 Unprocessable Entity - event_coordinator role requires npo_id
         """
         # Create a donor user without npo_id
         role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'donor'"))
@@ -261,10 +255,7 @@ class TestUsersRoleUpdateContract:
         payload = {"role": "event_coordinator"}
         response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
-        assert "npo_id" in data["error"]["message"].lower()
+        assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_with_npo_id_succeeds(

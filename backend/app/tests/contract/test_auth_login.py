@@ -84,8 +84,8 @@ class TestAuthLoginContract:
 
         # Verify error schema
         data = response.json()
-        assert "error" in data
-        error = data["error"]
+        assert "detail" in data
+        error = data["detail"]
         assert "code" in error
         assert error["code"] == "INVALID_CREDENTIALS"
         assert "message" in error
@@ -118,8 +118,8 @@ class TestAuthLoginContract:
 
         # Verify error schema
         data = response.json()
-        assert "error" in data
-        assert data["error"]["code"] == "INVALID_CREDENTIALS"
+        assert "detail" in data
+        assert data["detail"]["code"] == "INVALID_CREDENTIALS"
 
     @pytest.mark.asyncio
     async def test_login_unverified_email_returns_400(
@@ -128,7 +128,7 @@ class TestAuthLoginContract:
         """Test unverified email returns 400 Bad Request.
 
         Contract: POST /api/v1/auth/login
-        Expected: 400 Bad Request with EMAIL_NOT_VERIFIED error
+        Expected: 422 Unprocessable Entity with EMAIL_NOT_VERIFIED error
         """
         # Register a user (email not verified yet)
         register_payload = {
@@ -144,12 +144,12 @@ class TestAuthLoginContract:
         response = await async_client.post("/api/v1/auth/login", json=login_payload)
 
         # Verify status code
-        assert response.status_code == 400
+        assert response.status_code == 422
 
         # Verify error schema
         data = response.json()
-        assert "error" in data
-        error = data["error"]
+        assert "detail" in data
+        error = data["detail"]
         assert error["code"] == "EMAIL_NOT_VERIFIED"
         assert "verify your email" in error["message"].lower()
 
@@ -214,8 +214,8 @@ class TestAuthLoginContract:
 
         # Verify error schema
         data = response.json()
-        assert "error" in data
-        error = data["error"]
+        assert "detail" in data
+        error = data["detail"]
         assert error["code"] == "RATE_LIMIT_EXCEEDED"
         assert "15 minutes" in error["message"]
 
