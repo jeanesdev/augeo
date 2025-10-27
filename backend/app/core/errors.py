@@ -1,8 +1,8 @@
 """Custom error handlers and exceptions."""
 
 from fastapi import HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
 
 
 class AuthenticationError(HTTPException):
@@ -83,13 +83,13 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 async def validation_exception_handler(
     request: Request,
-    exc: ValidationError,
+    exc: RequestValidationError,
 ) -> JSONResponse:
     """Handle Pydantic ValidationError and return JSON response.
 
     Args:
         request: FastAPI request
-        exc: ValidationError
+        exc: RequestValidationError from FastAPI
 
     Returns:
         JSONResponse: Formatted validation error response
@@ -108,7 +108,7 @@ async def validation_exception_handler(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "detail": {
-                "code": 422,
+                "code": "VALIDATION_ERROR",
                 "message": "Validation error",
                 "type": "ValidationError",
                 "details": errors,
