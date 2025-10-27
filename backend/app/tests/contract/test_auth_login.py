@@ -128,7 +128,7 @@ class TestAuthLoginContract:
         """Test unverified email returns 400 Bad Request.
 
         Contract: POST /api/v1/auth/login
-        Expected: 422 Unprocessable Entity with EMAIL_NOT_VERIFIED error
+        Expected: 400 Bad Request with EMAIL_NOT_VERIFIED error
         """
         # Register a user (email not verified yet)
         register_payload = {
@@ -144,7 +144,7 @@ class TestAuthLoginContract:
         response = await async_client.post("/api/v1/auth/login", json=login_payload)
 
         # Verify status code
-        assert response.status_code == 422
+        assert response.status_code == 400
 
         # Verify error schema
         data = response.json()

@@ -108,8 +108,8 @@ class TestEmailVerificationContract:
         response = await async_client.post("/api/v1/auth/verify-email", json=verify_payload)
 
         # Should fail
-        assert response.status_code == 422
-        error = response.json()["error"]
+        assert response.status_code == 400
+        error = response.json()["detail"]
         assert error["code"] in ["INVALID_TOKEN", "TOKEN_NOT_FOUND"]
 
     @pytest.mark.asyncio
@@ -139,8 +139,8 @@ class TestEmailVerificationContract:
         response = await async_client.post("/api/v1/auth/verify-email", json=verify_payload)
 
         # Should fail
-        assert response.status_code == 422
-        error = response.json()["error"]
+        assert response.status_code == 400
+        error = response.json()["detail"]
         assert error["code"] in ["INVALID_TOKEN", "TOKEN_EXPIRED", "TOKEN_NOT_FOUND"]
 
     @pytest.mark.asyncio
@@ -175,7 +175,7 @@ class TestEmailVerificationContract:
         # Should fail (or return success message indicating already verified)
         assert response.status_code in [200, 400]
         if response.status_code == 400:
-            error = response.json()["error"]
+            error = response.json()["detail"]
             assert error["code"] in ["ALREADY_VERIFIED", "INVALID_TOKEN"]
 
     @pytest.mark.asyncio
@@ -268,8 +268,8 @@ class TestEmailResendContract:
         response = await async_client.post("/api/v1/auth/verify-email/resend", json=resend_payload)
 
         # Should fail
-        assert response.status_code == 422
-        error = response.json()["error"]
+        assert response.status_code == 400
+        error = response.json()["detail"]
         assert error["code"] == "ALREADY_VERIFIED"
 
     @pytest.mark.asyncio
@@ -288,7 +288,7 @@ class TestEmailResendContract:
 
         # Should fail
         assert response.status_code == 404
-        error = response.json()["error"]
+        error = response.json()["detail"]
         assert error["code"] == "USER_NOT_FOUND"
 
     @pytest.mark.asyncio

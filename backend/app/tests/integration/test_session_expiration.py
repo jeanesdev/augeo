@@ -112,7 +112,7 @@ class TestSessionExpirationIntegration:
 
             # Should fail with 401
             assert response.status_code == 401
-            error = response.json()["error"]
+            error = response.json()["detail"]
             assert error["code"] in ["SESSION_EXPIRED", "UNAUTHORIZED", "INVALID_TOKEN"]
 
     @pytest.mark.asyncio
@@ -164,7 +164,7 @@ class TestSessionExpirationIntegration:
 
             # Should fail
             assert response.status_code == 401
-            error = response.json()["error"]
+            error = response.json()["detail"]
             assert error["code"] in ["SESSION_EXPIRED", "INVALID_REFRESH_TOKEN"]
 
     @pytest.mark.asyncio

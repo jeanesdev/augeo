@@ -9,6 +9,7 @@ Performance indexes based on data-model.md for common query patterns:
 - Session lookups by user and expiry
 - Audit log queries by user, action type, timestamp
 """
+
 from sqlalchemy import text
 
 from alembic import op

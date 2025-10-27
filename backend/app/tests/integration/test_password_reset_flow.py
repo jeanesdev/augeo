@@ -156,7 +156,7 @@ class TestPasswordResetFlow:
             },
         )
         assert response.status_code == 400
-        assert response.json()["error"]["code"] == "INVALID_RESET_TOKEN"
+        assert response.json()["detail"]["code"] == "INVALID_RESET_TOKEN"
 
     @pytest.mark.asyncio
     async def test_reset_token_expires_after_1_hour(

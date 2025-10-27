@@ -309,7 +309,7 @@ class TestEmailVerificationIntegration:
         error_data = verify_response.json()
         # Error format: {"error": {"code": 403, "message": "...", "type": "HTTPException"}}
         assert "error" in error_data
-        error_message = error_data["error"]["message"].lower()
+        error_message = error_data["detail"]["message"].lower()
         assert "npo" in error_message or "permission" in error_message
 
     @pytest.mark.asyncio

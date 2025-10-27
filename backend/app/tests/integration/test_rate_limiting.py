@@ -38,13 +38,13 @@ class TestRateLimitingIntegration:
         # Make 5 failed attempts
         for i in range(5):
             response = await async_client.post("/api/v1/auth/login", json=login_payload)
-            assert response.status_code == 401, f"Attempt {i+1} should fail with 401"
+            assert response.status_code == 401, f"Attempt {i + 1} should fail with 401"
 
         # 6th attempt should be rate limited
         response = await async_client.post("/api/v1/auth/login", json=login_payload)
         assert response.status_code == 429
 
-        error = response.json()["error"]
+        error = response.json()["detail"]
         assert error["code"] == "RATE_LIMIT_EXCEEDED"
         assert "15 minutes" in error["message"]
 
@@ -91,7 +91,7 @@ class TestRateLimitingIntegration:
         for i in range(5):
             response = await async_client.post("/api/v1/auth/login", json=wrong_payload)
             # All should return 401, not 429
-            assert response.status_code == 401, f"Attempt {i+1} after reset should be 401"
+            assert response.status_code == 401, f"Attempt {i + 1} after reset should be 401"
 
     @pytest.mark.asyncio
     async def test_rate_limit_tracked_per_ip_address(

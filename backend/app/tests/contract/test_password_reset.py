@@ -107,7 +107,7 @@ class TestPasswordResetConfirm:
             },
         )
 
-        assert response.status_code == 422
+        assert response.status_code == 400
         data = response.json()
         assert "detail" in data
         assert data["detail"]["code"] == "INVALID_TOKEN"

@@ -427,8 +427,8 @@ class TestRoleAssignmentIntegration:
         error_data = change_response.json()
         # Check for error message in various response formats
         error_message = ""
-        if "error" in error_data and "message" in error_data["error"]:
-            error_message = error_data["error"]["message"].lower()
+        if "error" in error_data and "message" in error_data["detail"]:
+            error_message = error_data["detail"]["message"].lower()
         elif "detail" in error_data:
             error_message = error_data["detail"].lower()
         elif "message" in error_data:

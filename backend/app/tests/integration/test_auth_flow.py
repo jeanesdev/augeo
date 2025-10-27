@@ -96,7 +96,7 @@ class TestAuthenticationFlow:
         # Should fail with EMAIL_NOT_VERIFIED
         assert login_response.status_code == 400
         login_data = login_response.json()
-        assert login_data["error"]["code"] == "EMAIL_NOT_VERIFIED"
+        assert login_data["detail"]["code"] == "EMAIL_NOT_VERIFIED"
 
         # TODO: After email verification is implemented:
         # 1. Verify email

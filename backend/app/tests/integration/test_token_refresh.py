@@ -143,7 +143,7 @@ class TestTokenRefreshIntegration:
             refresh_payload = {"refresh_token": refresh_token}
             response = await async_client.post("/api/v1/auth/refresh", json=refresh_payload)
 
-            assert response.status_code == 200, f"Refresh {i+1} failed"
+            assert response.status_code == 200, f"Refresh {i + 1} failed"
             data = response.json()
             access_tokens.append(data["access_token"])
 
@@ -184,7 +184,7 @@ class TestTokenRefreshIntegration:
 
         # Should be rejected
         assert refresh_response.status_code == 401
-        assert refresh_response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
+        assert refresh_response.json()["detail"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
     async def test_refresh_with_expired_token_fails(
@@ -217,7 +217,7 @@ class TestTokenRefreshIntegration:
 
         # Should be rejected
         assert response.status_code == 401
-        assert response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
+        assert response.json()["detail"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
     async def test_refresh_with_tampered_token_fails(self, async_client: AsyncClient) -> None:
@@ -240,7 +240,7 @@ class TestTokenRefreshIntegration:
 
         # Should be rejected
         assert response.status_code == 401
-        assert response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
+        assert response.json()["detail"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
     async def test_refresh_with_access_token_fails(
@@ -264,7 +264,7 @@ class TestTokenRefreshIntegration:
 
         # Should be rejected (access tokens have type="access", not "refresh")
         assert response.status_code == 401
-        assert response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
+        assert response.json()["detail"]["code"] == "INVALID_REFRESH_TOKEN"
 
     @pytest.mark.asyncio
     async def test_refresh_creates_new_jwt_with_updated_claims(

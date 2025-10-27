@@ -26,6 +26,7 @@ class MockUser:
     ):
         self.id = id
         self.role = role
+        self.role_name = role  # PermissionService uses role_name
         self.npo_id = npo_id
 
 
