@@ -67,18 +67,12 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     Returns:
         JSONResponse: Formatted error response
     """
-    # If detail is already a dict with error structure, use it as-is
-    if isinstance(exc.detail, dict) and "error" in exc.detail:
-        content = exc.detail
+    # Use FastAPI's standard 'detail' key for consistency with validation errors
+    # If detail is already structured, use it; otherwise wrap it
+    if isinstance(exc.detail, dict):
+        content = {"detail": exc.detail}
     else:
-        # Otherwise, wrap it in standard error format
-        content = {
-            "error": {
-                "code": exc.status_code,
-                "message": exc.detail,
-                "type": exc.__class__.__name__,
-            }
-        }
+        content = {"detail": {"code": exc.status_code, "message": str(exc.detail)}}
 
     return JSONResponse(
         status_code=exc.status_code,
