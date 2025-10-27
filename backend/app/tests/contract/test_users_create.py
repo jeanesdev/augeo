@@ -188,6 +188,7 @@ class TestUsersCreateContract:
         # Try to create user with same email
         payload = {
             "email": "existing@example.com",
+            "password": "DuplicatePass123",
             "first_name": "Duplicate",
             "last_name": "User",
             "phone": "+1-555-0123",
