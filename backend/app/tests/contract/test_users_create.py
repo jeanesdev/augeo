@@ -47,12 +47,19 @@ class TestUsersCreateContract:
 
         Contract: POST /api/v1/users
         Expected: 403 Forbidden for non-admin roles
+
+        Note: Due to FastAPI's request validation order, validation errors (422)
+        are returned before authorization errors (403) when request body is invalid.
+        This test uses a VALID request to ensure we get the 403 authorization error.
         """
         # authenticated_client uses test_user which has donor role
+        # Use VALID request body to get past validation and hit authorization check
         payload = {
             "email": "newuser@example.com",
+            "password": "ValidPass123",
             "first_name": "New",
             "last_name": "User",
+            "phone": "+1-555-0123",
             "role": "donor",
         }
         response = await authenticated_client.post("/api/v1/users", json=payload)
@@ -60,9 +67,19 @@ class TestUsersCreateContract:
         assert response.status_code == 403
         data = response.json()
         assert "detail" in data
+        # Handle both error structures: {"detail": {"error": {"message": "..."}}} or {"detail": {"message": "..."}}
+        if isinstance(data["detail"], dict):
+            error_msg = (
+                data["detail"].get("error", {}).get("message", "")
+                if "error" in data["detail"]
+                else data["detail"].get("message", "")
+            )
+        else:
+            error_msg = str(data["detail"])
         assert (
-            "permission" in data["detail"]["message"].lower()
-            or "forbidden" in data["detail"]["message"].lower()
+            "permission" in error_msg.lower()
+            or "forbidden" in error_msg.lower()
+            or "authorized" in error_msg.lower()
         )
 
     @pytest.mark.asyncio
@@ -88,7 +105,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_user_invalid_email_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that invalid email format returns 400.
 
@@ -101,7 +118,7 @@ class TestUsersCreateContract:
             "last_name": "User",
             "role": "donor",
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 422
         data = response.json()
@@ -110,7 +127,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_user_invalid_role_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that invalid role returns 400.
 
@@ -123,7 +140,7 @@ class TestUsersCreateContract:
             "last_name": "User",
             "role": "invalid_role",
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 422
         data = response.json()
@@ -132,7 +149,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_user_duplicate_email_returns_409(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test that duplicate email returns 409.
 
@@ -173,9 +190,10 @@ class TestUsersCreateContract:
             "email": "existing@example.com",
             "first_name": "Duplicate",
             "last_name": "User",
+            "phone": "+1-555-0123",
             "role": "donor",
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 409
         data = response.json()
@@ -187,7 +205,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_npo_admin_without_npo_id_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that creating npo_admin without npo_id returns 400.
 
@@ -198,10 +216,11 @@ class TestUsersCreateContract:
             "email": "npoadmin@example.com",
             "first_name": "NPO",
             "last_name": "Admin",
+            "phone": "+1-555-0124",
             "role": "npo_admin",
             # Missing npo_id
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 422
         data = response.json()
@@ -210,7 +229,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_event_coordinator_without_npo_id_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that creating event_coordinator without npo_id returns 400.
 
@@ -221,10 +240,11 @@ class TestUsersCreateContract:
             "email": "coordinator@example.com",
             "first_name": "Event",
             "last_name": "Coordinator",
+            "phone": "+1-555-0125",
             "role": "event_coordinator",
             # Missing npo_id
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 422
         data = response.json()
@@ -233,7 +253,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_donor_with_npo_id_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that creating donor with npo_id returns 400.
 
@@ -244,10 +264,11 @@ class TestUsersCreateContract:
             "email": "donor@example.com",
             "first_name": "Invalid",
             "last_name": "Donor",
+            "phone": "+1-555-0126",
             "role": "donor",
             "npo_id": "550e8400-e29b-41d4-a716-446655440000",  # Should not be allowed
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 422
         data = response.json()
@@ -256,7 +277,7 @@ class TestUsersCreateContract:
 
     @pytest.mark.asyncio
     async def test_create_staff_with_npo_id_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that creating staff with npo_id returns 400.
 
@@ -267,10 +288,11 @@ class TestUsersCreateContract:
             "email": "staff@example.com",
             "first_name": "Invalid",
             "last_name": "Staff",
+            "phone": "+1-555-0127",
             "role": "staff",
             "npo_id": "550e8400-e29b-41d4-a716-446655440000",  # Should not be allowed
         }
-        response = await authenticated_client.post("/api/v1/users", json=payload)
+        response = await super_admin_client.post("/api/v1/users", json=payload)
 
         assert response.status_code == 422
         data = response.json()

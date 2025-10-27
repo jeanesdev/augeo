@@ -573,3 +573,101 @@ async def authenticated_client(async_client: AsyncClient, test_user: Any) -> Asy
     async_client.headers["Authorization"] = f"Bearer {access_token}"
 
     return async_client
+
+
+@pytest_asyncio.fixture
+async def super_admin_client(async_client: AsyncClient, test_super_admin_user: Any) -> AsyncClient:
+    """
+    Create authenticated async test client with super_admin access token.
+
+    Returns AsyncClient with Authorization header set to super_admin token.
+    """
+    # Clear rate limiting from Redis to avoid conflicts from previous test runs
+    from app.core.redis import get_redis
+
+    redis_client = await get_redis()
+    await redis_client.flushdb()
+
+    # Login to get access token
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": test_super_admin_user.email,
+            "password": "TestPass123",
+        },
+    )
+
+    assert response.status_code == 200, f"Login failed: {response.json()}"
+    data = response.json()
+    access_token = data["access_token"]
+
+    # Set authorization header for subsequent requests
+    async_client.headers["Authorization"] = f"Bearer {access_token}"
+
+    return async_client
+
+
+@pytest_asyncio.fixture
+async def npo_admin_client(async_client: AsyncClient, test_npo_admin_user: Any) -> AsyncClient:
+    """
+    Create authenticated async test client with npo_admin access token.
+
+    Returns AsyncClient with Authorization header set to npo_admin token.
+    """
+    # Clear rate limiting from Redis to avoid conflicts from previous test runs
+    from app.core.redis import get_redis
+
+    redis_client = await get_redis()
+    await redis_client.flushdb()
+
+    # Login to get access token
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": test_npo_admin_user.email,
+            "password": "TestPass123",
+        },
+    )
+
+    assert response.status_code == 200, f"Login failed: {response.json()}"
+    data = response.json()
+    access_token = data["access_token"]
+
+    # Set authorization header for subsequent requests
+    async_client.headers["Authorization"] = f"Bearer {access_token}"
+
+    return async_client
+
+
+@pytest_asyncio.fixture
+async def event_coordinator_client(
+    async_client: AsyncClient, test_event_coordinator_user: Any
+) -> AsyncClient:
+    """
+    Create authenticated async test client with event_coordinator access token.
+
+    Returns AsyncClient with Authorization header set to event_coordinator token.
+    """
+    # Clear rate limiting from Redis to avoid conflicts from previous test runs
+    from app.core.redis import get_redis
+
+    redis_client = await get_redis()
+    await redis_client.flushdb()
+
+    # Login to get access token
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": test_event_coordinator_user.email,
+            "password": "TestPass123",
+        },
+    )
+
+    assert response.status_code == 200, f"Login failed: {response.json()}"
+    data = response.json()
+    access_token = data["access_token"]
+
+    # Set authorization header for subsequent requests
+    async_client.headers["Authorization"] = f"Bearer {access_token}"
+
+    return async_client

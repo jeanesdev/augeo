@@ -108,14 +108,16 @@ class TestUsersRoleUpdateContract:
         assert response.status_code == 403
         data = response.json()
         assert "detail" in data
-        assert (
-            "permission" in data["detail"]["message"].lower()
-            or "forbidden" in data["detail"]["message"].lower()
+        # Note: Our error handler returns {"detail": {"code": 403, "message": "..."}}
+        # but this test expects direct message access
+        error_message = (
+            data["detail"]["message"] if isinstance(data["detail"], dict) else str(data["detail"])
         )
+        assert "permission" in error_message.lower() or "forbidden" in error_message.lower()
 
     @pytest.mark.asyncio
     async def test_update_role_invalid_role_returns_400(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test that invalid role returns 400.
 
@@ -150,13 +152,13 @@ class TestUsersRoleUpdateContract:
         await db_session.commit()
 
         payload = {"role": "invalid_role"}
-        response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
+        response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
         assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_role_nonexistent_user_returns_404(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test that updating nonexistent user returns 404.
 
@@ -165,7 +167,7 @@ class TestUsersRoleUpdateContract:
         """
         nonexistent_id = uuid.uuid4()
         payload = {"role": "staff"}
-        response = await authenticated_client.patch(
+        response = await super_admin_client.patch(
             f"/api/v1/users/{nonexistent_id}/role", json=payload
         )
 
@@ -175,7 +177,7 @@ class TestUsersRoleUpdateContract:
 
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_without_npo_id_returns_400(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test that updating to npo_admin without providing npo_id returns 400.
 
@@ -211,13 +213,13 @@ class TestUsersRoleUpdateContract:
 
         # Try to update to npo_admin without npo_id
         payload = {"role": "npo_admin"}
-        response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
+        response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
         assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_to_event_coordinator_without_npo_id_returns_400(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test that updating to event_coordinator without providing npo_id returns 400.
 
@@ -253,13 +255,13 @@ class TestUsersRoleUpdateContract:
 
         # Try to update to event_coordinator without npo_id
         payload = {"role": "event_coordinator"}
-        response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
+        response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
         assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_with_npo_id_succeeds(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test that updating to npo_admin with npo_id succeeds.
 
@@ -297,7 +299,7 @@ class TestUsersRoleUpdateContract:
 
         # Update to npo_admin with npo_id
         payload = {"role": "npo_admin", "npo_id": str(npo_id)}
-        response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
+        response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
         # This will fail until we implement the endpoint
         assert response.status_code == 200
@@ -307,7 +309,7 @@ class TestUsersRoleUpdateContract:
 
     @pytest.mark.asyncio
     async def test_update_from_npo_admin_to_donor_clears_npo_id(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test that updating from npo_admin to donor clears npo_id.
 
@@ -348,7 +350,7 @@ class TestUsersRoleUpdateContract:
 
         # Update to donor (should clear npo_id)
         payload = {"role": "donor"}
-        response = await authenticated_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
+        response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
         assert response.status_code == 200
         data = response.json()

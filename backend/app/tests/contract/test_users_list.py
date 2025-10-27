@@ -37,7 +37,7 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_default_pagination(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test default pagination (page=1, per_page=20).
 
@@ -72,7 +72,7 @@ class TestUsersListContract:
             )
         await db_session.commit()
 
-        response = await authenticated_client.get("/api/v1/users")
+        response = await super_admin_client.get("/api/v1/users")
 
         # This will fail until we implement the endpoint
         # Expected response structure:
@@ -99,7 +99,7 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_custom_pagination(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test custom pagination parameters.
 
@@ -134,7 +134,7 @@ class TestUsersListContract:
             )
         await db_session.commit()
 
-        response = await authenticated_client.get("/api/v1/users?page=2&per_page=2")
+        response = await super_admin_client.get("/api/v1/users?page=2&per_page=2")
 
         assert response.status_code == 200
         data = response.json()
@@ -145,7 +145,7 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_filter_by_role(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test filtering by role.
 
@@ -207,7 +207,7 @@ class TestUsersListContract:
             )
         await db_session.commit()
 
-        response = await authenticated_client.get("/api/v1/users?role=donor")
+        response = await super_admin_client.get("/api/v1/users?role=donor")
 
         assert response.status_code == 200
         data = response.json()
@@ -218,7 +218,7 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_filter_by_email_verified(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test filtering by email_verified status.
 
@@ -252,7 +252,7 @@ class TestUsersListContract:
         )
         await db_session.commit()
 
-        response = await authenticated_client.get("/api/v1/users?email_verified=false")
+        response = await super_admin_client.get("/api/v1/users?email_verified=false")
 
         assert response.status_code == 200
         data = response.json()
@@ -263,7 +263,7 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_filter_by_is_active(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test filtering by is_active status.
 
@@ -297,7 +297,7 @@ class TestUsersListContract:
         )
         await db_session.commit()
 
-        response = await authenticated_client.get("/api/v1/users?is_active=false")
+        response = await super_admin_client.get("/api/v1/users?is_active=false")
 
         assert response.status_code == 200
         data = response.json()
@@ -308,7 +308,7 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_filter_by_search(
-        self, authenticated_client: AsyncClient, db_session: AsyncSession
+        self, super_admin_client: AsyncClient, db_session: AsyncSession
     ) -> None:
         """Test search functionality across name and email.
 
@@ -364,7 +364,7 @@ class TestUsersListContract:
         )
         await db_session.commit()
 
-        response = await authenticated_client.get("/api/v1/users?search=john")
+        response = await super_admin_client.get("/api/v1/users?search=john")
 
         assert response.status_code == 200
         data = response.json()
@@ -383,37 +383,37 @@ class TestUsersListContract:
 
     @pytest.mark.asyncio
     async def test_list_users_invalid_page_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test invalid page parameter returns 400.
 
         Contract: GET /api/v1/users?page=0
         Expected: 422 Unprocessable Entity
         """
-        response = await authenticated_client.get("/api/v1/users?page=0")
+        response = await super_admin_client.get("/api/v1/users?page=0")
 
         assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_list_users_invalid_per_page_returns_400(
-        self, authenticated_client: AsyncClient
+        self, super_admin_client: AsyncClient
     ) -> None:
         """Test invalid per_page parameter returns 400.
 
         Contract: GET /api/v1/users?per_page=0
         Expected: 422 Unprocessable Entity
         """
-        response = await authenticated_client.get("/api/v1/users?per_page=0")
+        response = await super_admin_client.get("/api/v1/users?per_page=0")
 
         assert response.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_list_users_per_page_max_100(self, authenticated_client: AsyncClient) -> None:
+    async def test_list_users_per_page_max_100(self, super_admin_client: AsyncClient) -> None:
         """Test per_page cannot exceed 100.
 
         Contract: GET /api/v1/users?per_page=101
         Expected: 422 Unprocessable Entity
         """
-        response = await authenticated_client.get("/api/v1/users?per_page=101")
+        response = await super_admin_client.get("/api/v1/users?per_page=101")
 
         assert response.status_code == 422
