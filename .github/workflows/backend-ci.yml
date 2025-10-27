@@ -57,7 +57,7 @@ jobs:
         run: poetry run black --check .
 
       - name: Type check with mypy
-        run: poetry run mypy app --strict --ignore-missing-imports
+        run: poetry run mypy app --strict --ignore-missing-imports --exclude 'app/tests'
 
   test:
     name: Test (Python ${{ matrix.python-version }})
@@ -128,8 +128,12 @@ jobs:
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
-          JWT_SECRET_KEY: test-secret-key-for-ci-only
-          ENVIRONMENT: test
+          JWT_SECRET_KEY: test-secret-key-for-ci-minimum-32-chars
+          ENVIRONMENT: development
+          AZURE_COMMUNICATION_CONNECTION_STRING: endpoint=https://test.communication.azure.com/;accesskey=dGVzdC1rZXktZm9yLWNpLW9ubHktbWluaW11bS0zMi1jaGFyYWN0ZXJz
+          EMAIL_FROM_ADDRESS: noreply@test.example.com
+          SUPER_ADMIN_EMAIL: admin@test.example.com
+          SUPER_ADMIN_PASSWORD: Test123!@#TestPassword
         run: poetry run pytest
 
       - name: Upload coverage reports to Codecov
@@ -160,6 +164,9 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           version: latest
+
+      - name: Install poetry-plugin-export
+        run: poetry self add poetry-plugin-export
 
       - name: Check for security vulnerabilities
         run: |

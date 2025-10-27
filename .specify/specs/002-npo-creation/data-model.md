@@ -1,6 +1,6 @@
 # Data Model: NPO Creation and Management
 
-**Date**: 2025-10-19  
+**Date**: 2025-10-19
 **Status**: Phase 1 - Data Model Design
 
 ## Entity Relationship Overview
@@ -11,15 +11,15 @@ erDiagram
     NPO ||--o{ NPO_MEMBER : contains
     NPO ||--o{ NPO_BRANDING : has
     NPO ||--o{ LEGAL_AGREEMENT_ACCEPTANCE : tracks
-    
+
     USER ||--o{ NPO_MEMBER : belongs_to
     USER ||--o{ INVITATION : receives
     USER ||--o{ LEGAL_AGREEMENT_ACCEPTANCE : accepts
-    
+
     NPO_MEMBER ||--o{ INVITATION : creates
-    
+
     LEGAL_DOCUMENT ||--o{ LEGAL_AGREEMENT_ACCEPTANCE : accepted_as
-    
+
     NPO {
         uuid npo_id PK
         string name
@@ -36,7 +36,7 @@ erDiagram
         datetime updated_at
         uuid created_by_user_id FK
     }
-    
+
     NPO_APPLICATION {
         uuid application_id PK
         uuid npo_id FK
@@ -48,7 +48,7 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
+
     NPO_MEMBER {
         uuid member_id PK
         uuid npo_id FK
@@ -60,7 +60,7 @@ erDiagram
         datetime updated_at
         uuid invited_by_user_id FK
     }
-    
+
     NPO_BRANDING {
         uuid branding_id PK
         uuid npo_id FK
@@ -72,7 +72,7 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
+
     INVITATION {
         uuid invitation_id PK
         uuid npo_id FK
@@ -87,7 +87,7 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
+
     LEGAL_DOCUMENT {
         uuid document_id PK
         string document_type
@@ -97,7 +97,7 @@ erDiagram
         boolean is_active
         datetime created_at
     }
-    
+
     LEGAL_AGREEMENT_ACCEPTANCE {
         uuid acceptance_id PK
         uuid user_id FK
@@ -108,7 +108,7 @@ erDiagram
         datetime accepted_at
         datetime created_at
     }
-    
+
     USER {
         uuid user_id PK
         string email
@@ -122,7 +122,7 @@ erDiagram
 ## Entity Definitions
 
 ### NPO (Non-Profit Organization)
-**Purpose**: Core entity representing a verified non-profit organization  
+**Purpose**: Core entity representing a verified non-profit organization
 **Tenant Root**: Yes - serves as tenant identifier for multi-tenant isolation
 
 | Field | Type | Constraints | Description |
@@ -228,7 +228,7 @@ erDiagram
 {
   "facebook": "https://facebook.com/orgname",
   "twitter": "@orghandle",
-  "instagram": "@orghandle", 
+  "instagram": "@orghandle",
   "linkedin": "https://linkedin.com/company/orgname",
   "youtube": "https://youtube.com/c/orgname",
   "website": "https://organization.org",
@@ -359,19 +359,19 @@ CREATE INDEX idx_npo_member_user_status ON npo_member(user_id, status);
 CREATE POLICY npo_tenant_isolation ON npo
   USING (
     npo_id IN (
-      SELECT npo_id FROM npo_member 
-      WHERE user_id = current_user_id() 
+      SELECT npo_id FROM npo_member
+      WHERE user_id = current_user_id()
       AND status = 'ACTIVE'
     )
     OR current_user_role() = 'SUPERADMIN'
   );
 
--- NPO member isolation  
+-- NPO member isolation
 CREATE POLICY npo_member_isolation ON npo_member
   USING (
     npo_id IN (
-      SELECT npo_id FROM npo_member 
-      WHERE user_id = current_user_id() 
+      SELECT npo_id FROM npo_member
+      WHERE user_id = current_user_id()
       AND status = 'ACTIVE'
     )
     OR current_user_role() = 'SUPERADMIN'
@@ -420,7 +420,7 @@ CREATE POLICY npo_member_isolation ON npo_member
 
 ### Data Classification
 - **Critical**: NPO records, legal acceptances (7-year retention)
-- **Important**: Applications, member relationships (3-year retention)  
+- **Important**: Applications, member relationships (3-year retention)
 - **Standard**: Branding, invitations (1-year retention)
 
 ### Recovery Procedures

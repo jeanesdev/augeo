@@ -1,7 +1,7 @@
 # Quick Start: NPO Creation and Management
 
-**Feature**: NPO Creation and Management  
-**Date**: 2025-10-19  
+**Feature**: NPO Creation and Management
+**Date**: 2025-10-19
 **Estimated Implementation**: 2-3 weeks
 
 ## Overview

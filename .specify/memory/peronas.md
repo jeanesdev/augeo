@@ -1,7 +1,7 @@
 # Augeo User Personas
 
 ## Event Coordinator
-**Who:** Nonprofit staff/volunteer organizing fundraising galas  
+**Who:** Nonprofit staff/volunteer organizing fundraising galas
 **Goals:**
 - Maximize funds raised with minimal effort
 - Impress board/donors with professional event
@@ -29,8 +29,8 @@
 ---
 
 ## Donor/Bidder
-**Who:** Millennials/Gen Z attending galas, want to support causes  
-**Age:** 28-45 (primary), 45-65 (secondary)  
+**Who:** Millennials/Gen Z attending galas, want to support causes
+**Age:** 28-45 (primary), 45-65 (secondary)
 **Goals:**
 - Support favorite nonprofit
 - Have fun, competitive bidding experience
@@ -58,8 +58,8 @@
 ---
 
 ## Auctioneer
-**Who:** Professional MC hired to run live auctions  
-**Booking Fee:** $1k-5k per event  
+**Who:** Professional MC hired to run live auctions
+**Booking Fee:** $1k-5k per event
 **Goals:**
 - Control event energy, maximize bids
 - Avoid technical issues that kill momentum
@@ -86,7 +86,7 @@
 ---
 
 ## Admin (You)
-**Who:** Platform operator monitoring all activity  
+**Who:** Platform operator monitoring all activity
 **Goals:**
 - Keep platform stable
 - Prevent fraud
@@ -103,7 +103,7 @@
 ---
 
 ## Staff
-**Who:** Event volunteers checking in guests  
+**Who:** Event volunteers checking in guests
 **Goals:**
 - Check in 100+ guests quickly
 - Assign paddle numbers

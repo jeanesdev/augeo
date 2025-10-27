@@ -1,7 +1,7 @@
 # Phase 0 Research: User Authentication & Role Management
 
-**Feature**: 001-user-authentication-role  
-**Date**: October 20, 2025  
+**Feature**: 001-user-authentication-role
+**Date**: October 20, 2025
 **Status**: Complete
 
 ## Overview
@@ -261,18 +261,18 @@ from sqlalchemy.engine import Engine
 def set_session_context(dbapi_conn, connection_record):
     """Set session variables from JWT claims on each connection"""
     cursor = dbapi_conn.cursor()
-    
+
     # Get current user from request context (set by auth middleware)
     user = get_current_user_from_context()
-    
+
     if user:
         # Set org_id for RLS policies
         if user.role_scope == "npo":
             cursor.execute(f"SET app.current_org_id = '{user.scope_id}'")
-        
+
         # Set role for bypass policies
         cursor.execute(f"SET app.user_role = '{user.role}'")
-    
+
     cursor.close()
 
 # Simpler approach: Set per-request instead of per-connection
@@ -292,7 +292,7 @@ async def list_events(
 ):
     # Set RLS context
     await set_rls_context(user, db)
-    
+
     # Query events - RLS automatically filters by org_id
     events = db.query(Event).all()  # Safe! RLS enforces tenant isolation
     return events
@@ -343,15 +343,15 @@ async def check_rate_limit(ip: str, redis: Redis) -> bool:
     key = f"ratelimit:login:{ip}"
     now = time.time()
     window_start = now - 900  # 15 minutes ago
-    
+
     # Remove old attempts
     redis.zremrangebyscore(key, 0, window_start)
-    
+
     # Count recent attempts
     attempt_count = redis.zcard(key)
     if attempt_count >= 5:
         return False  # Rate limited
-    
+
     # Record this attempt
     redis.zadd(key, {str(now): now})
     redis.expire(key, 900)  # Auto-cleanup
@@ -567,15 +567,15 @@ async def register(data: UserCreate, db: Session):
     user = User(email=data.email, email_verified=False, is_active=False, ...)
     db.add(user)
     db.commit()
-    
+
     # Generate verification token
     token = generate_verification_token()
     token_hash = hash_token(token)
     redis.setex(f"email_verify:{token_hash}", 86400, user.id)  # 24 hours
-    
+
     # Send verification email
     send_verification_email(user.email, token)
-    
+
     return {"message": "Registration successful. Please check your email to verify your account."}
 
 # Verification endpoint
@@ -583,27 +583,27 @@ async def register(data: UserCreate, db: Session):
 async def verify_email(token: str, db: Session):
     token_hash = hash_token(token)
     user_id = redis.get(f"email_verify:{token_hash}")
-    
+
     if not user_id:
         raise HTTPException(400, "Invalid or expired verification token")
-    
+
     user = db.query(User).filter(User.id == user_id).first()
     user.email_verified = True
     user.is_active = True
     db.commit()
-    
+
     redis.delete(f"email_verify:{token_hash}")  # Single-use
-    
+
     return {"message": "Email verified successfully. You can now log in."}
 
 # Login check
 @router.post("/auth/login")
 async def login(data: LoginRequest, db: Session):
     user = authenticate_user(data.email, data.password)
-    
+
     if not user.email_verified:
         raise HTTPException(403, "Please verify your email address before logging in")
-    
+
     # ... proceed with JWT generation
 ```
 
@@ -645,30 +645,30 @@ def upgrade():
     # Get from environment or use dev defaults
     email = os.getenv("SUPERADMIN_EMAIL", "admin@augeo.local")
     password = os.getenv("SUPERADMIN_PASSWORD", "ChangeMe123!")
-    
+
     # Get super_admin role ID (created in previous migration)
     conn = op.get_bind()
     role = conn.execute(
         sa.text("SELECT id FROM roles WHERE name = 'super_admin'")
     ).fetchone()
-    
+
     # Check if super admin already exists
     existing = conn.execute(
         sa.text("SELECT id FROM users WHERE role_id = :role_id LIMIT 1"),
         {"role_id": role[0]}
     ).fetchone()
-    
+
     if existing:
         print("Super admin already exists, skipping...")
         return
-    
+
     # Create super admin
     user_id = uuid.uuid4()
     conn.execute(
         sa.text("""
-            INSERT INTO users (id, email, password_hash, first_name, last_name, 
+            INSERT INTO users (id, email, password_hash, first_name, last_name,
                                role_id, email_verified, is_active, created_at, updated_at)
-            VALUES (:id, :email, :password_hash, :first_name, :last_name, 
+            VALUES (:id, :email, :password_hash, :first_name, :last_name,
                     :role_id, true, true, :now, :now)
         """),
         {
@@ -681,7 +681,7 @@ def upgrade():
             "now": datetime.utcnow()
         }
     )
-    
+
     print(f"✅ Super admin created: {email}")
     print(f"⚠️  CHANGE PASSWORD ON FIRST LOGIN")
 
@@ -755,19 +755,19 @@ CREATE TABLE event_staff (
 # Get user's accessible events
 async def get_user_event_access(user: User, db: Session) -> list[UUID]:
     """Returns list of event IDs user can access"""
-    
+
     if user.role == "super_admin":
         # Super admin: all events
         return db.query(Event.id).all()
-    
+
     elif user.role == "npo_admin":
         # NPO Admin: all events in their NPO(s)
         return db.query(Event.id).filter(Event.npo_id == user.npo_id).all()
-    
+
     elif user.role == "event_coordinator":
         # Event Coordinator: all events in their NPO(s)
         return db.query(Event.id).filter(Event.npo_id == user.npo_id).all()
-    
+
     elif user.role == "staff":
         # Staff: only assigned events
         return (
@@ -776,7 +776,7 @@ async def get_user_event_access(user: User, db: Session) -> list[UUID]:
             .filter(EventStaff.user_id == user.id)
             .all()
         )
-    
+
     else:
         # Donor: no event management access
         return []
@@ -793,12 +793,12 @@ async def assign_staff_to_event(
     event = db.query(Event).filter(Event.id == event_id).first()
     if event.npo_id != current_user.npo_id:
         raise HTTPException(403, "Cannot assign staff to events outside your organization")
-    
+
     # Verify target user is staff role
     staff_user = db.query(User).filter(User.id == staff_user_id).first()
     if staff_user.role != "staff":
         raise HTTPException(400, "Can only assign users with staff role")
-    
+
     # Create assignment
     assignment = EventStaff(
         event_id=event_id,
@@ -807,7 +807,7 @@ async def assign_staff_to_event(
     )
     db.add(assignment)
     db.commit()
-    
+
     return {"message": f"Staff {staff_user.email} assigned to event {event.name}"}
 
 # NPO Admin removes staff from event
@@ -822,14 +822,14 @@ async def remove_staff_from_event(
     event = db.query(Event).filter(Event.id == event_id).first()
     if event.npo_id != current_user.npo_id:
         raise HTTPException(403, "Cannot manage staff for events outside your organization")
-    
+
     # Delete assignment
     db.query(EventStaff).filter(
         EventStaff.event_id == event_id,
         EventStaff.user_id == staff_user_id
     ).delete()
     db.commit()
-    
+
     return {"message": "Staff removed from event"}
 ```
 
@@ -850,11 +850,11 @@ async def remove_staff_from_event(
 
 All technical decisions are finalized and align with the constitution's principles:
 
-✅ **Security-first**: Bcrypt, short JWT expiry, rate limiting, audit logging, **email verification required**  
-✅ **Performance**: Redis caching, JWT claims, <100ms auth checks, <2s login  
-✅ **YAGNI**: No over-engineering (no MFA, no SSO, no ABAC—only what's specified)  
-✅ **Production-ready**: Comprehensive testing, structured logging, graceful error handling, **PostgreSQL RLS for tenant isolation**  
-✅ **Solo developer efficiency**: Managed services (Redis, Postgres), battle-tested libraries  
+✅ **Security-first**: Bcrypt, short JWT expiry, rate limiting, audit logging, **email verification required**
+✅ **Performance**: Redis caching, JWT claims, <100ms auth checks, <2s login
+✅ **YAGNI**: No over-engineering (no MFA, no SSO, no ABAC—only what's specified)
+✅ **Production-ready**: Comprehensive testing, structured logging, graceful error handling, **PostgreSQL RLS for tenant isolation**
+✅ **Solo developer efficiency**: Managed services (Redis, Postgres), battle-tested libraries
 
 **Key Clarifications Added**:
 1. **Session storage**: Hybrid Redis (hot data) + PostgreSQL (audit trail)
@@ -867,11 +867,10 @@ All technical decisions are finalized and align with the constitution's principl
 
 ---
 
-**Version**: 1.1.0  
-**Completed**: October 20, 2025  
+**Version**: 1.1.0
+**Completed**: October 20, 2025
 **Reviewed By**: AI Agent (Constitution-compliant)
 
 **Changelog**:
 - v1.1.0 (2025-10-20): Added email verification (§11), super admin bootstrap (§12), event-scoped roles (§13), clarified session storage hybrid approach (§4)
 - v1.0.0 (2025-10-20): Initial research document with 10 core technical decisions
-

@@ -1,8 +1,8 @@
 # Feature Specification: User Authentication & Role Management
 
-**Feature Branch**: `001-user-authentication-role`  
-**Created**: October 18, 2025  
-**Status**: Draft  
+**Feature Branch**: `001-user-authentication-role`
+**Created**: October 18, 2025
+**Status**: Draft
 **Input**: User description: "User Authentication & Role Management"
 
 ## Clarifications
@@ -111,7 +111,7 @@ The system manages user sessions securely, including automatic logout for inacti
 ### Functional Requirements
 
 - **FR-001**: System MUST allow users to create accounts using email and password
-- **FR-002**: System MUST validate email addresses and enforce password strength requirements  
+- **FR-002**: System MUST validate email addresses and enforce password strength requirements
 - **FR-003**: Users MUST be able to login with their registered email and password
 - **FR-004**: System MUST provide secure password reset functionality via email
 - **FR-005**: System MUST maintain user sessions and allow secure logout
@@ -176,7 +176,7 @@ The system manages user sessions securely, including automatic logout for inacti
 ### Measurable Outcomes
 
 - **SC-001**: Users can complete account registration in under 3 minutes with 95% success rate
-- **SC-002**: Users can login to their accounts in under 30 seconds with correct credentials  
+- **SC-002**: Users can login to their accounts in under 30 seconds with correct credentials
 - **SC-003**: Password reset process completes successfully within 5 minutes for 90% of users
 - **SC-004**: System supports 1000 concurrent authenticated users without performance degradation
 - **SC-005**: 95% of users successfully complete their first login attempt after registration

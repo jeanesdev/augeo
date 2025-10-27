@@ -1,7 +1,7 @@
 # Data Model: User Authentication & Role Management
 
-**Feature**: 001-user-authentication-role  
-**Date**: October 20, 2025  
+**Feature**: 001-user-authentication-role
+**Date**: October 20, 2025
 **Status**: Phase 1 Design
 
 ## Overview
@@ -58,25 +58,25 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    
+
     -- Profile
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NULL,
-    
+
     -- Authentication
-    email_verified BOOLEAN NOT NULL DEFAULT false,
+    email_verified BOOLEAN NOT NULL DEFAULT false,  -- Can be manually verified by super_admin or npo_admin
     is_active BOOLEAN NOT NULL DEFAULT false,
-    
+
     -- Role & Scope
     role_id UUID NOT NULL REFERENCES roles(id),
     npo_id UUID NULL REFERENCES organizations(id),  -- Only for npo_admin, event_coordinator roles
-    
+
     -- Audit
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     last_login_at TIMESTAMP NULL,
-    
+
     -- Constraints
     CONSTRAINT email_lowercase CHECK (email = LOWER(email)),
     CONSTRAINT password_not_empty CHECK (LENGTH(password_hash) > 0),
@@ -97,10 +97,12 @@ CREATE INDEX idx_users_created_at ON users(created_at DESC);
 **Business Rules**:
 - Email must be unique (case-insensitive)
 - Email must be verified before login (`email_verified = true` AND `is_active = true`)
+- Email can be manually verified by super_admin (any user) or npo_admin (users in their NPO only)
 - Password must be hashed with bcrypt (12+ rounds)
 - NPO Admin and Event Coordinator roles MUST have `npo_id` set
 - Staff and Donor roles MUST NOT have `npo_id` (use event_staff for staff assignments)
 - Default role on registration: "donor"
+- Phone numbers are stored as raw digits (no formatting characters) for consistency
 
 **SQLAlchemy Model**:
 ```python
@@ -115,7 +117,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class User(Base):
     __tablename__ = "users"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
@@ -129,26 +131,26 @@ class User(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login_at = Column(DateTime, nullable=True)
-    
+
     # Relationships
     role = relationship("Role", back_populates="users")
     npo = relationship("Organization", back_populates="users")
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="user")
     event_assignments = relationship("EventStaff", back_populates="user", cascade="all, delete-orphan")
-    
+
     # Check constraints
     __table_args__ = (
         CheckConstraint("email = LOWER(email)", name="email_lowercase"),
         CheckConstraint("LENGTH(password_hash) > 0", name="password_not_empty"),
     )
-    
+
     def set_password(self, plain_password: str):
         self.password_hash = pwd_context.hash(plain_password)
-    
+
     def verify_password(self, plain_password: str) -> bool:
         return pwd_context.verify(plain_password, self.password_hash)
-    
+
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
@@ -169,10 +171,10 @@ CREATE TABLE roles (
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT NOT NULL,
     scope VARCHAR(20) NOT NULL,  -- 'platform', 'npo', 'event', 'own'
-    
+
     -- Audit
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT role_name_valid CHECK (name IN ('super_admin', 'npo_admin', 'event_coordinator', 'staff', 'donor')),
     CONSTRAINT role_scope_valid CHECK (scope IN ('platform', 'npo', 'event', 'own'))
@@ -196,17 +198,17 @@ INSERT INTO roles (id, name, description, scope) VALUES
 ```python
 class Role(Base):
     __tablename__ = "roles"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(50), unique=True, nullable=False)
     description = Column(String, nullable=False)
     scope = Column(String(20), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    
+
     # Relationships
     users = relationship("User", back_populates="role")
     permissions = relationship("Permission", back_populates="role", cascade="all, delete-orphan")
-    
+
     __table_args__ = (
         CheckConstraint(
             "name IN ('super_admin', 'npo_admin', 'event_coordinator', 'staff', 'donor')",
@@ -232,15 +234,15 @@ CREATE TABLE permissions (
     -- Identity
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
-    
+
     -- Permission Definition
     resource VARCHAR(50) NOT NULL,  -- 'users', 'events', 'auctions', 'bids', 'profile', '*'
     action VARCHAR(20) NOT NULL,    -- 'create', 'read', 'update', 'delete', '*'
     scope VARCHAR(20) NOT NULL,     -- 'platform', 'npo', 'event', 'own'
-    
+
     -- Audit
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT permission_unique UNIQUE(role_id, resource, action, scope)
 );
@@ -283,17 +285,17 @@ INSERT INTO permissions (role_id, resource, action, scope) VALUES
 ```python
 class Permission(Base):
     __tablename__ = "permissions"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
     resource = Column(String(50), nullable=False)
     action = Column(String(20), nullable=False)
     scope = Column(String(20), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    
+
     # Relationships
     role = relationship("Role", back_populates="permissions")
-    
+
     __table_args__ = (
         UniqueConstraint("role_id", "resource", "action", "scope", name="permission_unique"),
     )
@@ -314,18 +316,18 @@ CREATE TABLE sessions (
     -- Identity
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- Session Details
     refresh_token_jti VARCHAR(255) NOT NULL UNIQUE,  -- JWT ID for Redis lookup
     device_info VARCHAR(500) NULL,
     ip_address VARCHAR(45) NOT NULL,  -- IPv6 max length
     user_agent TEXT NULL,
-    
+
     -- Lifecycle
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMP NOT NULL,  -- 7 days from created_at
     revoked_at TIMESTAMP NULL,
-    
+
     -- Constraints
     CONSTRAINT expires_after_creation CHECK (expires_at > created_at)
 );
@@ -347,7 +349,7 @@ CREATE INDEX idx_sessions_active ON sessions(user_id, revoked_at) WHERE revoked_
 ```python
 class Session(Base):
     __tablename__ = "sessions"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     refresh_token_jti = Column(String(255), unique=True, nullable=False)
@@ -357,10 +359,10 @@ class Session(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
     revoked_at = Column(DateTime, nullable=True)
-    
+
     # Relationships
     user = relationship("User", back_populates="sessions")
-    
+
     __table_args__ = (
         CheckConstraint("expires_at > created_at", name="expires_after_creation"),
     )
@@ -379,19 +381,19 @@ CREATE TABLE audit_logs (
     -- Identity
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NULL REFERENCES users(id) ON DELETE SET NULL,  -- NULL for failed login attempts
-    
+
     -- Event Details
     action VARCHAR(50) NOT NULL,  -- 'login', 'logout', 'failed_login', 'password_reset', 'role_change', etc.
     resource_type VARCHAR(50) NULL,
     resource_id UUID NULL,
-    
+
     -- Request Context
     ip_address VARCHAR(45) NOT NULL,
     user_agent TEXT NULL,
-    
+
     -- Metadata (JSONB for flexibility)
     metadata JSONB NULL,
-    
+
     -- Timestamp (immutable, indexed)
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -426,7 +428,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     action = Column(String(50), nullable=False)
@@ -436,7 +438,7 @@ class AuditLog(Base):
     user_agent = Column(String, nullable=True)
     metadata = Column(JSONB, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    
+
     # Relationships
     user = relationship("User", back_populates="audit_logs")
 ```
@@ -453,15 +455,15 @@ class AuditLog(Base):
 CREATE TABLE event_staff (
     -- Identity
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Relationships
     event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- Assignment Metadata
     assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
     assigned_by UUID NOT NULL REFERENCES users(id),  -- NPO Admin who made the assignment
-    
+
     -- Constraints
     CONSTRAINT event_staff_unique UNIQUE(event_id, user_id)
 );
@@ -483,18 +485,18 @@ CREATE INDEX idx_event_staff_assigned_by ON event_staff(assigned_by);
 ```python
 class EventStaff(Base):
     __tablename__ = "event_staff"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     event_id = Column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     assigned_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     assigned_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    
+
     # Relationships
     event = relationship("Event", back_populates="staff_assignments")
     user = relationship("User", back_populates="event_assignments", foreign_keys=[user_id])
     assigner = relationship("User", foreign_keys=[assigned_by])
-    
+
     __table_args__ = (
         UniqueConstraint("event_id", "user_id", name="event_staff_unique"),
     )
@@ -534,7 +536,7 @@ CREATE POLICY staff_event_access ON events
     USING (
         current_setting('app.user_role', true) = 'staff'
         AND id IN (
-            SELECT event_id FROM event_staff 
+            SELECT event_id FROM event_staff
             WHERE user_id = current_setting('app.current_user_id', true)::uuid
         )
     );
@@ -546,8 +548,8 @@ CREATE POLICY staff_event_access ON events
 
 ### Active Session Storage
 
-**Key**: `session:{user_id}:{jti}`  
-**Value**: JSON  
+**Key**: `session:{user_id}:{jti}`
+**Value**: JSON
 **TTL**: 604800 seconds (7 days)
 
 ```json
@@ -562,26 +564,26 @@ CREATE POLICY staff_event_access ON events
 
 ### JWT Blacklist (Revoked Access Tokens)
 
-**Key**: `blacklist:{jti}`  
-**Value**: `1`  
+**Key**: `blacklist:{jti}`
+**Value**: `1`
 **TTL**: 900 seconds (15 minutes - access token expiry)
 
 ### Email Verification Tokens
 
-**Key**: `email_verify:{token_hash}`  
-**Value**: `user_id` (UUID)  
+**Key**: `email_verify:{token_hash}`
+**Value**: `user_id` (UUID)
 **TTL**: 86400 seconds (24 hours)
 
 ### Password Reset Tokens
 
-**Key**: `password_reset:{token_hash}`  
-**Value**: `user_id` (UUID)  
+**Key**: `password_reset:{token_hash}`
+**Value**: `user_id` (UUID)
 **TTL**: 3600 seconds (1 hour)
 
 ### Rate Limiting (Login Attempts)
 
-**Key**: `ratelimit:login:{ip_address}`  
-**Value**: Sorted Set of timestamps  
+**Key**: `ratelimit:login:{ip_address}`
+**Value**: Sorted Set of timestamps
 **TTL**: 900 seconds (15 minutes)
 
 ---
@@ -636,7 +638,7 @@ def upgrade():
         sa.CheckConstraint("email = LOWER(email)", name="email_lowercase"),
         sa.CheckConstraint("LENGTH(password_hash) > 0", name="password_not_empty"),
     )
-    
+
     # Indexes
     op.create_index('idx_users_email', 'users', ['email'])
     op.create_index('idx_users_role_id', 'users', ['role_id'])
@@ -662,7 +664,7 @@ class UserCreate(BaseModel):
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     phone: str | None = Field(None, max_length=20)
-    
+
     @field_validator('password')
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
@@ -672,7 +674,7 @@ class UserCreate(BaseModel):
         if not re.search(r'[0-9]', v):
             raise ValueError('Password must contain at least one number')
         return v
-    
+
     @field_validator('email')
     @classmethod
     def lowercase_email(cls, v: str) -> str:
@@ -684,11 +686,11 @@ class UserCreate(BaseModel):
 
 ## Summary
 
-**Total Tables**: 6 (roles, users, permissions, sessions, audit_logs, event_staff)  
-**Total Indexes**: 20+  
-**RLS Policies**: 3 (tenant isolation, super admin bypass, staff event access)  
-**Redis Keys**: 5 types (sessions, blacklist, email verify, password reset, rate limit)  
-**Migrations**: 8 sequential Alembic migrations  
+**Total Tables**: 6 (roles, users, permissions, sessions, audit_logs, event_staff)
+**Total Indexes**: 20+
+**RLS Policies**: 3 (tenant isolation, super admin bypass, staff event access)
+**Redis Keys**: 5 types (sessions, blacklist, email verify, password reset, rate limit)
+**Migrations**: 8 sequential Alembic migrations
 
 **Key Features**:
 - ✅ UUIDs for all primary keys (security, distributed systems)
@@ -702,6 +704,6 @@ class UserCreate(BaseModel):
 
 ---
 
-**Version**: 1.0.0  
-**Date**: October 20, 2025  
+**Version**: 1.0.0
+**Date**: October 20, 2025
 **Status**: Ready for implementation

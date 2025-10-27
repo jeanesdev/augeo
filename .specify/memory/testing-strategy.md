@@ -19,7 +19,7 @@
     ```
 
 ## Unit Tests (80%+ coverage)
-**Tool:** pytest  
+**Tool:** pytest
 **Location:** `backend/tests/unit/`
 
 **What to test:**
@@ -38,7 +38,7 @@ assert validate_bid(item, amount=100) == True
 ```
 
 ## Integration Tests
-**Tool:** pytest + TestClient (FastAPI)  
+**Tool:** pytest + TestClient (FastAPI)
 **Location:** `backend/tests/integration/`
 
 **What to test:**
@@ -62,7 +62,7 @@ assert response.json()["amount"] == 200
 ```
 
 ## E2E Tests (10-15 critical flows)
-**Tool:** Playwright  
+**Tool:** Playwright
 **Location:** `frontend/tests/e2e/`
 
 **Critical flows:**
@@ -72,7 +72,7 @@ assert response.json()["amount"] == 200
 4. Staff checks in donor → assigns paddle
 
 ## Load Tests (Phase 2)
-**Tool:** Locust  
+**Tool:** Locust
 **Target:** 100+ concurrent bidders per event
 
 **Scenarios:**

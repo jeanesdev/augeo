@@ -1,7 +1,7 @@
 # Quickstart Guide: User Authentication & Role Management
 
-**Feature**: 001-user-authentication-role  
-**Date**: October 20, 2025  
+**Feature**: 001-user-authentication-role
+**Date**: October 20, 2025
 **Audience**: Developers setting up local development environment
 
 ---
@@ -187,7 +187,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c "\dt"
 Expected output:
 ```
               List of relations
- Schema |       Name        | Type  |   Owner    
+ Schema |       Name        | Type  |   Owner
 --------+-------------------+-------+------------
  public | alembic_version   | table | augeo_user
  public | audit_logs        | table | augeo_user
@@ -206,7 +206,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c \
 
 Expected output:
 ```
-                  id                  |      email       |              role_id               
+                  id                  |      email       |              role_id
 --------------------------------------+------------------+------------------------------------
  550e8400-e29b-41d4-a716-446655440000 | admin@augeo.app  | <uuid-of-super-admin-role>
 ```
@@ -438,7 +438,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c \
 
 Expected output:
 ```
- refresh_token_jti |         revoked_at         
+ refresh_token_jti |         revoked_at
 -------------------+----------------------------
  abc-123-xyz       | 2025-10-20 10:10:00.123456
 ```
@@ -486,6 +486,39 @@ curl -X POST http://localhost:8000/api/v1/users \
 curl -X GET http://localhost:8000/api/v1/users?page=1&per_page=20 \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
+
+### Test 4: Manually Verify User Email
+
+```bash
+# Get user_id from list users response
+USER_ID="550e8400-e29b-41d4-a716-446655440000"
+
+curl -X POST http://localhost:8000/api/v1/users/$USER_ID/verify-email \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+Expected response:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "john.doe@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "phone": "1234567890",
+  "role": "donor",
+  "npo_id": null,
+  "email_verified": true,
+  "is_active": false,
+  "last_login_at": null,
+  "created_at": "2025-10-20T10:00:00Z",
+  "updated_at": "2025-10-24T14:15:00Z"
+}
+```
+
+**Business Rules**:
+- Super Admin can verify any user's email
+- NPO Admin can only verify emails for users in their NPO
+- Audit log entry created for verification action
 
 ---
 
@@ -541,7 +574,7 @@ docker exec -it augeo_postgres psql -U augeo_user -d augeo_db -c \
 
 Expected output:
 ```
-              user_id               | action |  ip_address  |         created_at         
+              user_id               | action |  ip_address  |         created_at
 ------------------------------------+--------+--------------+----------------------------
  550e8400-e29b-41d4-a716-446655440000 | login  | 127.0.0.1    | 2025-10-20 10:00:00.123456
 ```
@@ -744,12 +777,12 @@ alembic upgrade head
 
 ## Summary
 
-✅ **Infrastructure**: PostgreSQL + Redis running in Docker  
-✅ **Backend**: FastAPI server with authentication endpoints  
-✅ **Database**: Migrations applied, super admin seeded  
-✅ **Frontend**: Admin dashboard and donor PWA running  
-✅ **Tests**: Unit, integration, and E2E tests passing  
-✅ **Authentication Flow**: Registration → Email verification → Login → Protected endpoints  
+✅ **Infrastructure**: PostgreSQL + Redis running in Docker
+✅ **Backend**: FastAPI server with authentication endpoints
+✅ **Database**: Migrations applied, super admin seeded
+✅ **Frontend**: Admin dashboard and donor PWA running
+✅ **Tests**: Unit, integration, and E2E tests passing
+✅ **Authentication Flow**: Registration → Email verification → Login → Protected endpoints
 
 **Local URLs**:
 - Backend API: http://localhost:8000
@@ -759,6 +792,6 @@ alembic upgrade head
 
 ---
 
-**Version**: 1.0.0  
-**Date**: October 20, 2025  
+**Version**: 1.0.0
+**Date**: October 20, 2025
 **Status**: Ready for development

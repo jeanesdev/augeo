@@ -3,7 +3,7 @@ info:
   title: Augeo User Management API
   description: |
     User management endpoints for listing, creating, updating, and managing users and their roles.
-    
+
     **Access Control**:
     - Super Admin: Full access to all users across all NPOs
     - NPO Admin: Manage users within their NPO (npo_admin, event_coordinator, staff roles)
@@ -36,13 +36,13 @@ paths:
       summary: List users
       description: |
         Retrieve paginated list of users based on role permissions.
-        
+
         **Access Control**:
         - Super Admin: See all users across all NPOs
         - NPO Admin: See users in their NPO only
         - Event Coordinator: See staff assigned to their events
         - Staff/Donor: Forbidden
-        
+
         **Filtering**:
         - Filter by role, NPO, email verification status, active status
         - Search by email or name
@@ -142,17 +142,17 @@ paths:
       summary: Create user (admin operation)
       description: |
         Create a new user with specified role. NPO Admin and Super Admin only.
-        
+
         **Access Control**:
         - Super Admin: Create any role, assign to any NPO
         - NPO Admin: Create npo_admin, event_coordinator, staff within their NPO only
-        
+
         **Flow**:
         1. Validates role is allowed for requesting admin
         2. Creates user with `email_verified=false`, `is_active=false`
         3. Sends verification email
         4. Returns user details
-        
+
         **Note**: Use /auth/register for donor self-registration
       operationId: createUser
       tags:
@@ -223,7 +223,7 @@ paths:
       summary: Get user by ID
       description: |
         Retrieve detailed user information.
-        
+
         **Access Control**:
         - Super Admin: View any user
         - NPO Admin: View users in their NPO
@@ -278,12 +278,12 @@ paths:
       summary: Update user
       description: |
         Update user profile fields (not role or password).
-        
+
         **Access Control**:
         - Super Admin: Update any user
         - NPO Admin: Update users in their NPO
         - Staff/Donor: Update own profile only (first_name, last_name, phone)
-        
+
         **Note**: Use /users/{user_id}/role to change roles
       operationId: updateUser
       tags:
@@ -329,12 +329,12 @@ paths:
       summary: Deactivate user
       description: |
         Soft delete user by setting `is_active=false`. NPO Admin and Super Admin only.
-        
+
         **Flow**:
         1. Sets `is_active=false` (user cannot login)
         2. Revokes all active sessions
         3. Logs "account_deactivated" audit event
-        
+
         **Note**: Does not delete user record (for audit trail)
       operationId: deactivateUser
       tags:
@@ -372,11 +372,11 @@ paths:
       summary: Update user role
       description: |
         Change user's role. NPO Admin and Super Admin only.
-        
+
         **Access Control**:
         - Super Admin: Change any role to any role
         - NPO Admin: Change roles within their NPO (npo_admin, event_coordinator, staff only)
-        
+
         **Flow**:
         1. Validates new role is allowed
         2. Updates `role_id` and `npo_id` (if applicable)
@@ -428,7 +428,7 @@ paths:
       summary: Reactivate deactivated user
       description: |
         Reactivate a deactivated user by setting `is_active=true`. NPO Admin and Super Admin only.
-        
+
         **Note**: Email must still be verified
       operationId: activateUser
       tags:
@@ -461,12 +461,78 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /users/{user_id}/verify-email:
+    post:
+      summary: Manually verify user email
+      description: |
+        Manually verify a user's email address by setting `email_verified=true`.
+
+        **Access Control**:
+        - Super Admin: Can verify any user's email
+        - NPO Admin: Can only verify emails for users in their NPO
+
+        **Business Rules**:
+        - Used when admin creates account on user's behalf
+        - Bypasses automated email verification flow
+        - Audit logged for compliance
+      operationId: verifyUserEmail
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+              examples:
+                success:
+                  value:
+                    id: 550e8400-e29b-41d4-a716-446655440000
+                    email: john.doe@example.com
+                    first_name: John
+                    last_name: Doe
+                    phone: "+1234567890"
+                    role: staff
+                    npo_id: null
+                    email_verified: true
+                    is_active: false
+                    last_login_at: null
+                    created_at: "2025-10-15T10:30:00Z"
+                    updated_at: "2025-10-24T14:15:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - NPO Admin can only verify users in their NPO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                npo_scope_violation:
+                  value:
+                    error:
+                      code: INSUFFICIENT_PERMISSIONS
+                      message: You can only verify emails for users in your NPO
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /events/{event_id}/staff:
     get:
       summary: List staff assigned to event
       description: |
         Retrieve all staff members assigned to a specific event.
-        
+
         **Access Control**:
         - Super Admin: View any event's staff
         - NPO Admin: View staff for events in their NPO
@@ -520,12 +586,12 @@ paths:
       summary: Assign staff to event
       description: |
         Assign a staff user to an event. NPO Admin only.
-        
+
         **Business Rules**:
         - User must have role='staff'
         - Event must be in NPO Admin's organization
         - Staff user can be assigned to multiple events
-        
+
         **Note**: NPO Admins and Event Coordinators have automatic access to all events in their NPO
       operationId: assignStaffToEvent
       tags:
@@ -585,7 +651,7 @@ paths:
       summary: Unassign staff from event
       description: |
         Remove staff assignment from event. NPO Admin only.
-        
+
         **Note**: Deletes event_staff record
       operationId: unassignStaffFromEvent
       tags:

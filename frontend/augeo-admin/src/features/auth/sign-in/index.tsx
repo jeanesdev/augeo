@@ -1,4 +1,3 @@
-import { useSearch } from '@tanstack/react-router'
 import {
   Card,
   CardContent,
@@ -7,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Link, useSearch } from '@tanstack/react-router'
 import { AuthLayout } from '../auth-layout'
 import { UserAuthForm } from './components/user-auth-form'
 
@@ -26,7 +26,16 @@ export function SignIn() {
         <CardContent>
           <UserAuthForm redirectTo={redirect} />
         </CardContent>
-        <CardFooter>
+        <CardFooter className='flex-col gap-4'>
+          <p className='text-muted-foreground text-center text-sm'>
+            Don&apos;t have an account?{' '}
+            <Link
+              to='/sign-up'
+              className='hover:text-primary underline underline-offset-4'
+            >
+              Sign up
+            </Link>
+          </p>
           <p className='text-muted-foreground px-8 text-center text-sm'>
             By clicking sign in, you agree to our{' '}
             <a

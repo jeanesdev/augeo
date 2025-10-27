@@ -30,7 +30,7 @@ def hash_password(password: str) -> str:
     password_bytes = password.encode("utf-8")[:72]  # Truncate to 72 bytes
     salt = bcrypt.gensalt(rounds=12)
     hashed = bcrypt.hashpw(password_bytes, salt)
-    return cast(str, hashed.decode("utf-8"))
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -48,7 +48,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     password_bytes = plain_password.encode("utf-8")[:72]  # Truncate to 72 bytes
     hashed_bytes = hashed_password.encode("utf-8")
-    return cast(bool, bcrypt.checkpw(password_bytes, hashed_bytes))
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def create_access_token(
@@ -82,6 +82,7 @@ def create_access_token(
             "exp": expire,
             "iat": datetime.utcnow(),
             "jti": secrets.token_urlsafe(32),  # JWT ID for blacklisting
+            "type": "access",  # Token type for validation
         }
     )
 
@@ -138,11 +139,13 @@ def create_refresh_token(
     return cast(str, encoded_jwt)
 
 
-def decode_token(token: str) -> dict[str, Any]:
+def decode_token(token: str, verify_expiration: bool = True) -> dict[str, Any]:
     """Decode and verify a JWT token.
 
     Args:
         token: JWT token string
+        verify_expiration: Whether to verify token expiration (default: True)
+                          Set to False for logout to allow expired tokens
 
     Returns:
         dict: Decoded token claims
@@ -157,12 +160,15 @@ def decode_token(token: str) -> dict[str, Any]:
         except JWTError:
             # Handle invalid token
     """
+    options = {"verify_exp": verify_expiration} if not verify_expiration else {}
+
     return cast(
         dict[str, Any],
         jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
+            options=options,
         ),
     )
 

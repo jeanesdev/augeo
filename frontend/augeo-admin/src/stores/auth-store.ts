@@ -1,53 +1,199 @@
 import { create } from 'zustand'
-import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
-
-const ACCESS_TOKEN = 'thisisjustarandomstring'
+import { persist } from 'zustand/middleware'
+import apiClient from '@/lib/axios'
 
 interface AuthUser {
-  accountNo: string
+  id: string
   email: string
-  role: string[]
-  exp: number
+  first_name: string
+  last_name: string
+  role: string
+  npo_id: string | null
+}
+
+interface LoginRequest {
+  email: string
+  password: string
+}
+
+interface RegisterRequest {
+  email: string
+  password: string
+  first_name: string
+  last_name: string
+  phone?: string
+}
+
+interface LoginResponse {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
+  user: AuthUser
+}
+
+interface RegisterResponse {
+  user: {
+    id: string
+    email: string
+    first_name: string
+    last_name: string
+    phone: string | null
+    email_verified: boolean
+    is_active: boolean
+    role: string
+    created_at: string
+  }
+  message: string
 }
 
 interface AuthState {
-  auth: {
-    user: AuthUser | null
-    setUser: (user: AuthUser | null) => void
-    accessToken: string
-    setAccessToken: (accessToken: string) => void
-    resetAccessToken: () => void
-    reset: () => void
-  }
+  user: AuthUser | null
+  accessToken: string
+  refreshToken: string
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
+
+  // Actions
+  setUser: (user: AuthUser | null) => void
+  setAccessToken: (accessToken: string) => void
+  setRefreshToken: (refreshToken: string) => void
+  setError: (error: string | null) => void
+  setLoading: (loading: boolean) => void
+  reset: () => void
+
+  // API methods
+  login: (credentials: LoginRequest) => Promise<LoginResponse>
+  register: (data: RegisterRequest) => Promise<RegisterResponse>
+  logout: () => Promise<void>
+  getUser: () => AuthUser | null
 }
 
-export const useAuthStore = create<AuthState>()((set) => {
-  const cookieState = getCookie(ACCESS_TOKEN)
-  const initToken = cookieState ? JSON.parse(cookieState) : ''
-  return {
-    auth: {
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
       user: null,
+      accessToken: '',
+      refreshToken: '',
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+
+      // Setters
       setUser: (user) =>
-        set((state) => ({ ...state, auth: { ...state.auth, user } })),
-      accessToken: initToken,
+        set({
+          user,
+          isAuthenticated: !!user,
+        }),
+
       setAccessToken: (accessToken) =>
-        set((state) => {
-          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
-          return { ...state, auth: { ...state.auth, accessToken } }
-        }),
-      resetAccessToken: () =>
-        set((state) => {
-          removeCookie(ACCESS_TOKEN)
-          return { ...state, auth: { ...state.auth, accessToken: '' } }
-        }),
+        set({ accessToken }),
+
+      setRefreshToken: (refreshToken) =>
+        set({ refreshToken }),
+
+      setError: (error) =>
+        set({ error }),
+
+      setLoading: (loading) =>
+        set({ isLoading: loading }),
+
       reset: () =>
-        set((state) => {
-          removeCookie(ACCESS_TOKEN)
-          return {
-            ...state,
-            auth: { ...state.auth, user: null, accessToken: '' },
-          }
+        set({
+          user: null,
+          accessToken: '',
+          refreshToken: '',
+          isAuthenticated: false,
+          error: null,
         }),
-    },
-  }
-})
+
+      // API methods
+      login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const response = await apiClient.post<LoginResponse>(
+            '/auth/login',
+            credentials
+          )
+
+          const { access_token, refresh_token, user } = response.data
+
+          // Update store
+          set({
+            accessToken: access_token,
+            refreshToken: refresh_token,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          })
+
+          return response.data
+        } catch (error: unknown) {
+          const errorMessage =
+            (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
+            (error as { message?: string }).message ||
+            'Login failed'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
+      register: async (
+        data: RegisterRequest
+      ): Promise<RegisterResponse> => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const response = await apiClient.post<RegisterResponse>(
+            '/auth/register',
+            data
+          )
+
+          set({ isLoading: false })
+          return response.data
+        } catch (error: unknown) {
+          const errorMessage =
+            (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
+            (error as { message?: string }).message ||
+            'Registration failed'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
+      logout: async (): Promise<void> => {
+        const { accessToken, refreshToken, reset } = get()
+
+        try {
+          // Call logout endpoint if tokens exist
+          if (accessToken && refreshToken) {
+            await apiClient.post('/auth/logout', {
+              refresh_token: refreshToken,
+            })
+          }
+        } catch (_error) {
+          // Silently fail - we still want to clear local state
+          // Error is expected if token is already invalid
+        } finally {
+          // Always clear local state
+          reset()
+        }
+      },
+
+      getUser: (): AuthUser | null => {
+        return get().user
+      },
+    }),
+    {
+      name: 'augeo-auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+)

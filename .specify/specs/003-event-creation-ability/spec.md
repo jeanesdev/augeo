@@ -1,8 +1,8 @@
 # Feature Specification: Event Creation and Management
 
-**Feature Branch**: `003-event-creation-ability`  
-**Created**: October 19, 2025  
-**Status**: Draft  
+**Feature Branch**: `003-event-creation-ability`
+**Created**: October 19, 2025
+**Status**: Draft
 **Input**: User description: "Event Creation. Ability for NPO administrator and Event coordinator to create and edit an event. They should be able to input details like date, venue, descriptions, food options, upload media like logos, flyers, link to videos, social media tags, links to websites, etc."
 
 ## Clarifications

@@ -1,7 +1,7 @@
 # Implementation Plan: User Authentication & Role Management
 
-**Branch**: `001-user-authentication-role` | **Date**: October 20, 2025 | **Spec**: [spec.md](./spec.md)  
-**Input**: Feature specification from `.specify/specs/001-user-authentication-role/spec.md`  
+**Branch**: `001-user-authentication-role` | **Date**: October 20, 2025 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `.specify/specs/001-user-authentication-role/spec.md`
 **Status**: Phase 2 Complete ✅ | **Next**: Phase 3 (Implementation)
 
 ## Summary
@@ -12,28 +12,28 @@ This feature establishes the authentication and authorization foundation for the
 
 ## Technical Context
 
-**Language/Version**: Python 3.11+ (Backend), TypeScript 5.x (Frontend)  
-**Primary Dependencies**: FastAPI 0.104+, SQLAlchemy 2.0+, Pydantic 2.x, python-jose (JWT), passlib (bcrypt), Redis, React 18+, Zustand, React Query, Azure Communication Services (Email)  
-**Storage**: Azure Database for PostgreSQL with Row-Level Security (RLS), Azure Cache for Redis (sessions/tokens)  
-**Testing**: pytest (unit/integration), Playwright (E2E), TestClient (FastAPI), factory_boy (fixtures)  
-**Target Platform**: Azure App Service (backend containers), Azure CDN (frontend PWA)  
-**Project Type**: Web application (separate backend/frontend)  
-**Performance Goals**: Login <2s, Auth checks <100ms, JWT generation <200ms, Email verification <30s, 1000 concurrent sessions  
-**Constraints**: HTTPS only, bcrypt (12+ rounds), JWT expiry 15min/7day, rate limiting 5/15min, **PostgreSQL RLS for tenant isolation**, **email verification required before login**  
+**Language/Version**: Python 3.11+ (Backend), TypeScript 5.x (Frontend)
+**Primary Dependencies**: FastAPI 0.104+, SQLAlchemy 2.0+, Pydantic 2.x, python-jose (JWT), passlib (bcrypt), Redis, React 18+, Zustand, React Query, Azure Communication Services (Email)
+**Storage**: Azure Database for PostgreSQL with Row-Level Security (RLS), Azure Cache for Redis (sessions/tokens)
+**Testing**: pytest (unit/integration), Playwright (E2E), TestClient (FastAPI), factory_boy (fixtures)
+**Target Platform**: Azure App Service (backend containers), Azure CDN (frontend PWA)
+**Project Type**: Web application (separate backend/frontend)
+**Performance Goals**: Login <2s, Auth checks <100ms, JWT generation <200ms, Email verification <30s, 1000 concurrent sessions
+**Constraints**: HTTPS only, bcrypt (12+ rounds), JWT expiry 15min/7day, rate limiting 5/15min, **PostgreSQL RLS for tenant isolation**, **email verification required before login**
 **Scale/Scope**: 1000 users MVP, 10,000 users Phase 2, multi-tenant with NPO/event scoping + RLS + email verification
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-✅ **YAGNI Compliance**: Implements only specified features (5 roles, JWT auth, password reset, email verification, RBAC)—no social login, MFA, or SSO  
-✅ **Solo Developer Efficiency**: Leverages FastAPI auto-docs, SQLAlchemy ORM, managed Redis/Postgres, Azure Communication Services, AI-assisted test generation  
-✅ **Production-Grade Quality**: Type hints enforced, 80%+ test coverage, security logging, rate limiting, encrypted secrets, **PostgreSQL RLS**, **email verification**  
-✅ **Donor-Driven Engagement**: Auth flows optimized for speed (<2s login), clear error messages, password managers supported, verified emails reduce spam  
-✅ **Real-Time Reliability**: Session state in Redis with <100ms latency, immediate role changes via cache invalidation, hybrid Redis+PostgreSQL session storage  
-✅ **Data Security**: Bcrypt password hashing, HTTPS only, JWT with short expiry, audit logging, PII protection, **RLS for tenant isolation**, email verification  
-✅ **Monorepo Structure**: Fits `/backend` and `/frontend` folders, shared types in `/shared`  
-✅ **Minimal Dependencies**: Uses only permissive licenses (MIT/Apache 2.0), avoids GPL/AGPL  
+✅ **YAGNI Compliance**: Implements only specified features (5 roles, JWT auth, password reset, email verification, RBAC)—no social login, MFA, or SSO
+✅ **Solo Developer Efficiency**: Leverages FastAPI auto-docs, SQLAlchemy ORM, managed Redis/Postgres, Azure Communication Services, AI-assisted test generation
+✅ **Production-Grade Quality**: Type hints enforced, 80%+ test coverage, security logging, rate limiting, encrypted secrets, **PostgreSQL RLS**, **email verification**
+✅ **Donor-Driven Engagement**: Auth flows optimized for speed (<2s login), clear error messages, password managers supported, verified emails reduce spam
+✅ **Real-Time Reliability**: Session state in Redis with <100ms latency, immediate role changes via cache invalidation, hybrid Redis+PostgreSQL session storage
+✅ **Data Security**: Bcrypt password hashing, HTTPS only, JWT with short expiry, audit logging, PII protection, **RLS for tenant isolation**, email verification
+✅ **Monorepo Structure**: Fits `/backend` and `/frontend` folders, shared types in `/shared`
+✅ **Minimal Dependencies**: Uses only permissive licenses (MIT/Apache 2.0), avoids GPL/AGPL
 
 **No violations detected**—proceed with implementation.
 
@@ -213,6 +213,6 @@ shared/
 
 ---
 
-**Status**: ✅ **PHASE 2 COMPLETE - READY FOR PHASE 3 (IMPLEMENTATION)**  
-**Version**: 1.2.0  
+**Status**: ✅ **PHASE 2 COMPLETE - READY FOR PHASE 3 (IMPLEMENTATION)**
+**Version**: 1.2.0
 **Last Updated**: October 20, 2025

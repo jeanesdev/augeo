@@ -1,9 +1,7 @@
 'use client'
 
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { PasswordInput } from '@/components/password-input'
+import { SelectDropdown } from '@/components/select-dropdown'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,17 +20,37 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { PasswordInput } from '@/components/password-input'
-import { SelectDropdown } from '@/components/select-dropdown'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { roles } from '../data/data'
 import { type User } from '../data/schema'
+import { useCreateUser, useUpdateUser } from '../hooks/use-users'
 
 const formSchema = z
   .object({
     firstName: z.string().min(1, 'First Name is required.'),
     lastName: z.string().min(1, 'Last Name is required.'),
-    username: z.string().min(1, 'Username is required.'),
-    phoneNumber: z.string().min(1, 'Phone number is required.'),
+    phoneNumber: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val === '') return true
+          const digits = val.replace(/\D/g, '')
+          return digits.length >= 10 && digits.length <= 11
+        },
+        { message: 'Phone must be 10 or 11 digits' }
+      )
+      .refine(
+        (val) => {
+          if (!val || val === '') return true
+          const digits = val.replace(/\D/g, '')
+          if (digits.length === 11) return digits.startsWith('1')
+          return true
+        },
+        { message: '11-digit phone must start with 1' }
+      ),
     email: z.email({
       error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
     }),
@@ -105,32 +123,88 @@ export function UsersActionDialog({
   onOpenChange,
 }: UserActionDialogProps) {
   const isEdit = !!currentRow
+  const createUser = useCreateUser()
+  const updateUser = useUpdateUser()
+
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
       ? {
-          ...currentRow,
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        }
+        firstName: currentRow.first_name,
+        lastName: currentRow.last_name,
+        email: currentRow.email,
+        role: currentRow.role,
+        phoneNumber: currentRow.phone || '',
+        password: '',
+        confirmPassword: '',
+        isEdit,
+      }
       : {
-          firstName: '',
-          lastName: '',
-          username: '',
-          email: '',
-          role: '',
-          phoneNumber: '',
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        },
+        firstName: '',
+        lastName: '',
+        email: '',
+        role: '',
+        phoneNumber: '',
+        password: '',
+        confirmPassword: '',
+        isEdit,
+      },
   })
 
-  const onSubmit = (values: UserForm) => {
-    form.reset()
-    showSubmittedData(values)
-    onOpenChange(false)
+  const onSubmit = async (values: UserForm) => {
+    try {
+      if (isEdit) {
+        // Update existing user
+        const updateData: {
+          first_name?: string
+          last_name?: string
+          phone?: string
+          password?: string
+        } = {
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phoneNumber || undefined,
+        }
+
+        // Only include password if it was changed
+        if (values.password) {
+          updateData.password = values.password
+        }
+
+        await updateUser.mutateAsync({
+          id: currentRow!.id,
+          ...updateData,
+        })
+      } else {
+        // Create new user
+        // TODO: Add NPO selection field for npo_admin and event_coordinator roles
+        // For now, these roles cannot be created without npo_id
+        if (['npo_admin', 'event_coordinator'].includes(values.role)) {
+          console.error('Cannot create user with role that requires NPO without NPO selection')
+          throw new Error('NPO Admin and Event Coordinator roles require NPO selection. Please use Staff or Donor role for now.')
+        }
+
+        const payload = {
+          email: values.email,
+          password: values.password,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phoneNumber || undefined,
+          role: values.role,
+        }
+        console.log('Creating user with payload:', payload)
+        await createUser.mutateAsync(payload)
+      }
+
+      form.reset()
+      onOpenChange(false)
+    } catch (error) {
+      // Error handling is done in the mutation hooks
+      console.error('Failed to save user:', error)
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('Error response:', (error as any).response?.data)
+      }
+    }
   }
 
   const isPasswordTouched = !!form.formState.dirtyFields.password
@@ -200,25 +274,6 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='username'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Username
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='john_doe'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name='email'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
@@ -237,21 +292,49 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name='phoneNumber'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Phone Number
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='+123456789'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const formatPhoneNumber = (value: string): string => {
+                    const phoneNumber = value.replace(/\D/g, '')
+                    if (phoneNumber.length === 0) return ''
+
+                    // Handle 11-digit numbers with +1
+                    if (phoneNumber.length === 11 && phoneNumber.startsWith('1')) {
+                      const digits = phoneNumber.slice(1)
+                      if (digits.length <= 3) return `+1(${digits}`
+                      if (digits.length <= 6) return `+1(${digits.slice(0, 3)})${digits.slice(3)}`
+                      return `+1(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`
+                    }
+
+                    // Handle 10-digit numbers
+                    if (phoneNumber.length <= 3) return `(${phoneNumber}`
+                    if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+                    return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
+                  }
+
+                  return (
+                    <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-end'>
+                        Phone Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder='(123)456-7890 or +1(123)456-7890'
+                          className='col-span-4'
+                          maxLength={17}
+                          value={field.value ? formatPhoneNumber(field.value) : ''}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, '')
+                            // Only allow 10 or 11 digits (11 must start with 1)
+                            if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                              field.onChange(digits)
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage className='col-span-4 col-start-3' />
+                    </FormItem>
+                  )
+                }}
               />
               <FormField
                 control={form.control}
@@ -273,45 +356,49 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Password
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder='e.g., S3cur3P@ssw0rd'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='confirmPassword'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Confirm Password
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        disabled={!isPasswordTouched}
-                        placeholder='e.g., S3cur3P@ssw0rd'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
+              {!isEdit && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='password'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>
+                          Password
+                        </FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder='e.g., S3cur3P@ssw0rd'
+                            className='col-span-4'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>
+                          Confirm Password
+                        </FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            disabled={!isPasswordTouched}
+                            placeholder='e.g., S3cur3P@ssw0rd'
+                            className='col-span-4'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </form>
           </Form>
         </div>

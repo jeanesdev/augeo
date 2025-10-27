@@ -1,8 +1,8 @@
 """Custom error handlers and exceptions."""
 
 from fastapi import HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
 
 
 class AuthenticationError(HTTPException):
@@ -67,28 +67,29 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     Returns:
         JSONResponse: Formatted error response
     """
+    # Use FastAPI's standard 'detail' key for consistency with validation errors
+    # If detail is already structured, use it; otherwise wrap it
+    if isinstance(exc.detail, dict):
+        content = {"detail": exc.detail}
+    else:
+        content = {"detail": {"code": exc.status_code, "message": str(exc.detail)}}
+
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": {
-                "code": exc.status_code,
-                "message": exc.detail,
-                "type": exc.__class__.__name__,
-            }
-        },
+        content=content,
         headers=exc.headers,
     )
 
 
 async def validation_exception_handler(
     request: Request,
-    exc: ValidationError,
+    exc: RequestValidationError,
 ) -> JSONResponse:
     """Handle Pydantic ValidationError and return JSON response.
 
     Args:
         request: FastAPI request
-        exc: ValidationError
+        exc: RequestValidationError from FastAPI
 
     Returns:
         JSONResponse: Formatted validation error response
@@ -106,8 +107,8 @@ async def validation_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
-            "error": {
-                "code": 422,
+            "detail": {
+                "code": "VALIDATION_ERROR",
                 "message": "Validation error",
                 "type": "ValidationError",
                 "details": errors,
@@ -134,7 +135,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "error": {
+            "detail": {
                 "code": 500,
                 "message": "Internal server error",
                 "type": "InternalServerError",

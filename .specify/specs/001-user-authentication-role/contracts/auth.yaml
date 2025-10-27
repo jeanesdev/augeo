@@ -2,9 +2,9 @@ openapi: 3.1.0
 info:
   title: Augeo Authentication API
   description: |
-    Authentication endpoints for user registration, login, email verification, 
+    Authentication endpoints for user registration, login, email verification,
     password reset, and session management.
-    
+
     **Security Model**:
     - OAuth2 with JWT bearer tokens
     - Access tokens: 15-minute expiry
@@ -37,13 +37,13 @@ paths:
       summary: Register new user
       description: |
         Create a new user account with "donor" role by default.
-        
+
         **Flow**:
         1. Validates email uniqueness and password strength
         2. Creates user with `email_verified=false`, `is_active=false`
         3. Sends verification email with 24-hour token
         4. Returns user details (no login yet)
-        
+
         **Business Rules**:
         - Email must be unique (case-insensitive)
         - Password must be 8-100 chars with at least 1 letter and 1 number
@@ -111,13 +111,13 @@ paths:
       summary: Verify email address
       description: |
         Complete email verification using token from email.
-        
+
         **Flow**:
         1. Validates token (24-hour expiry)
         2. Sets `email_verified=true`, `is_active=true`
         3. Deletes verification token from Redis
         4. Logs "email_verified" audit event
-        
+
         **After verification**: User can now login with /auth/login
       operationId: verifyEmail
       tags:
@@ -166,12 +166,12 @@ paths:
       summary: Resend verification email
       description: |
         Request a new verification email if the original expired or was lost.
-        
+
         **Flow**:
         1. Validates email exists and is unverified
         2. Generates new 24-hour token
         3. Sends new verification email
-        
+
         **Rate Limit**: 1 email per 5 minutes per email address
       operationId: resendVerificationEmail
       tags:
@@ -217,7 +217,7 @@ paths:
       summary: Login user
       description: |
         Authenticate user and return JWT tokens.
-        
+
         **Flow**:
         1. Validates email/password
         2. Checks email is verified and account is active
@@ -225,7 +225,7 @@ paths:
         4. Creates session record in PostgreSQL + Redis
         5. Updates `last_login_at` timestamp
         6. Logs "login" audit event
-        
+
         **Rate Limiting**: 5 failed attempts per 15 minutes per IP
       operationId: loginUser
       tags:
@@ -306,14 +306,14 @@ paths:
       summary: Refresh access token
       description: |
         Exchange a valid refresh token for a new access token.
-        
+
         **Flow**:
         1. Validates refresh token signature and expiry
         2. Checks token not in Redis blacklist
         3. Validates session exists in Redis
         4. Generates new access token (15min)
         5. Returns new access token (refresh token unchanged)
-        
+
         **Note**: Refresh token is NOT rotated (valid for full 7 days)
       operationId: refreshToken
       tags:
@@ -359,14 +359,14 @@ paths:
       summary: Logout user
       description: |
         Revoke current session and invalidate tokens.
-        
+
         **Flow**:
         1. Extracts JTI from refresh token
         2. Sets `revoked_at` on session in PostgreSQL
         3. Deletes session from Redis
         4. Adds access token JTI to Redis blacklist (15min TTL)
         5. Logs "logout" audit event
-        
+
         **Security**: Access token remains valid until 15min expiry (cached in clients)
       operationId: logoutUser
       tags:
@@ -402,14 +402,14 @@ paths:
       summary: Request password reset
       description: |
         Send password reset email with 1-hour token.
-        
+
         **Flow**:
         1. Validates email exists
         2. Generates secure reset token (1-hour expiry)
         3. Stores token in Redis: `password_reset:{token_hash}` → `user_id`
         4. Sends reset email with link: `https://app.augeo.app/reset-password?token={token}`
         5. Logs "password_reset_requested" audit event
-        
+
         **Security**: Always returns 200 even if email doesn't exist (prevent enumeration)
       operationId: requestPasswordReset
       tags:
@@ -441,7 +441,7 @@ paths:
       summary: Complete password reset
       description: |
         Reset password using token from email.
-        
+
         **Flow**:
         1. Validates token (1-hour expiry)
         2. Validates new password strength
@@ -495,7 +495,7 @@ paths:
       summary: Change password (authenticated)
       description: |
         Change password for currently logged-in user.
-        
+
         **Flow**:
         1. Validates current password
         2. Validates new password strength
@@ -503,7 +503,7 @@ paths:
         4. Updates user password
         5. Revokes all sessions EXCEPT current session
         6. Logs "password_changed" audit event
-        
+
         **Requires**: Valid access token
       operationId: changePassword
       tags:

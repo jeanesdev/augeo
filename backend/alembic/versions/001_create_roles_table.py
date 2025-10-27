@@ -5,6 +5,7 @@ Revises:
 Create Date: 2025-01-19
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -34,6 +35,13 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("scope", sa.String(20), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.text("NOW()")),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+            onupdate=sa.text("NOW()"),
+        ),
         sa.CheckConstraint(
             "name IN ('super_admin', 'npo_admin', 'event_coordinator', 'staff', 'donor')",
             name="role_name_valid",
@@ -51,8 +59,12 @@ def upgrade() -> None:
     op.execute(
         """
         INSERT INTO roles (name, description, scope) VALUES
-            ('super_admin', 'Augeo platform staff with full access to all NPOs and events', 'platform'),
-            ('npo_admin', 'Full management access within assigned nonprofit organization(s)', 'npo'),
+            ('super_admin',
+             'Augeo platform staff with full access to all NPOs and events',
+             'platform'),
+            ('npo_admin',
+             'Full management access within assigned nonprofit organization(s)',
+             'npo'),
             ('event_coordinator', 'Event and auction management within assigned NPO', 'npo'),
             ('staff', 'Donor registration and check-in within assigned events', 'event'),
             ('donor', 'Bidding and profile management only', 'own')

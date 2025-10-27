@@ -17,9 +17,12 @@ import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
+import { Route as authVerifyEmailRouteImport } from './routes/(auth)/verify-email'
 import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
 import { Route as authSignIn2RouteImport } from './routes/(auth)/sign-in-2'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as authPasswordResetConfirmRouteImport } from './routes/(auth)/password-reset-confirm'
+import { Route as authPasswordResetRouteImport } from './routes/(auth)/password-reset'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
@@ -79,6 +82,11 @@ const errors401Route = errors401RouteImport.update({
   path: '/401',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authVerifyEmailRoute = authVerifyEmailRouteImport.update({
+  id: '/(auth)/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authSignUpRoute = authSignUpRouteImport.update({
   id: '/(auth)/sign-up',
   path: '/sign-up',
@@ -92,6 +100,17 @@ const authSignIn2Route = authSignIn2RouteImport.update({
 const authSignInRoute = authSignInRouteImport.update({
   id: '/(auth)/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authPasswordResetConfirmRoute =
+  authPasswordResetConfirmRouteImport.update({
+    id: '/(auth)/password-reset-confirm',
+    path: '/password-reset-confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const authPasswordResetRoute = authPasswordResetRouteImport.update({
+  id: '/(auth)/password-reset',
+  path: '/password-reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authOtpRoute = authOtpRouteImport.update({
@@ -203,9 +222,12 @@ export interface FileRoutesByFullPath {
   '/clerk/': typeof ClerkauthRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
+  '/password-reset': typeof authPasswordResetRoute
+  '/password-reset-confirm': typeof authPasswordResetConfirmRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
   '/sign-up': typeof authSignUpRoute
+  '/verify-email': typeof authVerifyEmailRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -231,9 +253,12 @@ export interface FileRoutesByTo {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
+  '/password-reset': typeof authPasswordResetRoute
+  '/password-reset-confirm': typeof authPasswordResetConfirmRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
   '/sign-up': typeof authSignUpRoute
+  '/verify-email': typeof authVerifyEmailRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -264,9 +289,12 @@ export interface FileRoutesById {
   '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
+  '/(auth)/password-reset': typeof authPasswordResetRoute
+  '/(auth)/password-reset-confirm': typeof authPasswordResetConfirmRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sign-in-2': typeof authSignIn2Route
   '/(auth)/sign-up': typeof authSignUpRoute
+  '/(auth)/verify-email': typeof authVerifyEmailRoute
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
   '/(errors)/404': typeof errors404Route
@@ -296,9 +324,12 @@ export interface FileRouteTypes {
     | '/clerk/'
     | '/forgot-password'
     | '/otp'
+    | '/password-reset'
+    | '/password-reset-confirm'
     | '/sign-in'
     | '/sign-in-2'
     | '/sign-up'
+    | '/verify-email'
     | '/401'
     | '/403'
     | '/404'
@@ -324,9 +355,12 @@ export interface FileRouteTypes {
     | '/clerk'
     | '/forgot-password'
     | '/otp'
+    | '/password-reset'
+    | '/password-reset-confirm'
     | '/sign-in'
     | '/sign-in-2'
     | '/sign-up'
+    | '/verify-email'
     | '/401'
     | '/403'
     | '/404'
@@ -356,9 +390,12 @@ export interface FileRouteTypes {
     | '/clerk/_authenticated'
     | '/(auth)/forgot-password'
     | '/(auth)/otp'
+    | '/(auth)/password-reset'
+    | '/(auth)/password-reset-confirm'
     | '/(auth)/sign-in'
     | '/(auth)/sign-in-2'
     | '/(auth)/sign-up'
+    | '/(auth)/verify-email'
     | '/(errors)/401'
     | '/(errors)/403'
     | '/(errors)/404'
@@ -386,9 +423,12 @@ export interface RootRouteChildren {
   ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
+  authPasswordResetRoute: typeof authPasswordResetRoute
+  authPasswordResetConfirmRoute: typeof authPasswordResetConfirmRoute
   authSignInRoute: typeof authSignInRoute
   authSignIn2Route: typeof authSignIn2Route
   authSignUpRoute: typeof authSignUpRoute
+  authVerifyEmailRoute: typeof authVerifyEmailRoute
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
   errors404Route: typeof errors404Route
@@ -454,6 +494,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof errors401RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(auth)/verify-email': {
+      id: '/(auth)/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof authVerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/sign-up': {
       id: '/(auth)/sign-up'
       path: '/sign-up'
@@ -473,6 +520,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof authSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/password-reset-confirm': {
+      id: '/(auth)/password-reset-confirm'
+      path: '/password-reset-confirm'
+      fullPath: '/password-reset-confirm'
+      preLoaderRoute: typeof authPasswordResetConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/password-reset': {
+      id: '/(auth)/password-reset'
+      path: '/password-reset'
+      fullPath: '/password-reset'
+      preLoaderRoute: typeof authPasswordResetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(auth)/otp': {
@@ -707,9 +768,12 @@ const rootRouteChildren: RootRouteChildren = {
   ClerkRouteRoute: ClerkRouteRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
+  authPasswordResetRoute: authPasswordResetRoute,
+  authPasswordResetConfirmRoute: authPasswordResetConfirmRoute,
   authSignInRoute: authSignInRoute,
   authSignIn2Route: authSignIn2Route,
   authSignUpRoute: authSignUpRoute,
+  authVerifyEmailRoute: authVerifyEmailRoute,
   errors401Route: errors401Route,
   errors403Route: errors403Route,
   errors404Route: errors404Route,

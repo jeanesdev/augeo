@@ -18,11 +18,9 @@ import {
   Users,
   MessagesSquare,
   ShieldCheck,
-  AudioWaveform,
-  Command,
-  GalleryVerticalEnd,
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
+import { Logo } from '@/assets/logo'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -33,19 +31,9 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: 'Shadcn Admin',
-      logo: Command,
-      plan: 'Vite + ShadcnUI',
-    },
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
+      name: 'Augeo Platform',
+      logo: Logo,
+      plan: 'Admin Portal',
     },
   ],
   navGroups: [

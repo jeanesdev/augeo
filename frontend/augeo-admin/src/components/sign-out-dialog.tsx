@@ -10,10 +10,10 @@ interface SignOutDialogProps {
 export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { auth } = useAuthStore()
+  const logout = useAuthStore((state) => state.logout)
 
-  const handleSignOut = () => {
-    auth.reset()
+  const handleSignOut = async () => {
+    await logout()
     // Preserve current location for redirect after sign-in
     const currentPath = location.href
     navigate({

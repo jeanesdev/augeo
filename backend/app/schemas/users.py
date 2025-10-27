@@ -1,0 +1,107 @@
+"""Pydantic schemas for user management endpoints."""
+
+import uuid
+from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+# ================================
+# Request Schemas
+# ================================
+
+
+class UserCreateRequest(BaseModel):
+    """Request schema for creating a new user (admin only)."""
+
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=100)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    phone: str | None = Field(None, max_length=20)
+    role: Literal["super_admin", "npo_admin", "event_coordinator", "staff", "donor"]
+    npo_id: uuid.UUID | None = None
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_lowercase(cls, v: str) -> str:
+        """Ensure email is lowercase."""
+        return v.lower()
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        """Validate password strength."""
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Password must contain at least one letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one number")
+        return v
+
+
+class RoleUpdateRequest(BaseModel):
+    """Request schema for updating a user's role."""
+
+    role: Literal["super_admin", "npo_admin", "event_coordinator", "staff", "donor"]
+    npo_id: uuid.UUID | None = None
+
+
+class UserUpdateRequest(BaseModel):
+    """Request schema for updating user profile."""
+
+    first_name: str | None = Field(None, min_length=1, max_length=100)
+    last_name: str | None = Field(None, min_length=1, max_length=100)
+    phone: str | None = Field(None, max_length=20)
+    password: str | None = Field(None, min_length=8, max_length=100)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str | None) -> str | None:
+        """Validate password strength if provided."""
+        if v is None:
+            return v
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Password must contain at least one letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one number")
+        return v
+
+
+# ================================
+# Response Schemas
+# ================================
+
+
+class UserPublicWithRole(BaseModel):
+    """Public user information with role details."""
+
+    id: uuid.UUID
+    email: str
+    first_name: str
+    last_name: str
+    phone: str | None
+    role: str
+    npo_id: uuid.UUID | None
+    email_verified: bool
+    is_active: bool
+    last_login_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class UserListResponse(BaseModel):
+    """Paginated response for user list."""
+
+    items: list[UserPublicWithRole]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+
+
+class UserActivateRequest(BaseModel):
+    """Request schema for activating a user account."""
+
+    is_active: bool

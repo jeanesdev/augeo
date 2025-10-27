@@ -1,4 +1,5 @@
 """API v1 routes package."""
+
 from fastapi import APIRouter
 
 from app.api.v1 import auth, users

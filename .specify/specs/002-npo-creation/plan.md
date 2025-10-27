@@ -17,30 +17,30 @@ Enable users to create and manage Non-Profit Organizations (NPOs) with comprehen
   the iteration process.
 -->
 
-**Language/Version**: Python 3.11+ (Backend), TypeScript (Frontend)  
-**Primary Dependencies**: FastAPI, SQLAlchemy, Pydantic, React, Zustand  
-**Storage**: PostgreSQL with multi-tenant architecture, Azure Blob Storage for file uploads  
-**Testing**: pytest (backend), Playwright (E2E), React Testing Library (frontend)  
+**Language/Version**: Python 3.11+ (Backend), TypeScript (Frontend)
+**Primary Dependencies**: FastAPI, SQLAlchemy, Pydantic, React, Zustand
+**Storage**: PostgreSQL with multi-tenant architecture, Azure Blob Storage for file uploads
+**Testing**: pytest (backend), Playwright (E2E), React Testing Library (frontend)
 **Target Platform**: Web application (desktop/tablet optimized), PWA support
-**Project Type**: Web application (frontend + backend)  
-**Performance Goals**: <300ms API response time, <500ms form submission processing  
-**Constraints**: Multi-tenant data isolation, GDPR compliance, file upload security  
+**Project Type**: Web application (frontend + backend)
+**Performance Goals**: <300ms API response time, <500ms form submission processing
+**Constraints**: Multi-tenant data isolation, GDPR compliance, file upload security
 **Scale/Scope**: Support 1000+ NPOs, role-based access control, approval workflows
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-**Initial Check (Phase 0)**: ✅ PASSED  
+**Initial Check (Phase 0)**: ✅ PASSED
 **Post-Design Check (Phase 1)**: ✅ PASSED
 
-✅ **Donor-Driven Engagement**: NPO branding and customization enhances donor trust and engagement  
-✅ **Production-Grade Quality**: Implements proper validation, security, and audit logging  
-✅ **Solo Developer Efficiency**: Leverages existing FastAPI/React stack and patterns  
-✅ **Data Security and Privacy**: Includes GDPR-compliant data handling and user consent tracking  
-✅ **Minimalist Development**: Implements only specified requirements without feature creep  
-✅ **Multi-Tenancy**: Uses existing `tenant_id` pattern for NPO isolation  
-✅ **Authentication & Authorization**: Extends existing RBAC with NPO admin and SuperAdmin roles  
+✅ **Donor-Driven Engagement**: NPO branding and customization enhances donor trust and engagement
+✅ **Production-Grade Quality**: Implements proper validation, security, and audit logging
+✅ **Solo Developer Efficiency**: Leverages existing FastAPI/React stack and patterns
+✅ **Data Security and Privacy**: Includes GDPR-compliant data handling and user consent tracking
+✅ **Minimalist Development**: Implements only specified requirements without feature creep
+✅ **Multi-Tenancy**: Uses existing `tenant_id` pattern for NPO isolation
+✅ **Authentication & Authorization**: Extends existing RBAC with NPO admin and SuperAdmin roles
 ✅ **Type Safety**: Uses Pydantic models for validation and TypeScript strict mode
 
 **Design Verification**:

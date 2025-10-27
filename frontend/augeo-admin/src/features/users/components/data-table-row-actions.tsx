@@ -1,16 +1,16 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-import { type Row } from '@tanstack/react-table'
-import { Trash2, UserPen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { type Row } from '@tanstack/react-table'
+import { KeyRound, MailCheck, Shield, UserCheck, UserPen, UserX } from 'lucide-react'
 import { type User } from '../data/schema'
+import { useActivateUser, useVerifyUserEmail } from '../hooks/use-users'
 import { useUsers } from './users-provider'
 
 type DataTableRowActionsProps = {
@@ -19,6 +19,31 @@ type DataTableRowActionsProps = {
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useUsers()
+  const activateUser = useActivateUser()
+  const verifyEmail = useVerifyUserEmail()
+  const user = row.original
+
+  const handleToggleActive = async () => {
+    try {
+      await activateUser.mutateAsync({
+        userId: user.id,
+        data: { is_active: !user.is_active },
+      })
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Error toggling user active status:', error)
+    }
+  }
+
+  const handleVerifyEmail = async () => {
+    try {
+      await verifyEmail.mutateAsync(user.id)
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Error verifying email:', error)
+    }
+  }
+
   return (
     <>
       <DropdownMenu modal={false}>
@@ -34,7 +59,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         <DropdownMenuContent align='end' className='w-[160px]'>
           <DropdownMenuItem
             onClick={() => {
-              setCurrentRow(row.original)
+              setCurrentRow(user)
               setOpen('edit')
             }}
           >
@@ -43,19 +68,42 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <UserPen size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('delete')
+              setCurrentRow(user)
+              setOpen('role')
             }}
-            className='text-red-500!'
           >
-            Delete
+            Change Role
             <DropdownMenuShortcut>
-              <Trash2 size={16} />
+              <Shield size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              setCurrentRow(user)
+              setOpen('resetPassword')
+            }}
+          >
+            Reset Password
+            <DropdownMenuShortcut>
+              <KeyRound size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleToggleActive}>
+            {user.is_active ? 'Deactivate' : 'Activate'}
+            <DropdownMenuShortcut>
+              {user.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          {!user.email_verified && (
+            <DropdownMenuItem onClick={handleVerifyEmail}>
+              Verify Email
+              <DropdownMenuShortcut>
+                <MailCheck size={16} />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
