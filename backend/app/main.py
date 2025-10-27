@@ -108,14 +108,14 @@ app = FastAPI(
 )
 
 # Request ID middleware (must be before CORS)
-app.add_middleware(RequestIDMiddleware)  # type: ignore[arg-type, call-arg]
+app.add_middleware(RequestIDMiddleware)  # type: ignore[arg-type,call-arg]  # Starlette middleware typing
 
 # Metrics middleware (after request ID for accurate tracking)
-app.add_middleware(MetricsMiddleware)  # type: ignore[arg-type, call-arg]
+app.add_middleware(MetricsMiddleware)  # type: ignore[arg-type,call-arg]  # Starlette middleware typing
 
 # CORS middleware
-app.add_middleware(  # type: ignore[call-arg]
-    CORSMiddleware,  # type: ignore[arg-type]
+app.add_middleware(  # type: ignore[call-arg]  # Starlette middleware typing
+    CORSMiddleware,  # type: ignore[arg-type]  # Starlette middleware typing
     allow_origins=settings.get_cors_origins_list(),
     allow_credentials=True,
     allow_methods=["*"],
@@ -124,12 +124,12 @@ app.add_middleware(  # type: ignore[call-arg]
 
 # Exception handlers
 app.add_exception_handler(Exception, generic_exception_handler)
-app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(AuthenticationError, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(AuthorizationError, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(ResourceNotFoundError, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(DuplicateResourceError, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(RateLimitError, http_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]  # FastAPI handler typing
+app.add_exception_handler(AuthenticationError, http_exception_handler)  # type: ignore[arg-type]  # FastAPI handler typing
+app.add_exception_handler(AuthorizationError, http_exception_handler)  # type: ignore[arg-type]  # FastAPI handler typing
+app.add_exception_handler(ResourceNotFoundError, http_exception_handler)  # type: ignore[arg-type]  # FastAPI handler typing
+app.add_exception_handler(DuplicateResourceError, http_exception_handler)  # type: ignore[arg-type]  # FastAPI handler typing
+app.add_exception_handler(RateLimitError, http_exception_handler)  # type: ignore[arg-type]  # FastAPI handler typing
 
 # Include API routers
 app.include_router(api_router, prefix="/api/v1")
