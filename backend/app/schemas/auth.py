@@ -120,6 +120,9 @@ class UserRegisterResponse(BaseModel):
 
     user: UserPublic
     message: str
+    verification_token: str | None = Field(
+        None, description="Verification token (only included in development/test environments)"
+    )
 
 
 class EmailVerifyRequest(BaseModel):

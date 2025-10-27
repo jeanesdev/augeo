@@ -92,9 +92,16 @@ async def register(
             created_at=user.created_at,
         )
 
+        # Include verification token in non-production environments for testing
+        from app.core.config import get_settings
+
+        settings = get_settings()
+        token_for_response = verification_token if settings.environment != "production" else None
+
         return UserRegisterResponse(
             user=user_public,
             message=f"Verification email sent to {user.email}",
+            verification_token=token_for_response,
         )
 
     except ValueError as e:
