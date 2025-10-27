@@ -9,6 +9,8 @@ business logic without making HTTP requests or database calls.
 
 import uuid
 
+import pytest
+
 # Note: PermissionService doesn't exist yet, will be created in implementation
 # These tests define the expected interface and behavior
 
@@ -30,7 +32,8 @@ class MockUser:
 class TestPermissionService:
     """Unit tests for PermissionService methods."""
 
-    def test_super_admin_can_view_all_users(self) -> None:
+    @pytest.mark.asyncio
+    async def test_super_admin_can_view_all_users(self) -> None:
         """Test that super_admin can view all users regardless of NPO."""
         from app.services.permission_service import PermissionService
 
@@ -38,10 +41,11 @@ class TestPermissionService:
         service = PermissionService()
 
         # Super admin can view any user
-        assert service.can_view_user(user, target_user_npo_id=None) is True
-        assert service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is True
+        assert await service.can_view_user(user, target_user_npo_id=None) is True
+        assert await service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is True
 
-    def test_npo_admin_can_view_users_in_their_npo(self) -> None:
+    @pytest.mark.asyncio
+    async def test_npo_admin_can_view_users_in_their_npo(self) -> None:
         """Test that npo_admin can only view users in their NPO."""
         from app.services.permission_service import PermissionService
 
@@ -50,16 +54,17 @@ class TestPermissionService:
         service = PermissionService()
 
         # Can view users in same NPO
-        assert service.can_view_user(user, target_user_npo_id=npo_id) is True
+        assert await service.can_view_user(user, target_user_npo_id=npo_id) is True
 
         # Cannot view users in different NPO
         other_npo_id = uuid.uuid4()
-        assert service.can_view_user(user, target_user_npo_id=other_npo_id) is False
+        assert await service.can_view_user(user, target_user_npo_id=other_npo_id) is False
 
         # Cannot view users with no NPO
-        assert service.can_view_user(user, target_user_npo_id=None) is False
+        assert await service.can_view_user(user, target_user_npo_id=None) is False
 
-    def test_donor_cannot_view_users(self) -> None:
+    @pytest.mark.asyncio
+    async def test_donor_cannot_view_users(self) -> None:
         """Test that donor cannot view user lists."""
         from app.services.permission_service import PermissionService
 
@@ -67,10 +72,11 @@ class TestPermissionService:
         service = PermissionService()
 
         # Donors cannot view any users
-        assert service.can_view_user(user, target_user_npo_id=None) is False
-        assert service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is False
+        assert await service.can_view_user(user, target_user_npo_id=None) is False
+        assert await service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is False
 
-    def test_staff_cannot_view_users(self) -> None:
+    @pytest.mark.asyncio
+    async def test_staff_cannot_view_users(self) -> None:
         """Test that staff cannot view general user lists."""
         from app.services.permission_service import PermissionService
 
@@ -78,20 +84,22 @@ class TestPermissionService:
         service = PermissionService()
 
         # Staff cannot view general user lists (only event-specific)
-        assert service.can_view_user(user, target_user_npo_id=None) is False
-        assert service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is False
+        assert await service.can_view_user(user, target_user_npo_id=None) is False
+        assert await service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is False
 
-    def test_super_admin_can_create_users(self) -> None:
+    @pytest.mark.asyncio
+    async def test_super_admin_can_create_users(self) -> None:
         """Test that super_admin can create users in any NPO."""
         from app.services.permission_service import PermissionService
 
         user = MockUser(id=uuid.uuid4(), role="super_admin")
         service = PermissionService()
 
-        assert service.can_create_user(user, target_npo_id=None) is True
-        assert service.can_create_user(user, target_npo_id=uuid.uuid4()) is True
+        assert await service.can_create_user(user, target_npo_id=None) is True
+        assert await service.can_create_user(user, target_npo_id=uuid.uuid4()) is True
 
-    def test_npo_admin_can_create_users_in_their_npo(self) -> None:
+    @pytest.mark.asyncio
+    async def test_npo_admin_can_create_users_in_their_npo(self) -> None:
         """Test that npo_admin can only create users in their NPO."""
         from app.services.permission_service import PermissionService
 
@@ -100,36 +108,39 @@ class TestPermissionService:
         service = PermissionService()
 
         # Can create users in same NPO
-        assert service.can_create_user(user, target_npo_id=npo_id) is True
+        assert await service.can_create_user(user, target_npo_id=npo_id) is True
 
         # Cannot create users in different NPO
         other_npo_id = uuid.uuid4()
-        assert service.can_create_user(user, target_npo_id=other_npo_id) is False
+        assert await service.can_create_user(user, target_npo_id=other_npo_id) is False
 
         # Can create users with no NPO (donors) within their NPO context
-        assert service.can_create_user(user, target_npo_id=None) is True
+        assert await service.can_create_user(user, target_npo_id=None) is True
 
-    def test_donor_cannot_create_users(self) -> None:
+    @pytest.mark.asyncio
+    async def test_donor_cannot_create_users(self) -> None:
         """Test that donor cannot create users."""
         from app.services.permission_service import PermissionService
 
         user = MockUser(id=uuid.uuid4(), role="donor")
         service = PermissionService()
 
-        assert service.can_create_user(user, target_npo_id=None) is False
-        assert service.can_create_user(user, target_npo_id=uuid.uuid4()) is False
+        assert await service.can_create_user(user, target_npo_id=None) is False
+        assert await service.can_create_user(user, target_npo_id=uuid.uuid4()) is False
 
-    def test_staff_cannot_create_users(self) -> None:
+    @pytest.mark.asyncio
+    async def test_staff_cannot_create_users(self) -> None:
         """Test that staff cannot create users."""
         from app.services.permission_service import PermissionService
 
         user = MockUser(id=uuid.uuid4(), role="staff")
         service = PermissionService()
 
-        assert service.can_create_user(user, target_npo_id=None) is False
-        assert service.can_create_user(user, target_npo_id=uuid.uuid4()) is False
+        assert await service.can_create_user(user, target_npo_id=None) is False
+        assert await service.can_create_user(user, target_npo_id=uuid.uuid4()) is False
 
-    def test_super_admin_can_assign_any_role(self) -> None:
+    @pytest.mark.asyncio
+    async def test_super_admin_can_assign_any_role(self) -> None:
         """Test that super_admin can assign any role."""
         from app.services.permission_service import PermissionService
 
@@ -138,9 +149,10 @@ class TestPermissionService:
 
         # Can assign any role
         for role in ["super_admin", "npo_admin", "event_coordinator", "staff", "donor"]:
-            assert service.can_assign_role(user, target_role=role) is True
+            assert await service.can_assign_role(user, target_role=role) is True
 
-    def test_npo_admin_can_assign_limited_roles(self) -> None:
+    @pytest.mark.asyncio
+    async def test_npo_admin_can_assign_limited_roles(self) -> None:
         """Test that npo_admin can only assign non-super_admin roles."""
         from app.services.permission_service import PermissionService
 
@@ -149,13 +161,14 @@ class TestPermissionService:
         service = PermissionService()
 
         # Cannot assign super_admin
-        assert service.can_assign_role(user, target_role="super_admin") is False
+        assert await service.can_assign_role(user, target_role="super_admin") is False
 
         # Can assign other roles
         for role in ["npo_admin", "event_coordinator", "staff", "donor"]:
-            assert service.can_assign_role(user, target_role=role) is True
+            assert await service.can_assign_role(user, target_role=role) is True
 
-    def test_donor_cannot_assign_roles(self) -> None:
+    @pytest.mark.asyncio
+    async def test_donor_cannot_assign_roles(self) -> None:
         """Test that donor cannot assign roles."""
         from app.services.permission_service import PermissionService
 
@@ -163,9 +176,10 @@ class TestPermissionService:
         service = PermissionService()
 
         for role in ["super_admin", "npo_admin", "event_coordinator", "staff", "donor"]:
-            assert service.can_assign_role(user, target_role=role) is False
+            assert await service.can_assign_role(user, target_role=role) is False
 
-    def test_staff_cannot_assign_roles(self) -> None:
+    @pytest.mark.asyncio
+    async def test_staff_cannot_assign_roles(self) -> None:
         """Test that staff cannot assign roles."""
         from app.services.permission_service import PermissionService
 
@@ -173,9 +187,10 @@ class TestPermissionService:
         service = PermissionService()
 
         for role in ["super_admin", "npo_admin", "event_coordinator", "staff", "donor"]:
-            assert service.can_assign_role(user, target_role=role) is False
+            assert await service.can_assign_role(user, target_role=role) is False
 
-    def test_npo_admin_role_requires_npo_id(self) -> None:
+    @pytest.mark.asyncio
+    async def test_npo_admin_role_requires_npo_id(self) -> None:
         """Test validation that npo_admin role requires npo_id."""
         from app.services.permission_service import PermissionService
 
@@ -190,7 +205,8 @@ class TestPermissionService:
         assert service.role_requires_npo_id("staff") is False
         assert service.role_requires_npo_id("donor") is False
 
-    def test_donor_and_staff_roles_forbid_npo_id(self) -> None:
+    @pytest.mark.asyncio
+    async def test_donor_and_staff_roles_forbid_npo_id(self) -> None:
         """Test validation that donor and staff roles must not have npo_id."""
         from app.services.permission_service import PermissionService
 
@@ -205,7 +221,8 @@ class TestPermissionService:
         assert service.role_forbids_npo_id("npo_admin") is False
         assert service.role_forbids_npo_id("event_coordinator") is False
 
-    def test_can_modify_user_checks_permissions(self) -> None:
+    @pytest.mark.asyncio
+    async def test_can_modify_user_checks_permissions(self) -> None:
         """Test that can_modify_user checks appropriate permissions."""
         from app.services.permission_service import PermissionService
 
@@ -214,19 +231,20 @@ class TestPermissionService:
 
         # Super admin can modify anyone
         super_admin = MockUser(id=uuid.uuid4(), role="super_admin")
-        assert service.can_modify_user(super_admin, target_user_npo_id=npo_id) is True
-        assert service.can_modify_user(super_admin, target_user_npo_id=None) is True
+        assert await service.can_modify_user(super_admin, target_user_npo_id=npo_id) is True
+        assert await service.can_modify_user(super_admin, target_user_npo_id=None) is True
 
         # NPO admin can modify users in their NPO
         npo_admin = MockUser(id=uuid.uuid4(), role="npo_admin", npo_id=npo_id)
-        assert service.can_modify_user(npo_admin, target_user_npo_id=npo_id) is True
-        assert service.can_modify_user(npo_admin, target_user_npo_id=uuid.uuid4()) is False
+        assert await service.can_modify_user(npo_admin, target_user_npo_id=npo_id) is True
+        assert await service.can_modify_user(npo_admin, target_user_npo_id=uuid.uuid4()) is False
 
         # Donor cannot modify users
         donor = MockUser(id=uuid.uuid4(), role="donor")
-        assert service.can_modify_user(donor, target_user_npo_id=None) is False
+        assert await service.can_modify_user(donor, target_user_npo_id=None) is False
 
-    def test_event_coordinator_has_limited_permissions(self) -> None:
+    @pytest.mark.asyncio
+    async def test_event_coordinator_has_limited_permissions(self) -> None:
         """Test that event_coordinator has appropriate limited permissions."""
         from app.services.permission_service import PermissionService
 
@@ -235,15 +253,15 @@ class TestPermissionService:
         service = PermissionService()
 
         # Event coordinator can view users in their NPO
-        assert service.can_view_user(user, target_user_npo_id=npo_id) is True
-        assert service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is False
+        assert await service.can_view_user(user, target_user_npo_id=npo_id) is True
+        assert await service.can_view_user(user, target_user_npo_id=uuid.uuid4()) is False
 
         # Event coordinator can create staff for events
-        assert service.can_create_user(user, target_npo_id=npo_id) is True
-        assert service.can_create_user(user, target_npo_id=uuid.uuid4()) is False
+        assert await service.can_create_user(user, target_npo_id=npo_id) is True
+        assert await service.can_create_user(user, target_npo_id=uuid.uuid4()) is False
 
         # Event coordinator can assign limited roles (staff, donor)
-        assert service.can_assign_role(user, target_role="staff") is True
-        assert service.can_assign_role(user, target_role="donor") is True
-        assert service.can_assign_role(user, target_role="npo_admin") is False
-        assert service.can_assign_role(user, target_role="super_admin") is False
+        assert await service.can_assign_role(user, target_role="staff") is True
+        assert await service.can_assign_role(user, target_role="donor") is True
+        assert await service.can_assign_role(user, target_role="npo_admin") is False
+        assert await service.can_assign_role(user, target_role="super_admin") is False
