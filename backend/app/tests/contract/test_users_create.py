@@ -9,6 +9,8 @@ These tests verify:
 - Status codes are correct for different scenarios
 """
 
+import uuid
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text
@@ -143,16 +145,18 @@ class TestUsersCreateContract:
         role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'donor'"))
         donor_role_id = role_result.scalar_one()
 
+        user_id = uuid.uuid4()
         await db_session.execute(
             text(
                 """
-                INSERT INTO users (email, first_name, last_name, password_hash,
+                INSERT INTO users (id, email, first_name, last_name, password_hash,
                                  email_verified, is_active, role_id)
-                VALUES (:email, :first_name, :last_name, :password_hash,
+                VALUES (:id, :email, :first_name, :last_name, :password_hash,
                        :email_verified, :is_active, :role_id)
             """
             ),
             {
+                "id": user_id,
                 "email": "existing@example.com",
                 "first_name": "Existing",
                 "last_name": "User",

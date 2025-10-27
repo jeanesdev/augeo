@@ -9,6 +9,8 @@ These tests verify:
 - Status codes are correct for different scenarios
 """
 
+import uuid
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text
@@ -47,16 +49,18 @@ class TestUsersListContract:
         donor_role_id = role_result.scalar_one()
 
         for i in range(5):
+            user_id = uuid.uuid4()
             await db_session.execute(
                 text(
                     """
-                    INSERT INTO users (email, first_name, last_name, password_hash,
+                    INSERT INTO users (id, email, first_name, last_name, password_hash,
                                      email_verified, is_active, role_id)
-                    VALUES (:email, :first_name, :last_name, :password_hash,
+                    VALUES (:id, :email, :first_name, :last_name, :password_hash,
                            :email_verified, :is_active, :role_id)
                 """
                 ),
                 {
+                    "id": user_id,
                     "email": f"user{i}@example.com",
                     "first_name": f"User{i}",
                     "last_name": "Test",
@@ -107,16 +111,18 @@ class TestUsersListContract:
         donor_role_id = role_result.scalar_one()
 
         for i in range(5):
+            user_id = uuid.uuid4()
             await db_session.execute(
                 text(
                     """
-                    INSERT INTO users (email, first_name, last_name, password_hash,
+                    INSERT INTO users (id, email, first_name, last_name, password_hash,
                                      email_verified, is_active, role_id)
-                    VALUES (:email, :first_name, :last_name, :password_hash,
+                    VALUES (:id, :email, :first_name, :last_name, :password_hash,
                            :email_verified, :is_active, :role_id)
                 """
                 ),
                 {
+                    "id": user_id,
                     "email": f"page_user{i}@example.com",
                     "first_name": f"PageUser{i}",
                     "last_name": "Test",
@@ -155,16 +161,18 @@ class TestUsersListContract:
 
         # Create 2 donors and 2 staff
         for i in range(2):
+            user_id = uuid.uuid4()
             await db_session.execute(
                 text(
                     """
-                    INSERT INTO users (email, first_name, last_name, password_hash,
+                    INSERT INTO users (id, email, first_name, last_name, password_hash,
                                      email_verified, is_active, role_id)
-                    VALUES (:email, :first_name, :last_name, :password_hash,
+                    VALUES (:id, :email, :first_name, :last_name, :password_hash,
                            :email_verified, :is_active, :role_id)
                 """
                 ),
                 {
+                    "id": user_id,
                     "email": f"donor_filter{i}@example.com",
                     "first_name": f"Donor{i}",
                     "last_name": "Test",
@@ -176,16 +184,18 @@ class TestUsersListContract:
             )
 
         for i in range(2):
+            user_id = uuid.uuid4()
             await db_session.execute(
                 text(
                     """
-                    INSERT INTO users (email, first_name, last_name, password_hash,
+                    INSERT INTO users (id, email, first_name, last_name, password_hash,
                                      email_verified, is_active, role_id)
-                    VALUES (:email, :first_name, :last_name, :password_hash,
+                    VALUES (:id, :email, :first_name, :last_name, :password_hash,
                            :email_verified, :is_active, :role_id)
                 """
                 ),
                 {
+                    "id": user_id,
                     "email": f"staff_filter{i}@example.com",
                     "first_name": f"Staff{i}",
                     "last_name": "Test",
@@ -219,16 +229,18 @@ class TestUsersListContract:
         donor_role_id = role_result.scalar_one()
 
         # Create unverified user
+        user_id = uuid.uuid4()
         await db_session.execute(
             text(
                 """
-                INSERT INTO users (email, first_name, last_name, password_hash,
+                INSERT INTO users (id, email, first_name, last_name, password_hash,
                                  email_verified, is_active, role_id)
-                VALUES (:email, :first_name, :last_name, :password_hash,
+                VALUES (:id, :email, :first_name, :last_name, :password_hash,
                        :email_verified, :is_active, :role_id)
             """
             ),
             {
+                "id": user_id,
                 "email": "unverified@example.com",
                 "first_name": "Unverified",
                 "last_name": "User",
@@ -262,16 +274,18 @@ class TestUsersListContract:
         donor_role_id = role_result.scalar_one()
 
         # Create inactive user
+        user_id = uuid.uuid4()
         await db_session.execute(
             text(
                 """
-                INSERT INTO users (email, first_name, last_name, password_hash,
+                INSERT INTO users (id, email, first_name, last_name, password_hash,
                                  email_verified, is_active, role_id)
-                VALUES (:email, :first_name, :last_name, :password_hash,
+                VALUES (:id, :email, :first_name, :last_name, :password_hash,
                        :email_verified, :is_active, :role_id)
             """
             ),
             {
+                "id": user_id,
                 "email": "inactive@example.com",
                 "first_name": "Inactive",
                 "last_name": "User",
@@ -305,16 +319,18 @@ class TestUsersListContract:
         donor_role_id = role_result.scalar_one()
 
         # Create users with distinctive names
+        user_id = uuid.uuid4()
         await db_session.execute(
             text(
                 """
-                INSERT INTO users (email, first_name, last_name, password_hash,
+                INSERT INTO users (id, email, first_name, last_name, password_hash,
                                  email_verified, is_active, role_id)
-                VALUES (:email, :first_name, :last_name, :password_hash,
+                VALUES (:id, :email, :first_name, :last_name, :password_hash,
                        :email_verified, :is_active, :role_id)
             """
             ),
             {
+                "id": user_id,
                 "email": "john.smith@example.com",
                 "first_name": "John",
                 "last_name": "Smith",
@@ -325,16 +341,18 @@ class TestUsersListContract:
             },
         )
 
+        user_id = uuid.uuid4()
         await db_session.execute(
             text(
                 """
-                INSERT INTO users (email, first_name, last_name, password_hash,
+                INSERT INTO users (id, email, first_name, last_name, password_hash,
                                  email_verified, is_active, role_id)
-                VALUES (:email, :first_name, :last_name, :password_hash,
+                VALUES (:id, :email, :first_name, :last_name, :password_hash,
                        :email_verified, :is_active, :role_id)
             """
             ),
             {
+                "id": user_id,
                 "email": "jane.doe@example.com",
                 "first_name": "Jane",
                 "last_name": "Doe",
