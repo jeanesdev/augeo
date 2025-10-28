@@ -27,12 +27,14 @@ infrastructure/
 │       ├── staging.bicepparam
 │       └── production.bicepparam
 └── scripts/               # Deployment and management scripts
-    ├── provision.sh       # Main provisioning script
-    ├── validate.sh        # Infrastructure validation
-    ├── deploy-backend.sh
-    ├── deploy-frontend.sh
-    ├── run-migrations.sh
-    ├── rollback.sh
+    ├── provision.sh           # Main provisioning script
+    ├── validate.sh            # Infrastructure validation
+    ├── deploy-backend.sh      # Backend deployment with blue-green
+    ├── deploy-frontend.sh     # Frontend deployment to Static Web Apps
+    ├── run-migrations.sh      # Database migration execution
+    ├── rollback.sh            # Production rollback procedures
+    ├── configure-secrets.sh   # Secret generation and Key Vault storage
+    ├── update-app-settings.sh # App Service Key Vault integration
     └── test-disaster-recovery.sh
 ```
 
@@ -55,6 +57,12 @@ See `/docs/operations/quickstart.md` for detailed setup instructions.
 
 # Deploy to dev environment
 ./infrastructure/scripts/provision.sh dev
+
+# Configure secrets in Key Vault
+./infrastructure/scripts/configure-secrets.sh dev
+
+# Update App Service to use Key Vault references
+./infrastructure/scripts/update-app-settings.sh dev
 
 # Deploy to production
 ./infrastructure/scripts/provision.sh production
@@ -85,6 +93,11 @@ See `/specs/004-cloud-infrastructure-deployment/research.md` for detailed cost b
 - **Architecture**: `/docs/operations/architecture.md`
 - **Deployment Runbook**: `/docs/operations/deployment-runbook.md`
 - **CI/CD Guide**: `/docs/operations/ci-cd-guide.md`
+- **Rollback Procedures**: `/docs/operations/rollback-procedures.md`
+- **Secret Rotation**: `/docs/operations/secret-rotation.md`
+- **Security Checklist**: `/docs/operations/security-checklist.md`
+- **DNS Configuration**: `/docs/operations/dns-configuration.md`
+- **Email Configuration**: `/docs/operations/email-configuration.md`
 - **Disaster Recovery**: `/docs/operations/disaster-recovery.md`
 - **Monitoring Guide**: `/docs/operations/monitoring-guide.md`
 

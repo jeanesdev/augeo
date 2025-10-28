@@ -24,6 +24,7 @@ tests/
 - **Database**: `make migrate` or `make m`, `make migrate-create NAME="description"`, `make db-seed`
 - **Docker**: `make docker-up`, `make docker-down`, `make docker-logs`
 - **Infrastructure**: `make validate-infra ENV=dev`, `make deploy-backend ENV=dev TAG=v1.0.0`
+- **Secrets**: `make configure-secrets ENV=dev`, `make update-app-settings ENV=dev`
 - **Cleanup**: `make clean`, `make clean-docker`
 
 ### Backend (Python)

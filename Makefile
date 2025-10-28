@@ -216,6 +216,22 @@ endif
 	@echo "Running migrations on $(ENV)..."
 	./infrastructure/scripts/run-migrations.sh $(ENV)
 
+configure-secrets:
+ifndef ENV
+	@echo "Error: ENV is required. Usage: make configure-secrets ENV=dev"
+	@exit 1
+endif
+	@echo "Configuring secrets for $(ENV)..."
+	./infrastructure/scripts/configure-secrets.sh $(ENV)
+
+update-app-settings:
+ifndef ENV
+	@echo "Error: ENV is required. Usage: make update-app-settings ENV=dev"
+	@exit 1
+endif
+	@echo "Updating App Service settings for $(ENV)..."
+	./infrastructure/scripts/update-app-settings.sh $(ENV)
+
 rollback:
 ifndef COMPONENT
 	@echo "Error: COMPONENT is required. Usage: make rollback COMPONENT=backend [TAG=v1.0.0]"
