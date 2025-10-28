@@ -41,9 +41,31 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
+// Enable blob versioning and soft delete for data protection
+resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+  parent: storageAccount
+  name: 'default'
+  properties: {
+    deleteRetentionPolicy: {
+      enabled: true
+      days: environment == 'production' ? 30 : 7
+    }
+    containerDeleteRetentionPolicy: {
+      enabled: true
+      days: environment == 'production' ? 30 : 7
+    }
+    isVersioningEnabled: true
+    changeFeed: {
+      enabled: true
+      retentionInDays: 90
+    }
+  }
+}
+
 // Create blob container for backups
 resource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
-  name: '${storageAccount.name}/default/backups'
+  parent: blobServices
+  name: 'backups'
   properties: {
     publicAccess: 'None'
   }
@@ -51,7 +73,8 @@ resource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/contai
 
 // Create blob container for logs
 resource logsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
-  name: '${storageAccount.name}/default/logs'
+  parent: blobServices
+  name: 'logs'
   properties: {
     publicAccess: 'None'
   }
