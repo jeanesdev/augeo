@@ -18,7 +18,7 @@ param environment string
 param tenantId string = subscription().tenantId
 
 @description('App Service principal ID for Key Vault access')
-param appServicePrincipalId string
+param appServicePrincipalId string = ''
 
 @description('Tags for the resource')
 param tags object = {}
@@ -34,9 +34,10 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
     }
     tenantId: tenantId
     enableRbacAuthorization: true // Use RBAC instead of access policies
-    enableSoftDelete: environment == 'production' // Soft delete for production only
+    enableSoftDelete: true // Always enable soft delete
     softDeleteRetentionInDays: 90
-    enablePurgeProtection: environment == 'production' // Purge protection for production
+    // Only set purgeProtection for production (omit property for dev/staging)
+    enablePurgeProtection: environment == 'production' ? true : null
     publicNetworkAccess: 'Enabled' // TODO: Change to 'Disabled' when VNet integration is ready
     networkAcls: {
       defaultAction: 'Allow' // TODO: Change to 'Deny' when VNet integration is ready
@@ -45,8 +46,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
 }
 
-// Grant App Service managed identity access to secrets
-resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+// Grant App Service managed identity access to secrets (only if appServicePrincipalId is provided)
+resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(appServicePrincipalId)) {
   name: guid(keyVault.id, appServicePrincipalId, 'Key Vault Secrets User')
   scope: keyVault
   properties: {

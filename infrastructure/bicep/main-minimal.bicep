@@ -70,6 +70,7 @@ module appInsights './modules/monitoring.bicep' = {
     backendApiUrl: 'http://localhost:8000'
     frontendUrl: 'http://localhost:5173'
     alertEmailAddresses: []
+    enableAvailabilityTests: false // Skip availability tests for localhost URLs
     tags: tags
   }
   dependsOn: [
@@ -85,6 +86,7 @@ module keyVault './modules/key-vault.bicep' = {
     keyVaultName: keyVaultName
     location: location
     environment: environment
+    appServicePrincipalId: '' // No App Service in minimal deployment
     tags: tags
   }
   dependsOn: [
@@ -112,7 +114,6 @@ module dns './modules/dns.bicep' = if (enableDns) {
   name: 'dns-${environment}'
   scope: az.resourceGroup(resourceGroupName)
   params: {
-    environment: environment
     domainName: customDomain
     tags: tags
   }
@@ -191,10 +192,7 @@ Next Steps:
    make dev-frontend
 
 5. Access Application Insights connection string:
-   az monitor app-insights component show \\
-     --app ${appInsightsName} \\
-     --resource-group ${resourceGroupName} \\
-     --query connectionString -o tsv
+   az monitor app-insights component show --app ${appInsightsName} --resource-group ${resourceGroupName} --query connectionString -o tsv
 
 Note: This deployment costs less than $1/month (mostly storage and Key Vault operations)
 '''

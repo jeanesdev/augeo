@@ -29,6 +29,9 @@ param frontendUrl string
 @description('Alert notification email addresses')
 param alertEmailAddresses array = []
 
+@description('Enable availability tests (should be false for localhost URLs)')
+param enableAvailabilityTests bool = true
+
 // Sampling configuration based on environment
 var samplingPercentage = environment == 'production' ? 10 : 100
 
@@ -92,7 +95,7 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = if (length(a
 }
 
 // Availability Test - Backend Health Endpoint
-resource backendAvailabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
+resource backendAvailabilityTest 'Microsoft.Insights/webtests@2022-06-15' = if (enableAvailabilityTests) {
   name: '${appInsightsName}-backend-health'
   location: location
   tags: union(tags, {
@@ -113,7 +116,7 @@ resource backendAvailabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
 }
 
 // Availability Test - Frontend Homepage
-resource frontendAvailabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
+resource frontendAvailabilityTest 'Microsoft.Insights/webtests@2022-06-15' = if (enableAvailabilityTests) {
   name: '${appInsightsName}-frontend-home'
   location: location
   tags: union(tags, {
@@ -133,8 +136,8 @@ resource frontendAvailabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
   }
 }
 
-// Alert Rule - Backend Availability
-resource backendAvailabilityAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = if (length(alertEmailAddresses) > 0) {
+// Alert - Backend Availability Failure
+resource backendAvailabilityAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = if (enableAvailabilityTests && length(alertEmailAddresses) > 0) {
   name: '${appInsightsName}-backend-availability'
   location: 'Global'
   tags: tags
