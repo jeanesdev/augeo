@@ -1,0 +1,108 @@
+name: Bicep Validation
+
+on:
+  pull_request:
+    paths:
+      - 'infrastructure/bicep/**'
+      - '.github/workflows/bicep-validate.yml'
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'infrastructure/bicep/**'
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to validate'
+        required: false
+        type: string
+        default: 'dev'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Validate Bicep Templates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Bicep CLI
+        run: |
+          az bicep install
+          az bicep version
+
+      - name: Validate Bicep Syntax
+        run: |
+          echo "::group::Bicep Build"
+          az bicep build --file infrastructure/bicep/main.bicep
+          echo "::endgroup::"
+
+      - name: Run Deployment Validation
+        run: |
+          echo "::group::Deployment Validation (dev)"
+          az deployment sub validate \
+            --location eastus \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters environment=dev location=eastus
+          echo "::endgroup::"
+
+      - name: Run What-If Analysis
+        id: whatif
+        run: |
+          echo "::group::What-If Analysis"
+          az deployment sub what-if \
+            --location eastus \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters environment=dev location=eastus \
+            --result-format FullResourcePayloads > whatif.txt
+          echo "::endgroup::"
+
+          # Capture what-if output for PR comment
+          echo "whatif<<EOF" >> $GITHUB_OUTPUT
+          cat whatif.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with What-If
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Bicep Validation Results 🔍
+
+            **Deployment Validation**: ✅ Passed
+
+            <details>
+            <summary>What-If Analysis</summary>
+
+            \`\`\`
+            ${{ steps.whatif.outputs.whatif }}
+            \`\`\`
+
+            </details>
+
+            *Workflow: \`${{ github.workflow }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Validation Success
+        run: |
+          echo "✅ All Bicep validations passed successfully!"
+          echo "Infrastructure templates are ready for deployment."

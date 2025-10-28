@@ -148,6 +148,7 @@ az role assignment create \
 ### 3.1 Purchase Domain
 
 Option 1: Use Azure App Service Domain
+
 ```bash
 az appservice domain create \
   --resource-group augeo-prod-rg \
@@ -157,6 +158,7 @@ az appservice domain create \
 ```
 
 Option 2: Use external registrar (Namecheap, GoDaddy, etc.)
+
 - Purchase domain manually
 - Update nameservers to Azure DNS
 
@@ -251,14 +253,17 @@ Add the following secrets to GitHub repository (Settings → Secrets → Actions
 Create GitHub environments with protection rules:
 
 **Development**:
+
 - No protection rules
 - Auto-deploy on merge to `main`
 
 **Staging**:
+
 - No protection rules
 - Auto-deploy after dev deployment succeeds
 
 **Production**:
+
 - Required reviewers: ops team
 - Wait timer: 5 minutes (review window)
 - Manual approval required before deployment
@@ -346,6 +351,7 @@ az portal dashboard import \
 ```
 
 Access dashboards:
+
 - Azure Portal → Dashboards
 - Application Insights → Workbooks → System Health
 
