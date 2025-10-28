@@ -34,3 +34,30 @@ repos:
         args: [--config-file=backend/pyproject.toml, --strict]
         files: ^backend/
         exclude: ^backend/(alembic/|app/tests/)
+
+  # Frontend and Bicep validation (local hooks)
+  - repo: local
+    hooks:
+      # Frontend ESLint
+      - id: frontend-lint
+        name: Frontend ESLint
+        entry: bash -c 'cd frontend/augeo-admin && pnpm lint'
+        language: system
+        files: ^frontend/augeo-admin/src/.*\.[jt]sx?$
+        pass_filenames: false
+
+      # Frontend Type Check
+      - id: frontend-typecheck
+        name: Frontend Type Check
+        entry: bash -c 'cd frontend/augeo-admin && pnpm type-check'
+        language: system
+        files: ^frontend/augeo-admin/src/.*\.[jt]sx?$
+        pass_filenames: false
+
+      # Bicep Build Validation
+      - id: bicep-build
+        name: Bicep Build Validation
+        entry: bash -c 'for file in "$@"; do echo "Validating $file..."; az bicep build --file "$file" || exit 1; done' --
+        language: system
+        files: ^infrastructure/bicep/.*\.bicep$
+        pass_filenames: true
