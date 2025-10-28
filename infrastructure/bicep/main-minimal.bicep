@@ -11,6 +11,12 @@ param location string = 'eastus'
 @description('Application name prefix')
 param appName string = 'augeo'
 
+@description('Custom domain name for DNS zone')
+param customDomain string = 'augeo.app'
+
+@description('Enable DNS zone deployment')
+param enableDns bool = true
+
 @description('Tags for all resources')
 param tags object = {
   Environment: environment
@@ -101,6 +107,20 @@ module storage './modules/storage.bicep' = {
   ]
 }
 
+// Deploy DNS Zone (optional, ~$0.50/month + $0.40 per million queries)
+module dns './modules/dns.bicep' = if (enableDns) {
+  name: 'dns-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    domainName: customDomain
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
 // Outputs
 output resourceGroupName string = resourceGroup.outputs.resourceGroupName
 output resourceGroupId string = resourceGroup.outputs.resourceGroupId
@@ -119,7 +139,42 @@ output appInsightsInstrumentationKey string = appInsights.outputs.appInsightsIns
 // Storage outputs
 output storageAccountName string = storage.outputs.storageAccountName
 
-output instructions string = '''
+// DNS outputs (if enabled)
+output dnsZoneId string = enableDns ? dns.outputs.dnsZoneId : ''
+output dnsZoneName string = enableDns ? dns.outputs.dnsZoneName : ''
+output nameServers array = enableDns ? dns.outputs.nameServers : []
+
+output instructions string = enableDns ? '''
+Minimal Development Resources Deployed (with DNS)!
+
+DNS Nameservers (configure at Namecheap):
+${join(dns.outputs.nameServers, '\n')}
+
+Next Steps:
+1. Configure nameservers at Namecheap:
+   - Login to Namecheap account
+   - Go to Domain List → Manage augeo.app
+   - Find NAMESERVERS section → Select Custom DNS
+   - Add all 4 Azure nameservers listed above
+   - Save (propagation takes 24-48 hours)
+
+2. Store secrets in Key Vault:
+   make configure-secrets ENV=dev
+
+3. Start local services (PostgreSQL + Redis):
+   docker-compose up -d
+
+4. Run backend locally:
+   make dev-backend
+
+5. Run frontend locally (in another terminal):
+   make dev-frontend
+
+6. Verify DNS propagation:
+   dig NS augeo.app
+
+Cost: ~$1.50/month (DNS $0.50 + storage $0.10 + Key Vault operations ~$0.03)
+''' : '''
 Minimal Development Resources Deployed!
 
 Next Steps:

@@ -1,6 +1,6 @@
 # Minimal Azure Setup for Local Development
 
-This guide helps you deploy only the essential Azure resources needed for local development, keeping costs under $1/month.
+This guide helps you deploy only the essential Azure resources needed for local development, keeping costs under $2/month.
 
 ## What Gets Deployed
 
@@ -11,8 +11,11 @@ This guide helps you deploy only the essential Azure resources needed for local 
 | Storage Account | Backups, logs (if needed) | ~$0.10/month for first 5GB |
 | Application Insights | Telemetry and monitoring | First 5GB/month free |
 | Log Analytics | Log storage | First 5GB/month free |
+| **DNS Zone** | Manage augeo.app domain | **$0.50/month + $0.40 per million queries** |
 
-**Total Estimated Cost: < $1/month**
+**Total Estimated Cost: ~$1.50/month**
+
+> **Note**: DNS zone is included so you can configure your Namecheap domain nameservers immediately after deployment. The zone will be ready when you deploy production infrastructure later.
 
 ## What You'll Use Locally (Free)
 
@@ -50,11 +53,29 @@ This guide helps you deploy only the essential Azure resources needed for local 
 
 This will:
 - Validate the Bicep template
-- Show you what will be deployed
+- Show you what will be deployed (including DNS zone for augeo.app)
 - Ask for confirmation
-- Deploy resources (takes 2-3 minutes)
+- Deploy resources (takes 3-5 minutes)
+- **Output Azure nameservers for your domain**
 
-### 2. Configure Secrets in Key Vault
+### 2. Configure Nameservers at Namecheap
+
+After deployment completes, you'll see 4 Azure nameservers. Configure them at Namecheap:
+
+1. Login to [Namecheap](https://www.namecheap.com/)
+2. Go to **Domain List** → **Manage** (for augeo.app)
+3. Find **NAMESERVERS** section
+4. Select **Custom DNS**
+5. Add all 4 Azure nameservers (e.g., ns1-01.azure-dns.com, ns2-01.azure-dns.net, etc.)
+6. **Save** changes
+
+**DNS propagation takes 24-48 hours**. Verify with:
+```bash
+dig NS augeo.app
+# Should show Azure nameservers after propagation
+```
+
+### 3. Configure Secrets in Key Vault
 
 Generate and store secrets:
 
@@ -69,7 +90,7 @@ az keyvault secret set \
 # You'll add database and Redis URLs after starting Docker
 ```
 
-### 3. Start Local Services
+### 4. Start Local Services
 
 Start PostgreSQL and Redis in Docker:
 
@@ -240,6 +261,14 @@ This will:
 - Delete the resource group and all resources
 
 ## Cost Optimization Tips
+
+**Expected Monthly Costs**:
+- Key Vault: ~$0.03 (at low operation volume)
+- Storage Account: ~$0.10 (first 5GB)
+- DNS Zone: $0.50/month + ~$0.01 for queries
+- Application Insights: Free (under 5GB/month)
+- Log Analytics: Free (under 5GB/month)
+- **Total: ~$1.50/month**
 
 1. **Use Application Insights Sampling**:
    - Already configured to 100% for dev (it's free up to 5GB)
