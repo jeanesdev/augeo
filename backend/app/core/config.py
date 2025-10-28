@@ -36,8 +36,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
 
-    # Azure Communication Services (Email)
-    azure_communication_connection_string: str
+    # Azure Communication Services (Email) - Optional for local dev
+    azure_communication_connection_string: str | None = None
     email_from_address: EmailStr
     email_from_name: str = "Augeo Platform"
 
