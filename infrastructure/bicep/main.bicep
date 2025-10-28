@@ -24,6 +24,20 @@ param tags object = {
 
 // Naming convention
 var resourceGroupName = '${appName}-${environment}-rg'
+var appServicePlanName = '${appName}-${environment}-asp'
+var appServiceName = '${appName}-${environment}-api'
+var staticWebAppName = '${appName}-${environment}-admin'
+var postgresServerName = '${appName}-${environment}-postgres'
+var redisCacheName = '${appName}-${environment}-redis'
+var keyVaultName = '${appName}-${environment}-kv'
+var logAnalyticsName = '${appName}-${environment}-logs'
+var appInsightsName = '${appName}-${environment}-insights'
+var storageAccountName = replace('${appName}${environment}storage', '-', '')
+
+// Secure parameters
+@description('PostgreSQL administrator password')
+@secure()
+param postgresAdminPassword string
 
 // Deploy Resource Group
 module resourceGroup './modules/resource-group.bicep' = {
@@ -35,15 +49,138 @@ module resourceGroup './modules/resource-group.bicep' = {
   }
 }
 
-// TODO: Add App Service Plan module (Phase 3)
-// TODO: Add App Service (Backend) module (Phase 3)
-// TODO: Add Static Web App (Frontend) module (Phase 3)
-// TODO: Add PostgreSQL Flexible Server module (Phase 3)
-// TODO: Add Redis Cache module (Phase 3)
-// TODO: Add Key Vault module (Phase 3)
-// TODO: Add Application Insights module (Phase 3)
-// TODO: Add Log Analytics Workspace module (Phase 3)
-// TODO: Add Storage Account module (Phase 3)
+// Deploy Log Analytics Workspace (needed by Application Insights)
+module logAnalytics './modules/log-analytics.bicep' = {
+  name: 'logAnalytics-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    workspaceName: logAnalyticsName
+    location: location
+    environment: environment
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy Application Insights
+module appInsights './modules/monitoring.bicep' = {
+  name: 'appInsights-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    appInsightsName: appInsightsName
+    location: location
+    environment: environment
+    workspaceId: logAnalytics.outputs.workspaceId
+    tags: tags
+  }
+}
+
+// Deploy App Service Plan
+module appServicePlan './modules/app-service-plan.bicep' = {
+  name: 'appServicePlan-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    appServicePlanName: appServicePlanName
+    location: location
+    environment: environment
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy PostgreSQL
+module postgres './modules/database.bicep' = {
+  name: 'postgres-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    postgresServerName: postgresServerName
+    location: location
+    environment: environment
+    administratorPassword: postgresAdminPassword
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy Redis Cache
+module redis './modules/redis.bicep' = {
+  name: 'redis-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    redisCacheName: redisCacheName
+    location: location
+    environment: environment
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy Storage Account
+module storage './modules/storage.bicep' = {
+  name: 'storage-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    storageAccountName: storageAccountName
+    location: location
+    environment: environment
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy App Service (Backend)
+module appService './modules/app-service.bicep' = {
+  name: 'appService-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    appServiceName: appServiceName
+    location: location
+    environment: environment
+    appServicePlanId: appServicePlan.outputs.appServicePlanId
+    keyVaultName: keyVaultName
+    appInsightsConnectionString: appInsights.outputs.appInsightsConnectionString
+    tags: tags
+  }
+}
+
+// Deploy Key Vault (depends on App Service for managed identity)
+module keyVault './modules/key-vault.bicep' = {
+  name: 'keyVault-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    environment: environment
+    appServicePrincipalId: appService.outputs.appServicePrincipalId
+    tags: tags
+  }
+}
+
+// Deploy Static Web App (Frontend) - Use eastus2 as Static Web Apps not available in eastus
+module staticWebApp './modules/static-web-app.bicep' = {
+  name: 'staticWebApp-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    staticWebAppName: staticWebAppName
+    location: 'eastus2' // Static Web Apps limited regions
+    environment: environment
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
 // TODO: Add DNS Zone module (Phase 5)
 // TODO: Add Communication Services module (Phase 5)
 
@@ -52,3 +189,29 @@ output resourceGroupName string = resourceGroup.outputs.resourceGroupName
 output resourceGroupId string = resourceGroup.outputs.resourceGroupId
 output location string = location
 output environment string = environment
+
+// App Service outputs
+output appServiceName string = appService.outputs.appServiceName
+output appServiceUrl string = 'https://${appService.outputs.appServiceDefaultHostname}'
+
+// Static Web App outputs
+output staticWebAppName string = staticWebApp.outputs.staticWebAppName
+output staticWebAppUrl string = 'https://${staticWebApp.outputs.staticWebAppDefaultHostname}'
+
+// Database outputs
+output postgresServerName string = postgres.outputs.postgresServerName
+output postgresDatabaseName string = postgres.outputs.postgresDatabaseName
+
+// Redis outputs
+output redisCacheName string = redis.outputs.redisCacheName
+
+// Key Vault outputs
+output keyVaultName string = keyVault.outputs.keyVaultName
+output keyVaultUri string = keyVault.outputs.keyVaultUri
+
+// Monitoring outputs
+output appInsightsName string = appInsights.outputs.appInsightsName
+output appInsightsConnectionString string = appInsights.outputs.appInsightsConnectionString
+
+// Storage outputs
+output storageAccountName string = storage.outputs.storageAccountName

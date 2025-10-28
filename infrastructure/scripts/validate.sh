@@ -30,6 +30,15 @@ fi
 echo -e "${YELLOW}2. Checking module files...${NC}"
 MODULES=(
   "resource-group.bicep"
+  "app-service-plan.bicep"
+  "app-service.bicep"
+  "static-web-app.bicep"
+  "database.bicep"
+  "redis.bicep"
+  "key-vault.bicep"
+  "log-analytics.bicep"
+  "monitoring.bicep"
+  "storage.bicep"
 )
 
 for module in "${MODULES[@]}"; do
@@ -43,10 +52,14 @@ done
 
 # Run deployment validation (no actual deployment)
 echo -e "${YELLOW}3. Running deployment validation...${NC}"
+
+# Generate a random password for validation
+TEMP_PASSWORD=$(openssl rand -base64 32)
+
 az deployment sub validate \
   --location eastus \
   --template-file "$BICEP_DIR/main.bicep" \
-  --parameters environment="$ENVIRONMENT" location=eastus \
+  --parameters environment="$ENVIRONMENT" location=eastus postgresAdminPassword="$TEMP_PASSWORD" \
   --output none
 
 if [ $? -eq 0 ]; then

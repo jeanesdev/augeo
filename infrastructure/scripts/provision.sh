@@ -19,6 +19,7 @@ fi
 
 ENVIRONMENT=$1
 SUBSCRIPTION_ID=${2:-$(az account show --query id -o tsv)}
+POSTGRES_PASSWORD=${3:-}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BICEP_DIR="$(dirname "$SCRIPT_DIR")/bicep"
 LOCATION="eastus"
@@ -28,6 +29,14 @@ if [[ ! "$ENVIRONMENT" =~ ^(dev|staging|production)$ ]]; then
   echo -e "${RED}Error: Invalid environment '$ENVIRONMENT'${NC}"
   echo "Must be one of: dev, staging, production"
   exit 1
+fi
+
+# Check for PostgreSQL password
+if [ -z "$POSTGRES_PASSWORD" ]; then
+  echo -e "${YELLOW}PostgreSQL admin password not provided.${NC}"
+  echo "Please enter a secure password for PostgreSQL admin:"
+  read -s POSTGRES_PASSWORD
+  echo ""
 fi
 
 echo -e "${GREEN}=== Augeo Platform Infrastructure Provisioning ===${NC}"
@@ -49,7 +58,7 @@ echo -e "${YELLOW}Running deployment preview (what-if)...${NC}"
 az deployment sub what-if \
   --location "$LOCATION" \
   --template-file "$BICEP_DIR/main.bicep" \
-  --parameters environment="$ENVIRONMENT" location="$LOCATION"
+  --parameters environment="$ENVIRONMENT" location="$LOCATION" postgresAdminPassword="$POSTGRES_PASSWORD"
 
 # Confirm deployment
 if [ "$ENVIRONMENT" == "production" ]; then
@@ -71,7 +80,7 @@ az deployment sub create \
   --name "$DEPLOYMENT_NAME" \
   --location "$LOCATION" \
   --template-file "$BICEP_DIR/main.bicep" \
-  --parameters environment="$ENVIRONMENT" location="$LOCATION" \
+  --parameters environment="$ENVIRONMENT" location="$LOCATION" postgresAdminPassword="$POSTGRES_PASSWORD" \
   --verbose
 
 # Get deployment outputs
