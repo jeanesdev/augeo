@@ -6,10 +6,12 @@ const searchSchema = z.object({
   token: z.string().optional(),
 })
 
+function PasswordResetConfirmRoute() {
+  const { token } = Route.useSearch()
+  return <PasswordResetConfirm token={token} />
+}
+
 export const Route = createFileRoute('/(auth)/password-reset-confirm')({
-  component: () => {
-    const { token } = Route.useSearch()
-    return <PasswordResetConfirm token={token} />
-  },
+  component: PasswordResetConfirmRoute,
   validateSearch: searchSchema,
 })

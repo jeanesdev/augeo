@@ -40,26 +40,27 @@ export function useCreateUser() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('User created successfully')
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { detail?: string }; status?: number } }
       // Extract error message from Axios error response
       let message = 'Failed to create user'
 
       // Check if it's an Axios error with response
-      if (error?.response?.data?.detail) {
+      if (err?.response?.data?.detail) {
         // FastAPI returns error in 'detail' field
-        message = error.response.data.detail
-      } else if (error?.response?.status === 409) {
+        message = err.response.data.detail
+      } else if (err?.response?.status === 409) {
         // 409 Conflict - likely duplicate email
         message = 'Email already exists'
-      } else if (error?.response?.status === 400) {
+      } else if (err?.response?.status === 400) {
         // 400 Bad Request - validation error
-        message = error.response.data?.detail || 'Invalid user data'
-      } else if (error?.response?.status === 403) {
+        message = err.response.data?.detail || 'Invalid user data'
+      } else if (err?.response?.status === 403) {
         // 403 Forbidden - permission error
         message = 'You do not have permission to create users'
-      } else if (error?.message) {
+      } else if ((err as { message?: string })?.message) {
         // Network or other error
-        message = error.message
+        message = (err as { message: string }).message
       }
 
       toast.error(message)

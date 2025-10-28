@@ -46,10 +46,11 @@ export function PasswordResetRequestForm({
       })
 
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { detail?: { message?: string }; message?: string } } }
       const errorMessage =
-        error.response?.data?.detail?.message ||
-        error.response?.data?.message ||
+        err.response?.data?.detail?.message ||
+        err.response?.data?.message ||
         'Failed to send reset email. Please try again.'
 
       toast.error('Request failed', {

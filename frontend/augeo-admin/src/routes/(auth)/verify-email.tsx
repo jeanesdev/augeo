@@ -7,10 +7,12 @@ const searchSchema = z.object({
   email: z.string().optional(),
 })
 
+function VerifyEmailRoute() {
+  const { token, email } = Route.useSearch()
+  return <EmailVerificationPage token={token} email={email} />
+}
+
 export const Route = createFileRoute('/(auth)/verify-email')({
-  component: () => {
-    const { token, email } = Route.useSearch()
-    return <EmailVerificationPage token={token} email={email} />
-  },
+  component: VerifyEmailRoute,
   validateSearch: searchSchema,
 })

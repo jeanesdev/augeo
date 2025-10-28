@@ -38,9 +38,8 @@ export function DataTableBulkActions<TData>({
         )
       )
       table.resetRowSelection()
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation hook
-      console.error(`Error ${status === 'active' ? 'activating' : 'deactivating'} users:`, error)
     }
   }
 

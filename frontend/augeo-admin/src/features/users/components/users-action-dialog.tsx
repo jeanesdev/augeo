@@ -180,7 +180,6 @@ export function UsersActionDialog({
         // TODO: Add NPO selection field for npo_admin and event_coordinator roles
         // For now, these roles cannot be created without npo_id
         if (['npo_admin', 'event_coordinator'].includes(values.role)) {
-          console.error('Cannot create user with role that requires NPO without NPO selection')
           throw new Error('NPO Admin and Event Coordinator roles require NPO selection. Please use Staff or Donor role for now.')
         }
 
@@ -192,18 +191,13 @@ export function UsersActionDialog({
           phone: values.phoneNumber || undefined,
           role: values.role,
         }
-        console.log('Creating user with payload:', payload)
         await createUser.mutateAsync(payload)
       }
 
       form.reset()
       onOpenChange(false)
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation hooks
-      console.error('Failed to save user:', error)
-      if (error && typeof error === 'object' && 'response' in error) {
-        console.error('Error response:', (error as any).response?.data)
-      }
     }
   }
 

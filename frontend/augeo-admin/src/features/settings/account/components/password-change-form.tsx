@@ -66,10 +66,11 @@ export function PasswordChangeForm({
       })
 
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { detail?: { message?: string }; message?: string } } }
       const errorMessage =
-        error.response?.data?.detail?.message ||
-        error.response?.data?.message ||
+        err.response?.data?.detail?.message ||
+        err.response?.data?.message ||
         'Failed to change password. Please try again.'
 
       toast.error('Change failed', {

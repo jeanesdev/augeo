@@ -57,7 +57,7 @@ export function SessionExpirationWarning({
       setSecondsRemaining(null)
     } catch (error) {
       // If refresh fails, logout user
-      console.error('Session extension failed:', error)
+      // Session extension failed - redirect to login
       reset()
       window.location.href = '/sign-in'
     } finally {

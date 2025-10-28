@@ -29,18 +29,16 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         userId: user.id,
         data: { is_active: !user.is_active },
       })
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation hook
-      console.error('Error toggling user active status:', error)
     }
   }
 
   const handleVerifyEmail = async () => {
     try {
       await verifyEmail.mutateAsync(user.id)
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation hook
-      console.error('Error verifying email:', error)
     }
   }
 
