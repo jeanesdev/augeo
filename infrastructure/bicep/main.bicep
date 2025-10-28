@@ -49,6 +49,10 @@ param customDomain string = ''
 @description('Enable custom domain and email services')
 param enableCustomDomain bool = environment == 'production'
 
+// Cost management parameters
+@description('Monthly budget amount in USD')
+param monthlyBudget int
+
 // Deploy Resource Group
 module resourceGroup './modules/resource-group.bicep' = {
   name: 'resourceGroup-${environment}'
@@ -224,6 +228,79 @@ module communicationServices './modules/communication.bicep' = if (enableCustomD
   ]
 }
 
+// Deploy Cost Budget (Phase 9)
+module budget './modules/budget.bicep' = {
+  name: 'budget-${environment}'
+  params: {
+    environment: environment
+    budgetAmount: monthlyBudget
+    alertEmailAddresses: alertEmailAddresses
+    resourceGroupName: resourceGroupName
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy Resource Locks for Production (Phase 9 - T152)
+// Locks prevent accidental deletion of critical resources
+module postgresLock './modules/resource-lock.bicep' = {
+  name: 'postgresLock-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    targetResourceId: postgres.outputs.postgresServerId
+    targetResourceName: postgresServerName
+    lockNotes: 'Critical database - contains all application data'
+  }
+  dependsOn: [
+    postgres
+  ]
+}
+
+module redisLock './modules/resource-lock.bicep' = {
+  name: 'redisLock-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    targetResourceId: redis.outputs.redisCacheId
+    targetResourceName: redisCacheName
+    lockNotes: 'Critical cache - contains session data'
+  }
+  dependsOn: [
+    redis
+  ]
+}
+
+module keyVaultLock './modules/resource-lock.bicep' = {
+  name: 'keyVaultLock-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    targetResourceId: keyVault.outputs.keyVaultId
+    targetResourceName: keyVaultName
+    lockNotes: 'Critical secrets store - contains all application secrets'
+  }
+  dependsOn: [
+    keyVault
+  ]
+}
+
+module storageLock './modules/resource-lock.bicep' = {
+  name: 'storageLock-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    targetResourceId: storage.outputs.storageAccountId
+    targetResourceName: storageAccountName
+    lockNotes: 'Critical storage - contains backups and logs'
+  }
+  dependsOn: [
+    storage
+  ]
+}
+
 // TODO: Update DNS records with App Service and Static Web App hostnames after deployment
 
 // Outputs
@@ -269,3 +346,8 @@ output communicationServiceEndpoint string = enableCustomDomain && customDomain 
 output emailDomainStatus string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.emailDomainStatus : ''
 output dnsRecordsRequired object = enableCustomDomain && customDomain != '' ? communicationServices.outputs.dnsRecordsRequired : {}
 output emailConfigurationInstructions string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.configurationInstructions : 'Email services not configured'
+
+// Budget outputs (Phase 9)
+output budgetId string = budget.outputs.budgetId
+output budgetName string = budget.outputs.budgetName
+output monthlyBudgetAmount int = budget.outputs.budgetAmount

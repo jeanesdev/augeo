@@ -25,4 +25,8 @@ param tags = {
   ManagedBy: 'Bicep'
   CostCenter: 'operations'
   Compliance: 'required'
+  Owner: 'platform-team'
 }
+
+// Cost management (Phase 9)
+param monthlyBudget = 1000 // $1000/month for production environment

@@ -62,6 +62,7 @@ az webapp log tail \
 1. Test login: `POST /api/v1/auth/login`
 2. Verify new JWT token issued
 3. Confirm old tokens rejected (401 Unauthorized)
+
 - Check Application Insights for authentication errors
 
 ### JWT Secret Rollback
@@ -135,6 +136,7 @@ curl -f https://api.augeo.app/health/detailed
 1. Check detailed health endpoint: `GET /health/detailed`
 2. Verify `database.status: "healthy"`
 3. Test database operations (user login, NPO creation)
+
 - Monitor Application Insights for database errors
 
 ### Database Password Rollback
@@ -220,6 +222,7 @@ az redis regenerate-keys \
 1. Check detailed health endpoint: `GET /health/detailed`
 2. Verify `redis.status: "healthy"`
 3. Test session operations (login, token refresh)
+
 - Monitor Application Insights for Redis errors
 
 ### Redis Key Verification

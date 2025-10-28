@@ -43,8 +43,8 @@ resource appService 'Microsoft.Web/sites@2022-09-01' = {
     clientAffinityEnabled: false // Stateless API
     siteConfig: {
       linuxFxVersion: 'DOCKER|${dockerImage}'
-      alwaysOn: environment != 'dev' // true for staging/production
-      healthCheckPath: '/health'
+      alwaysOn: environment != 'dev' // true for staging/production (Phase 9 - T155)
+      healthCheckPath: '/health' // Health check endpoint (Phase 9 - T156)
       http20Enabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'

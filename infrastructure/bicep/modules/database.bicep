@@ -87,7 +87,10 @@ resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2
   name: 'augeo'
 }
 
-// Firewall rule to allow Azure services (temporary, will be replaced with VNet)
+// Firewall rule to allow Azure services
+// Note (Phase 9 - T153): In production with VNet integration, this should be removed
+// and replaced with private endpoint or VNet service endpoint
+// For now, we allow Azure services to access the database
 resource firewallRule 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2022-12-01' = {
   parent: postgresServer
   name: 'AllowAzureServices'

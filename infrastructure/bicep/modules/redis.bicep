@@ -50,7 +50,7 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
     }
     enableNonSslPort: false
     minimumTlsVersion: '1.2'
-    publicNetworkAccess: 'Enabled' // TODO: Change to 'Disabled' when VNet integration is ready
+    publicNetworkAccess: 'Enabled' // Note (Phase 9 - T154): Change to 'Disabled' with VNet integration or private endpoint
     redisConfiguration: environment == 'production' ? {
       'maxmemory-policy': 'allkeys-lru'
       'aof-backup-enabled': 'true' // AOF persistence for production

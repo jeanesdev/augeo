@@ -14,4 +14,12 @@ param tags = {
   Project: 'augeo-platform'
   ManagedBy: 'Bicep'
   CostCenter: 'engineering'
+  Owner: 'devops-team'
 }
+
+// Cost management
+param monthlyBudget = 300 // $300/month for staging environment
+param alertEmailAddresses = [
+  'ops@augeo.app'
+  'devops@augeo.app'
+]

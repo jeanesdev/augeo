@@ -48,6 +48,87 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   }
 }
 
+// Auto-scaling configuration (Phase 9)
+var autoScaleConfigs = {
+  dev: {
+    enabled: false
+    minCapacity: 1
+    maxCapacity: 2
+  }
+  staging: {
+    enabled: true
+    minCapacity: 1
+    maxCapacity: 5
+  }
+  production: {
+    enabled: true
+    minCapacity: 2
+    maxCapacity: 10
+  }
+}
+
+resource autoScaleSettings 'Microsoft.Insights/autoscalesettings@2022-10-01' = if (autoScaleConfigs[environment].enabled) {
+  name: '${appServicePlanName}-autoscale'
+  location: location
+  tags: tags
+  properties: {
+    enabled: true
+    targetResourceUri: appServicePlan.id
+    profiles: [
+      {
+        name: 'Auto-scale based on CPU'
+        capacity: {
+          minimum: string(autoScaleConfigs[environment].minCapacity)
+          maximum: string(autoScaleConfigs[environment].maxCapacity)
+          default: string(autoScaleConfigs[environment].minCapacity)
+        }
+        rules: [
+          {
+            metricTrigger: {
+              metricName: 'CpuPercentage'
+              metricResourceUri: appServicePlan.id
+              timeGrain: 'PT1M'
+              statistic: 'Average'
+              timeWindow: 'PT5M'
+              timeAggregation: 'Average'
+              operator: 'GreaterThan'
+              threshold: 70
+            }
+            scaleAction: {
+              direction: 'Increase'
+              type: 'ChangeCount'
+              value: '1'
+              cooldown: 'PT5M'
+            }
+          }
+          {
+            metricTrigger: {
+              metricName: 'CpuPercentage'
+              metricResourceUri: appServicePlan.id
+              timeGrain: 'PT1M'
+              statistic: 'Average'
+              timeWindow: 'PT10M'
+              timeAggregation: 'Average'
+              operator: 'LessThan'
+              threshold: 30
+            }
+            scaleAction: {
+              direction: 'Decrease'
+              type: 'ChangeCount'
+              value: '1'
+              cooldown: 'PT10M'
+            }
+          }
+        ]
+      }
+    ]
+    notifications: []
+  }
+}
+
 output appServicePlanId string = appServicePlan.id
 output appServicePlanName string = appServicePlan.name
 output appServicePlanSku string = appServicePlan.sku.name
+output autoScaleEnabled bool = autoScaleConfigs[environment].enabled
+output autoScaleMinCapacity int = autoScaleConfigs[environment].minCapacity
+output autoScaleMaxCapacity int = autoScaleConfigs[environment].maxCapacity

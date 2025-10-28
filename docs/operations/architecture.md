@@ -1,11 +1,11 @@
 # Augeo Platform Infrastructure Architecture
 
 **Last Updated**: 2025-10-27
-**Status**: Phase 2 - Foundational Complete
+**Status**: Phase 9 - Production Ready
 
 ## Overview
 
-The Augeo Platform is deployed on Microsoft Azure using a modern, cloud-native architecture optimized for scalability, security, and cost-efficiency.
+The Augeo Platform is deployed on Microsoft Azure using a modern, cloud-native architecture optimized for scalability, security, and cost-efficiency. The infrastructure supports three environments (dev, staging, production) with comprehensive monitoring, automated backups, disaster recovery, and cost optimization.
 
 ## Architecture Diagram
 
@@ -295,36 +295,136 @@ All resources tagged with:
 
 ## Monitoring & Alerting
 
+### Application Insights Configuration
+- **Sampling**: 10% production (cost optimization), 100% dev/staging
+- **Daily Cap**: 5GB production, 1GB staging, unlimited dev
+- **Retention**: 90 days
+- **Cost**: ~$200/month (production)
+
 ### Key Metrics
 - Request rate (requests/minute)
-- Response time (P95 latency)
+- Response time (avg, P50, P95, P99 percentiles)
 - Error rate (%)
+- Availability (uptime %)
 - CPU usage (%)
 - Memory usage (%)
-- Database connections
-- Redis cache hit rate
+- Database connections (active, failed)
+- Redis cache hit rate (%)
 
 ### Alert Rules
-- **Critical**: Error rate >5%, P95 latency >500ms
-- **Warning**: CPU >80%, Memory >80%
-- **Info**: Deployment success/failure
+
+**Critical Alerts** (Severity 1):
+- High error rate: >5% for 5 minutes
+- High latency: P95 >500ms for 5 minutes
+- Backend availability: 2 consecutive failures
+- Frontend availability: 2 consecutive failures
+
+**Warning Alerts** (Severity 2):
+- CPU usage: >70% for 10 minutes (triggers auto-scale)
+- Memory usage: >80% for 10 minutes
+- Database connections: >80% capacity
+
+**Budget Alerts**:
+- 80% of monthly budget (warning)
+- 90% of forecasted spend (warning)
+- 100% of monthly budget (critical)
+
+### Availability Tests
+- **Backend**: /health endpoint every 5 minutes from 3 regions
+- **Frontend**: Homepage every 5 minutes from 3 regions
+- **Test Locations**: East US, West US, North Europe
 
 ### Notification Channels
-- Email (operations team)
-- Microsoft Teams webhook
-- SMS for critical alerts (on-call rotation)
+- **Production**: ops@augeo.app, engineering@augeo.app
+- **Staging**: ops@augeo.app, devops@augeo.app
+- **Dev**: devops@augeo.app
+
+### Dashboards
+1. **System Health Dashboard**: 10 tiles with request rate, latency, errors, availability, top endpoints
+2. **Infrastructure Workbook**: App Service, PostgreSQL, Redis, Storage metrics with thresholds
+
+## Cost Optimization
+
+### Monthly Budget Targets
+| Environment | Budget | Auto-scaling | Reserved Instances |
+|-------------|--------|--------------|-------------------|
+| Development | $100   | Disabled     | No                |
+| Staging     | $300   | Enabled      | No                |
+| Production  | $1,000 | Enabled      | Recommended       |
+
+### Auto-scaling Rules
+**Scale Out** (CPU >70% for 5 minutes):
+- Add 1 instance
+- Cooldown: 5 minutes
+
+**Scale In** (CPU <30% for 10 minutes):
+- Remove 1 instance
+- Cooldown: 10 minutes
+
+### Capacity Limits
+| Environment | Min Instances | Max Instances |
+|-------------|---------------|---------------|
+| Development | 1             | 2             |
+| Staging     | 1             | 5             |
+| Production  | 2             | 10            |
+
+### Cost Savings Strategies
+- Application Insights sampling (90% cost reduction)
+- Auto-scaling (30-50% compute savings off-peak)
+- Storage lifecycle policies (50-95% storage savings)
+- Reserved instances (35% discount for production)
+- Daily ingestion caps (prevent cost overruns)
+
+### Resource Tagging
+All resources tagged with:
+- **Environment**: dev, staging, production
+- **Project**: augeo-platform
+- **Owner**: Team responsible
+- **CostCenter**: Cost allocation
+- **ManagedBy**: Bicep (IaC)
+
+## Production Safeguards
+
+### Resource Locks
+Production resources locked with `CanNotDelete`:
+- PostgreSQL database (contains all application data)
+- Redis cache (contains session data)
+- Key Vault (contains all secrets)
+- Storage Account (contains backups and logs)
+
+### Security Enhancements (Phase 9)
+- Always-on enabled (prevents cold starts)
+- Health check endpoint configured (/health)
+- TLS 1.2+ enforced
+- PostgreSQL firewall (Azure services only)
+- Redis public access restricted
+- Comprehensive security checklist validated
+
+### Deployment Safety
+- Blue-green deployment for production
+- Health checks before slot swap
+- Automatic rollback on failure
+- Database migration separate step
+- 30-minute rollback window
 
 ## Next Steps
 
 1. ✅ **Phase 1: Setup** - Complete
 2. ✅ **Phase 2: Foundational** - Complete
-3. 🔄 **Phase 3: Infrastructure Provisioning** - In Progress
-4. 📋 **Phase 4: CI/CD Pipeline** - Planned
-5. 📋 **Phase 5: Custom Domain & Email** - Planned
-6. 📋 **Phase 6: Secrets Management** - Planned
-7. 📋 **Phase 7: Backup & DR** - Planned
-8. 📋 **Phase 8: Monitoring** - Planned
-9. 📋 **Phase 9: Polish** - Planned
+3. ✅ **Phase 3: Infrastructure Provisioning** - Complete
+4. ✅ **Phase 4: CI/CD Pipeline** - Complete
+5. ✅ **Phase 5: Custom Domain & Email** - Complete
+6. ✅ **Phase 6: Secrets Management** - Complete
+7. ✅ **Phase 7: Backup & DR** - Complete
+8. ✅ **Phase 8: Monitoring & Alerting** - Complete
+9. ✅ **Phase 9: Cost Optimization & Polish** - Complete
+
+### Post-Deployment Tasks
+- [ ] Deploy production environment
+- [ ] Validate all health checks
+- [ ] Test disaster recovery procedures
+- [ ] Conduct cost analysis (within 10% variance)
+- [ ] Schedule first quarterly DR drill
 
 ## References
 
@@ -333,3 +433,8 @@ All resources tagged with:
 - **Data Model**: `/specs/004-cloud-infrastructure-deployment/data-model.md`
 - **Tasks**: `/specs/004-cloud-infrastructure-deployment/tasks.md`
 - **Quickstart Guide**: `/specs/004-cloud-infrastructure-deployment/quickstart.md`
+- **Monitoring Guide**: `./monitoring-guide.md`
+- **Disaster Recovery**: `./disaster-recovery.md`
+- **Cost Optimization**: `./cost-optimization.md`
+- **Quick Reference**: `./quick-reference.md`
+- **Security Checklist**: `./security-checklist.md`
