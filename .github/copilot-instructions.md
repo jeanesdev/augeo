@@ -97,6 +97,12 @@ git commit -m "message"
   - ✅ Deployment scripts: deploy-backend.sh, deploy-frontend.sh, run-migrations.sh, rollback.sh
   - ✅ Blue-green deployment for production with automatic rollback
   - ✅ CI/CD documentation and rollback procedures
+- 004-cloud-infrastructure-deployment: Completed Phase 5-6 (T061-T103)
+  - ✅ DNS Zone module with Azure DNS for custom domain augeo.app
+  - ✅ Communication Services module for email with SPF/DKIM/DMARC
+  - ✅ DNS and email configuration documentation
+  - ✅ Secrets management scripts: configure-secrets.sh, update-app-settings.sh
+  - ✅ Secret rotation procedures and security checklist documentation
 - 001-user-authentication-role: Completed Phase 12 Polish (T154-T161, T165, T167)
   - ✅ OpenAPI documentation enhanced with contact, license, and tags
   - ✅ Comprehensive health checks: /health, /health/detailed, /health/ready, /health/live
