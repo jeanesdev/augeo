@@ -18,19 +18,17 @@ param alertEmailAddresses array
 @description('Resource group name for budget scope')
 param resourceGroupName string
 
-@description('Tags to apply to all resources')
-param tags object = {}
+@description('Budget start date (YYYY-MM-DD format). Defaults to current month.')
+param startDate string = utcNow('yyyy-MM-01')
+
+@description('Budget end date (YYYY-MM-DD format). Defaults to 3 years from now.')
+param endDate string = dateTimeAdd(utcNow(), 'P3Y', 'yyyy-MM-01')
 
 // ============================================================================
 // Budget Configuration
 // ============================================================================
 
 var budgetName = 'budget-${environment}'
-var startDate = '${utcNow('yyyy')}-${utcNow('MM')}-01'
-
-// Calculate next year's date for end date
-var nextYear = string(int(utcNow('yyyy')) + 1)
-var endDate = '${nextYear}-${utcNow('MM')}-01'
 
 resource budget 'Microsoft.Consumption/budgets@2023-05-01' = {
   name: budgetName

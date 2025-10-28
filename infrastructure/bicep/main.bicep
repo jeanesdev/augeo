@@ -218,7 +218,6 @@ module communicationServices './modules/communication.bicep' = if (enableCustomD
   scope: az.resourceGroup(resourceGroupName)
   params: {
     environment: environment
-    location: location
     emailDomain: customDomain
     tags: tags
   }
@@ -231,12 +230,12 @@ module communicationServices './modules/communication.bicep' = if (enableCustomD
 // Deploy Cost Budget (Phase 9)
 module budget './modules/budget.bicep' = {
   name: 'budget-${environment}'
+  scope: subscription()
   params: {
     environment: environment
     budgetAmount: monthlyBudget
     alertEmailAddresses: alertEmailAddresses
     resourceGroupName: resourceGroupName
-    tags: tags
   }
   dependsOn: [
     resourceGroup
@@ -250,13 +249,9 @@ module postgresLock './modules/resource-lock.bicep' = {
   scope: az.resourceGroup(resourceGroupName)
   params: {
     environment: environment
-    targetResourceId: postgres.outputs.postgresServerId
     targetResourceName: postgresServerName
     lockNotes: 'Critical database - contains all application data'
   }
-  dependsOn: [
-    postgres
-  ]
 }
 
 module redisLock './modules/resource-lock.bicep' = {
@@ -264,13 +259,9 @@ module redisLock './modules/resource-lock.bicep' = {
   scope: az.resourceGroup(resourceGroupName)
   params: {
     environment: environment
-    targetResourceId: redis.outputs.redisCacheId
     targetResourceName: redisCacheName
     lockNotes: 'Critical cache - contains session data'
   }
-  dependsOn: [
-    redis
-  ]
 }
 
 module keyVaultLock './modules/resource-lock.bicep' = {
@@ -278,13 +269,9 @@ module keyVaultLock './modules/resource-lock.bicep' = {
   scope: az.resourceGroup(resourceGroupName)
   params: {
     environment: environment
-    targetResourceId: keyVault.outputs.keyVaultId
     targetResourceName: keyVaultName
     lockNotes: 'Critical secrets store - contains all application secrets'
   }
-  dependsOn: [
-    keyVault
-  ]
 }
 
 module storageLock './modules/resource-lock.bicep' = {
@@ -292,13 +279,9 @@ module storageLock './modules/resource-lock.bicep' = {
   scope: az.resourceGroup(resourceGroupName)
   params: {
     environment: environment
-    targetResourceId: storage.outputs.storageAccountId
     targetResourceName: storageAccountName
     lockNotes: 'Critical storage - contains backups and logs'
   }
-  dependsOn: [
-    storage
-  ]
 }
 
 // TODO: Update DNS records with App Service and Static Web App hostnames after deployment
@@ -336,16 +319,16 @@ output appInsightsConnectionString string = appInsights.outputs.appInsightsConne
 output storageAccountName string = storage.outputs.storageAccountName
 
 // DNS outputs (Phase 5)
-output dnsZoneName string = enableCustomDomain && customDomain != '' ? dnsZone.outputs.dnsZoneName : ''
-output nameServers array = enableCustomDomain && customDomain != '' ? dnsZone.outputs.nameServers : []
-output nameServerInstructions string = enableCustomDomain && customDomain != '' ? dnsZone.outputs.nameServerInstructions : 'Custom domain not configured'
+output dnsZoneName string = enableCustomDomain && customDomain != '' ? dnsZone!.outputs.dnsZoneName : ''
+output nameServers array = enableCustomDomain && customDomain != '' ? dnsZone!.outputs.nameServers : []
+output nameServerInstructions string = enableCustomDomain && customDomain != '' ? dnsZone!.outputs.nameServerInstructions : 'Custom domain not configured'
 
 // Communication Services outputs (Phase 5)
-output communicationServiceName string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.communicationServiceName : ''
-output communicationServiceEndpoint string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.communicationServiceEndpoint : ''
-output emailDomainStatus string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.emailDomainStatus : ''
-output dnsRecordsRequired object = enableCustomDomain && customDomain != '' ? communicationServices.outputs.dnsRecordsRequired : {}
-output emailConfigurationInstructions string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.configurationInstructions : 'Email services not configured'
+output communicationServiceName string = enableCustomDomain && customDomain != '' ? communicationServices!.outputs.communicationServiceName : ''
+output communicationServiceEndpoint string = enableCustomDomain && customDomain != '' ? communicationServices!.outputs.communicationServiceEndpoint : ''
+output emailDomainStatus string = enableCustomDomain && customDomain != '' ? communicationServices!.outputs.emailDomainStatus : ''
+output dnsRecordsRequired object = enableCustomDomain && customDomain != '' ? communicationServices!.outputs.dnsRecordsRequired : {}
+output emailConfigurationInstructions string = enableCustomDomain && customDomain != '' ? communicationServices!.outputs.configurationInstructions : 'Email services not configured'
 
 // Budget outputs (Phase 9)
 output budgetId string = budget.outputs.budgetId

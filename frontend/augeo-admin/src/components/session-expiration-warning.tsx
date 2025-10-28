@@ -55,7 +55,7 @@ export function SessionExpirationWarning({
       // Close dialog on success
       setIsOpen(false)
       setSecondsRemaining(null)
-    } catch (error) {
+    } catch {
       // If refresh fails, logout user
       // Session extension failed - redirect to login
       reset()

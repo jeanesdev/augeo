@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     project_name: str = "Augeo Platform API"
 
     # Environment
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: Literal["development", "staging", "production", "test"] = "development"
     debug: bool = False
 
     # Database

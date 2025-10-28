@@ -4,9 +4,6 @@
 @description('Environment name')
 param environment string
 
-@description('Azure region for the resource')
-param location string
-
 @description('Custom domain for email (e.g., augeo.app)')
 param emailDomain string
 

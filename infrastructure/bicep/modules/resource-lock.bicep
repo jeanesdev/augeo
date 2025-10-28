@@ -9,9 +9,6 @@
 @allowed(['dev', 'staging', 'production'])
 param environment string
 
-@description('Target resource ID to lock')
-param targetResourceId string
-
 @description('Target resource name (for lock naming)')
 param targetResourceName string
 
