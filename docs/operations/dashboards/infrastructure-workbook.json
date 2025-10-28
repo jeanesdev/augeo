@@ -1,0 +1,142 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/workbook.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceGroup": {
+      "type": "string",
+      "defaultValue": "augeo-production-rg"
+    }
+  },
+  "metadata": {
+    "name": "Augeo Infrastructure Health Workbook",
+    "description": "Comprehensive infrastructure metrics for App Service, PostgreSQL, Redis, and Azure resources",
+    "version": "1.0.0",
+    "sections": [
+      {
+        "title": "App Service Health",
+        "queries": [
+          {
+            "title": "CPU Percentage",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.WEB' | where MetricName == 'CpuPercentage' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart",
+            "threshold": {
+              "warning": 70,
+              "critical": 80
+            }
+          },
+          {
+            "title": "Memory Percentage",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.WEB' | where MetricName == 'MemoryPercentage' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart",
+            "threshold": {
+              "warning": 70,
+              "critical": 80
+            }
+          },
+          {
+            "title": "HTTP 5xx Errors",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.WEB' | where MetricName == 'Http5xx' | summarize sum(Total) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Response Time",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.WEB' | where MetricName == 'HttpResponseTime' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          }
+        ]
+      },
+      {
+        "title": "PostgreSQL Database Health",
+        "queries": [
+          {
+            "title": "Active Connections",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' | where MetricName == 'active_connections' | summarize avg(Average), max(Maximum) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "CPU Percent",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' | where MetricName == 'cpu_percent' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart",
+            "threshold": {
+              "warning": 70,
+              "critical": 80
+            }
+          },
+          {
+            "title": "Memory Percent",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' | where MetricName == 'memory_percent' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart",
+            "threshold": {
+              "warning": 70,
+              "critical": 80
+            }
+          },
+          {
+            "title": "Storage Used",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' | where MetricName == 'storage_used' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Failed Connections",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.DBFORPOSTGRESQL' | where MetricName == 'connections_failed' | summarize sum(Total) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          }
+        ]
+      },
+      {
+        "title": "Redis Cache Health",
+        "queries": [
+          {
+            "title": "Cache Hits vs Misses",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.CACHE' | where MetricName in ('cachehits', 'cachemisses') | summarize hits = sumif(Total, MetricName == 'cachehits'), misses = sumif(Total, MetricName == 'cachemisses') by bin(TimeGenerated, 5m) | extend hitRate = (hits * 100.0) / (hits + misses) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Server Load",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.CACHE' | where MetricName == 'serverLoad' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart",
+            "threshold": {
+              "warning": 70,
+              "critical": 80
+            }
+          },
+          {
+            "title": "Used Memory",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.CACHE' | where MetricName == 'usedmemory' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Connected Clients",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.CACHE' | where MetricName == 'connectedclients' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Evicted Keys",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.CACHE' | where MetricName == 'evictedkeys' | summarize sum(Total) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          }
+        ]
+      },
+      {
+        "title": "Storage Account",
+        "queries": [
+          {
+            "title": "Blob Transactions",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.STORAGE' | where MetricName == 'Transactions' | summarize sum(Total) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Used Capacity",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.STORAGE' | where MetricName == 'UsedCapacity' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          },
+          {
+            "title": "Availability",
+            "query": "AzureMetrics | where ResourceProvider == 'MICROSOFT.STORAGE' | where MetricName == 'Availability' | summarize avg(Average) by bin(TimeGenerated, 5m) | render timechart",
+            "visualization": "timechart"
+          }
+        ]
+      }
+    ]
+  }
+}

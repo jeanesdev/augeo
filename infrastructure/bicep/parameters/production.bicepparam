@@ -13,6 +13,12 @@ param postgresAdminPassword = ''
 param customDomain = 'augeo.app'
 param enableCustomDomain = true
 
+// Alert notification emails (Phase 8)
+param alertEmailAddresses = [
+  'ops@augeo.app'
+  'engineering@augeo.app'
+]
+
 param tags = {
   Environment: 'production'
   Project: 'augeo-platform'

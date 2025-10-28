@@ -22,6 +22,9 @@ param tags object = {
   ManagedBy: 'Bicep'
 }
 
+@description('Alert notification email addresses')
+param alertEmailAddresses array = []
+
 // Naming convention
 var resourceGroupName = '${appName}-${environment}-rg'
 var appServicePlanName = '${appName}-${environment}-asp'
@@ -80,6 +83,9 @@ module appInsights './modules/monitoring.bicep' = {
     location: location
     environment: environment
     workspaceId: logAnalytics.outputs.workspaceId
+    backendApiUrl: environment == 'production' ? 'https://api.${customDomain}' : 'https://${appServiceName}.azurewebsites.net'
+    frontendUrl: environment == 'production' ? 'https://admin.${customDomain}' : 'https://${staticWebAppName}.azurestaticapps.net'
+    alertEmailAddresses: alertEmailAddresses
     tags: tags
   }
 }

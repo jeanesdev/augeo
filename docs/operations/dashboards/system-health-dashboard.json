@@ -1,0 +1,94 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceGroup": {
+      "type": "string",
+      "defaultValue": "augeo-production-rg",
+      "metadata": {
+        "description": "Resource group name"
+      }
+    },
+    "appInsightsName": {
+      "type": "string",
+      "defaultValue": "augeo-production-ai",
+      "metadata": {
+        "description": "Application Insights name"
+      }
+    }
+  },
+  "resources": [],
+  "outputs": {
+    "dashboardId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Portal/dashboards', 'augeo-system-health')]"
+    }
+  },
+  "metadata": {
+    "name": "Augeo System Health Dashboard",
+    "description": "Real-time system health metrics including request rate, response time, error rate, and availability",
+    "version": "1.0.0",
+    "tiles": [
+      {
+        "title": "Request Rate",
+        "type": "timechart",
+        "query": "requests | summarize count() by bin(timestamp, 5m) | render timechart",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Response Time (Percentiles)",
+        "type": "timechart",
+        "query": "requests | summarize avg(duration), percentile(duration, 50), percentile(duration, 95), percentile(duration, 99) by bin(timestamp, 5m) | render timechart",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Error Rate",
+        "type": "timechart",
+        "query": "requests | summarize total = count(), failed = countif(success == false) by bin(timestamp, 5m) | extend errorRate = (failed * 100.0) / total | render timechart",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Availability",
+        "type": "singlevalue",
+        "query": "requests | where timestamp > ago(1h) | summarize availability = (count() - countif(success == false)) * 100.0 / count()",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Top Endpoints by Request Count",
+        "type": "barchart",
+        "query": "requests | where timestamp > ago(1h) | summarize count() by name | order by count_ desc | take 10",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Slowest Endpoints (P95)",
+        "type": "table",
+        "query": "requests | where timestamp > ago(1h) | summarize count = count(), p95 = percentile(duration, 95) by name | where count > 10 | order by p95 desc | take 10",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Failed Requests by Type",
+        "type": "piechart",
+        "query": "requests | where timestamp > ago(1h) and success == false | summarize count() by resultCode",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Database Response Time",
+        "type": "timechart",
+        "query": "dependencies | where type == 'SQL' | summarize avg(duration), percentile(duration, 95) by bin(timestamp, 5m) | render timechart",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Redis Cache Hit Rate",
+        "type": "timechart",
+        "query": "dependencies | where type == 'Redis' | summarize hits = countif(success == true), total = count() by bin(timestamp, 5m) | extend hitRate = (hits * 100.0) / total | render timechart",
+        "timeRange": "PT1H"
+      },
+      {
+        "title": "Active Users (Last Hour)",
+        "type": "singlevalue",
+        "query": "customEvents | where name == 'UserLogin' and timestamp > ago(1h) | summarize users = dcount(tostring(customDimensions.userId))",
+        "timeRange": "PT1H"
+      }
+    ]
+  }
+}
