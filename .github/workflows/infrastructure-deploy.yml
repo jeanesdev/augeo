@@ -1,0 +1,125 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy infrastructure'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      postgres_password:
+        description: 'PostgreSQL admin password'
+        required: true
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/bicep/**'
+      - '.github/workflows/infrastructure-deploy.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure to ${{ github.event.inputs.environment || 'dev' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'dev' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Bicep CLI
+        run: |
+          az bicep install
+          az bicep version
+
+      - name: Set environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate Bicep templates
+        run: |
+          chmod +x ./infrastructure/scripts/validate.sh
+          ./infrastructure/scripts/validate.sh ${{ steps.env.outputs.environment }}
+
+      - name: Run what-if analysis
+        run: |
+          TEMP_PASSWORD=$(openssl rand -base64 32)
+          az deployment sub what-if \
+            --location eastus \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters environment=${{ steps.env.outputs.environment }} \
+                         location=eastus \
+                         postgresAdminPassword="$TEMP_PASSWORD"
+
+      - name: Deploy infrastructure
+        id: deploy
+        run: |
+          DEPLOYMENT_NAME="augeo-${{ steps.env.outputs.environment }}-$(date +%Y%m%d-%H%M%S)"
+
+          # Get password from input or secrets
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            POSTGRES_PASSWORD="${{ github.event.inputs.postgres_password }}"
+          else
+            POSTGRES_PASSWORD="${{ secrets.POSTGRES_ADMIN_PASSWORD }}"
+          fi
+
+          az deployment sub create \
+            --name "$DEPLOYMENT_NAME" \
+            --location eastus \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters environment=${{ steps.env.outputs.environment }} \
+                         location=eastus \
+                         postgresAdminPassword="$POSTGRES_PASSWORD"
+
+          echo "deployment_name=$DEPLOYMENT_NAME" >> $GITHUB_OUTPUT
+
+      - name: Get deployment outputs
+        run: |
+          az deployment sub show \
+            --name ${{ steps.deploy.outputs.deployment_name }} \
+            --query properties.outputs
+
+      - name: Verify resources
+        run: |
+          echo "Verifying resource group exists..."
+          az group show --name augeo-${{ steps.env.outputs.environment }}-rg
+
+          echo "Listing deployed resources..."
+          az resource list \
+            --resource-group augeo-${{ steps.env.outputs.environment }}-rg \
+            --output table
+
+      - name: Post-deployment summary
+        run: |
+          echo "## Infrastructure Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment**: ${{ steps.deploy.outputs.deployment_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Configure secrets in Key Vault" >> $GITHUB_STEP_SUMMARY
+          echo "2. Deploy backend application" >> $GITHUB_STEP_SUMMARY
+          echo "3. Deploy frontend application" >> $GITHUB_STEP_SUMMARY

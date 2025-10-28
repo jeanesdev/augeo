@@ -15,21 +15,32 @@ tests/
 
 ## Commands
 
+**Use Makefile for all common tasks**: Run `make help` to see all available commands.
+
+### Quick Reference
+- **Development**: `make dev-backend` or `make b`, `make dev-frontend` or `make f`, `make dev-fullstack`
+- **Testing**: `make test` or `make t`, `make test-coverage`, `make test-watch`
+- **Code Quality**: `make lint`, `make format`, `make type-check`, `make check-commits`
+- **Database**: `make migrate` or `make m`, `make migrate-create NAME="description"`, `make db-seed`
+- **Docker**: `make docker-up`, `make docker-down`, `make docker-logs`
+- **Infrastructure**: `make validate-infra ENV=dev`, `make deploy-backend ENV=dev TAG=v1.0.0`
+- **Cleanup**: `make clean`, `make clean-docker`
+
 ### Backend (Python)
 **CRITICAL**: Always use Poetry for Python commands. Never use pip, venv, or virtualenv directly.
 
-- Run tests: `cd backend && poetry run pytest`
-- Run linter: `cd backend && poetry run ruff check .`
-- Run formatter: `cd backend && poetry run black .`
-- Install dependencies: `cd backend && poetry install`
+- Run tests: `make test-backend` or `cd backend && poetry run pytest`
+- Run linter: `make lint-backend` or `cd backend && poetry run ruff check .`
+- Run formatter: `make format-backend` or `cd backend && poetry run black .`
+- Install dependencies: `make install-backend` or `cd backend && poetry install`
 - Add package: `cd backend && poetry add <package>`
 - Run any Python command: `cd backend && poetry run <command>`
 
 ### Frontend
-- Install: `pnpm install`
-- Dev server: `pnpm dev`
-- Build: `pnpm build`
-- Test: `pnpm test`
+- Install: `make install-frontend` or `cd frontend/augeo-admin && pnpm install`
+- Dev server: `make dev-frontend` or `cd frontend/augeo-admin && pnpm dev`
+- Build: `cd frontend/augeo-admin && pnpm build`
+- Test: `make test-frontend` or `cd frontend/augeo-admin && pnpm test`
 
 ## Development Environment
 
@@ -49,18 +60,24 @@ Python 3.11+ (Backend), TypeScript (Frontend): Follow standard conventions
 
 **Recommended workflow**:
 ```bash
-./scripts/safe-commit.sh      # Run pre-commit hooks with auto-retry
-git commit -m "your message"  # Commit when hooks pass
+make check-commits              # Run pre-commit hooks with auto-retry
+git commit -m "your message"    # Commit when hooks pass
 ```
 
-**Why use safe-commit.sh**: The script:
+**Alternative using script directly**:
+```bash
+./scripts/safe-commit.sh        # Run pre-commit hooks with auto-retry
+git commit -m "your message"    # Commit when hooks pass
+```
+
+**Why use make check-commits / safe-commit.sh**: The script:
 - Runs pre-commit hooks to completion
 - Auto-stages formatting changes (ruff, black, trailing whitespace, etc.)
 - Re-runs hooks after auto-fixes to verify (up to 3 attempts)
 - Exits successfully when all checks pass
 - Prevents committing code that fails linting/formatting
 
-**Manual pre-commit workflow** (if not using safe-commit.sh):
+**Manual pre-commit workflow** (if not using make/script):
 ```bash
 git add -A
 pre-commit run --all-files
@@ -72,6 +89,13 @@ git commit -m "message"
 ```
 
 ## Recent Changes
+- 004-cloud-infrastructure-deployment: Completed Phase 1-4 (Setup, Foundational, Infrastructure, CI/CD)
+  - ✅ Azure Bicep templates for 9 Azure resources (App Service, Static Web Apps, PostgreSQL, Redis, Key Vault, etc.)
+  - ✅ Environment configurations for dev/staging/production
+  - ✅ GitHub Actions workflows: pr-checks, backend-deploy, frontend-deploy, infrastructure-deploy
+  - ✅ Deployment scripts: deploy-backend.sh, deploy-frontend.sh, run-migrations.sh, rollback.sh
+  - ✅ Blue-green deployment for production with automatic rollback
+  - ✅ CI/CD documentation and rollback procedures
 - 001-user-authentication-role: Completed Phase 12 Polish (T154-T161, T165, T167)
   - ✅ OpenAPI documentation enhanced with contact, license, and tags
   - ✅ Comprehensive health checks: /health, /health/detailed, /health/ready, /health/live

@@ -1,0 +1,147 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  # Backend validation
+  backend-validation:
+    name: Backend Tests & Linting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run Ruff linter
+        run: poetry run ruff check .
+
+      - name: Run Black formatter check
+        run: poetry run black --check .
+
+      - name: Run MyPy type checker
+        run: poetry run mypy app
+        continue-on-error: true
+
+      - name: Run tests
+        run: poetry run pytest --cov=app --cov-report=xml --cov-report=term
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+        continue-on-error: true
+
+  # Frontend validation
+  frontend-validation:
+    name: Frontend Tests & Linting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend/augeo-admin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run linter
+        run: pnpm lint
+
+      - name: Run type check
+        run: pnpm type-check
+
+      - name: Run tests
+        run: pnpm test
+        continue-on-error: true
+
+      - name: Build
+        run: pnpm build
+
+  # Infrastructure validation
+  infrastructure-validation:
+    name: Infrastructure Validation
+    uses: ./.github/workflows/bicep-validate.yml
+
+  # Security scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+  # Summary
+  pr-validation-summary:
+    name: PR Validation Summary
+    runs-on: ubuntu-latest
+    needs:
+      - backend-validation
+      - frontend-validation
+      - infrastructure-validation
+      - security-scan
+    if: always()
+
+    steps:
+      - name: Check validation results
+        run: |
+          if [ "${{ needs.backend-validation.result }}" == "failure" ] || \
+             [ "${{ needs.frontend-validation.result }}" == "failure" ] || \
+             [ "${{ needs.infrastructure-validation.result }}" == "failure" ]; then
+            echo "❌ PR validation failed"
+            exit 1
+          else
+            echo "✅ PR validation passed"
+          fi
