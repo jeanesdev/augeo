@@ -39,6 +39,13 @@ var storageAccountName = replace('${appName}${environment}storage', '-', '')
 @secure()
 param postgresAdminPassword string
 
+// Optional parameters for custom domain (Phase 5)
+@description('Custom domain name (e.g., augeo.app) - only used in production')
+param customDomain string = ''
+
+@description('Enable custom domain and email services')
+param enableCustomDomain bool = environment == 'production'
+
 // Deploy Resource Group
 module resourceGroup './modules/resource-group.bicep' = {
   name: 'resourceGroup-${environment}'
@@ -181,8 +188,37 @@ module staticWebApp './modules/static-web-app.bicep' = {
   ]
 }
 
-// TODO: Add DNS Zone module (Phase 5)
-// TODO: Add Communication Services module (Phase 5)
+// Deploy DNS Zone (Phase 5 - Production only)
+module dnsZone './modules/dns.bicep' = if (enableCustomDomain && customDomain != '') {
+  name: 'dnsZone-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    domainName: customDomain
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+  ]
+}
+
+// Deploy Communication Services (Phase 5)
+module communicationServices './modules/communication.bicep' = if (enableCustomDomain && customDomain != '') {
+  name: 'communicationServices-${environment}'
+  scope: az.resourceGroup(resourceGroupName)
+  params: {
+    environment: environment
+    location: location
+    emailDomain: customDomain
+    tags: tags
+  }
+  dependsOn: [
+    resourceGroup
+    dnsZone
+  ]
+}
+
+// TODO: Update DNS records with App Service and Static Web App hostnames after deployment
 
 // Outputs
 output resourceGroupName string = resourceGroup.outputs.resourceGroupName
@@ -215,3 +251,15 @@ output appInsightsConnectionString string = appInsights.outputs.appInsightsConne
 
 // Storage outputs
 output storageAccountName string = storage.outputs.storageAccountName
+
+// DNS outputs (Phase 5)
+output dnsZoneName string = enableCustomDomain && customDomain != '' ? dnsZone.outputs.dnsZoneName : ''
+output nameServers array = enableCustomDomain && customDomain != '' ? dnsZone.outputs.nameServers : []
+output nameServerInstructions string = enableCustomDomain && customDomain != '' ? dnsZone.outputs.nameServerInstructions : 'Custom domain not configured'
+
+// Communication Services outputs (Phase 5)
+output communicationServiceName string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.communicationServiceName : ''
+output communicationServiceEndpoint string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.communicationServiceEndpoint : ''
+output emailDomainStatus string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.emailDomainStatus : ''
+output dnsRecordsRequired object = enableCustomDomain && customDomain != '' ? communicationServices.outputs.dnsRecordsRequired : {}
+output emailConfigurationInstructions string = enableCustomDomain && customDomain != '' ? communicationServices.outputs.configurationInstructions : 'Email services not configured'

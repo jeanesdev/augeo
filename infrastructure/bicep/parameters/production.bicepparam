@@ -9,6 +9,10 @@ param appName = 'augeo'
 // Usage: az deployment sub create --parameters production.bicepparam --parameters postgresAdminPassword=$POSTGRES_PASSWORD
 param postgresAdminPassword = ''
 
+// Custom domain configuration (Phase 5)
+param customDomain = 'augeo.app'
+param enableCustomDomain = true
+
 param tags = {
   Environment: 'production'
   Project: 'augeo-platform'
