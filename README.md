@@ -370,6 +370,16 @@ make budget-status ENV=production
 - [Cost Optimization](./docs/operations/cost-optimization.md) - Cost management
 - [Quick Reference](./docs/operations/quick-reference.md) - Common operations
 - [Security Checklist](./docs/operations/security-checklist.md) - Security validation
+- [DNS Configuration](./docs/operations/dns-configuration.md) - Domain setup & configuration
+
+## Domain Information
+
+- **Domain**: `augeo.app`
+- **Registrar**: Namecheap
+- **Registered**: October 28, 2025
+- **Expires**: October 28, 2026
+- **Auto-Renewal**: Enabled
+- **Status**: Ready for Azure DNS configuration
 
 ## Contributing
 

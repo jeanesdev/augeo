@@ -46,6 +46,13 @@ The development team needs automated CI/CD pipelines that build, test, and deplo
 
 The operations team needs to configure a custom domain with proper DNS records to provide branded URLs for the application and enable email sending through Azure Communication Services with full email authentication (SPF, DKIM, DMARC).
 
+**Domain Information**:
+- **Domain**: `augeo.app` (purchased from Namecheap)
+- **Registration Date**: October 28, 2025
+- **Expiration Date**: October 28, 2026
+- **Auto-Renewal**: Enabled
+- **Status**: Ready for Azure DNS configuration
+
 **Why this priority**: Custom domain provides professional branding and is required for production email sending. However, applications can initially deploy using Azure-provided URLs while domain configuration is completed.
 
 **Independent Test**: Can be fully tested by purchasing/configuring a domain (e.g., augeo.app), setting up Azure DNS, pointing domain records to Azure services, configuring Azure Communication Services with domain verification, and sending test emails. Success delivers fully functional branded URLs and email capability.

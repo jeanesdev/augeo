@@ -10,6 +10,15 @@ The Augeo platform uses Azure DNS to manage custom domain records for:
 - **Root domain**: `augeo.app` (redirects to admin)
 - **Email**: Email sending via Azure Communication Services
 
+## Domain Registration
+
+**Domain**: `augeo.app`
+- **Registrar**: Namecheap
+- **Registration Date**: October 28, 2025
+- **Expiration Date**: October 28, 2026
+- **Auto-Renewal**: Enabled
+- **Cost**: ~$10-15/year
+
 ## Prerequisites
 
 - Custom domain registered with a domain registrar (e.g., Namecheap, GoDaddy, Google Domains)
