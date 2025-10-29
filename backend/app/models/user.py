@@ -12,6 +12,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.models.audit_log import AuditLog
+    from app.models.consent import ConsentAuditLog, CookieConsent, UserConsent
     from app.models.role import Role
     from app.models.session import Session
 
@@ -98,6 +99,25 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     audit_logs: Mapped[list["AuditLog"]] = relationship(
         "AuditLog",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Legal compliance relationships
+    consents: Mapped[list["UserConsent"]] = relationship(
+        "UserConsent",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    cookie_consents: Mapped[list["CookieConsent"]] = relationship(
+        "CookieConsent",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    consent_audit_logs: Mapped[list["ConsentAuditLog"]] = relationship(
+        "ConsentAuditLog",
         back_populates="user",
         cascade="all, delete-orphan",
     )
