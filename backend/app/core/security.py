@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any, cast
 
 import bcrypt
-from jose import jwt
+import jwt
 
 from app.core.config import get_settings
 
@@ -86,13 +86,13 @@ def create_access_token(
         }
     )
 
-    encoded_jwt = jwt.encode(
+    encoded_jwt: str = jwt.encode(
         to_encode,
         settings.jwt_secret_key,
         algorithm=settings.jwt_algorithm,
     )
 
-    return cast(str, encoded_jwt)
+    return encoded_jwt
 
 
 def create_refresh_token(
@@ -130,13 +130,13 @@ def create_refresh_token(
         }
     )
 
-    encoded_jwt = jwt.encode(
+    encoded_jwt: str = jwt.encode(
         to_encode,
         settings.jwt_secret_key,
         algorithm=settings.jwt_algorithm,
     )
 
-    return cast(str, encoded_jwt)
+    return encoded_jwt
 
 
 def decode_token(token: str, verify_expiration: bool = True) -> dict[str, Any]:

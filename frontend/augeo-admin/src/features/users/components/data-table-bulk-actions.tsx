@@ -1,16 +1,16 @@
-import { useState } from 'react'
-import { type Table } from '@tanstack/react-table'
-import { Trash2, UserX, UserCheck } from 'lucide-react'
+import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
+import { type Table } from '@tanstack/react-table'
+import { Trash2, UserCheck, UserX } from 'lucide-react'
+import { useState } from 'react'
 import { type User } from '../data/schema'
-import { UsersMultiDeleteDialog } from './users-multi-delete-dialog'
 import { useActivateUser } from '../hooks/use-users'
+import { UsersMultiDeleteDialog } from './users-multi-delete-dialog'
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
@@ -38,9 +38,8 @@ export function DataTableBulkActions<TData>({
         )
       )
       table.resetRowSelection()
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation hook
-      console.error(`Error ${status === 'active' ? 'activating' : 'deactivating'} users:`, error)
     }
   }
 

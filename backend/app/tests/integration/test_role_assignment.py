@@ -46,8 +46,8 @@ class TestRoleAssignmentIntegration:
         register_response = await async_client.post("/api/v1/auth/register", json=register_payload)
         assert register_response.status_code == 201
         user_data = register_response.json()
-        user_id = user_data["id"]
-        assert user_data["role"] == "donor"
+        user_id = user_data["user"]["id"]
+        assert user_data["user"]["role"] == "donor"
 
         # Step 2: Manually verify email (in production would be via email link)
         await db_session.execute(
@@ -190,6 +190,7 @@ class TestRoleAssignmentIntegration:
             "/api/v1/users",
             json={
                 "email": "npoadmin.test@example.com",
+                "password": "NPOPass123",
                 "first_name": "NPO",
                 "last_name": "Admin",
                 "role": "npo_admin",
@@ -427,11 +428,14 @@ class TestRoleAssignmentIntegration:
         error_data = change_response.json()
         # Check for error message in various response formats
         error_message = ""
-        if "error" in error_data and "message" in error_data["detail"]:
-            error_message = error_data["detail"]["message"].lower()
-        elif "detail" in error_data:
-            error_message = error_data["detail"].lower()
+        if "detail" in error_data:
+            detail = error_data["detail"]
+            if isinstance(detail, dict) and "message" in detail:
+                error_message = detail["message"].lower()
+            elif isinstance(detail, str):
+                error_message = detail.lower()
         elif "message" in error_data:
+            error_message = error_data["message"].lower()
             error_message = error_data["message"].lower()
 
         assert "cannot change your own role" in error_message

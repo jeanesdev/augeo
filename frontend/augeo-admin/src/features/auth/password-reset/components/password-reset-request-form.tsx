@@ -1,10 +1,3 @@
-import { useState } from 'react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -16,6 +9,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import apiClient from '@/lib/axios'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 const formSchema = z.object({
   email: z
@@ -46,10 +46,11 @@ export function PasswordResetRequestForm({
       })
 
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { detail?: { message?: string }; message?: string } } }
       const errorMessage =
-        error.response?.data?.detail?.message ||
-        error.response?.data?.message ||
+        err.response?.data?.detail?.message ||
+        err.response?.data?.message ||
         'Failed to send reset email. Please try again.'
 
       toast.error('Request failed', {

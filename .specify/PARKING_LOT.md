@@ -4,6 +4,27 @@ Items that are deferred, blocked, or waiting for future consideration.
 
 ## Deferred Features
 
+### Feature 004: Cloud Infrastructure - Production Deployment (T162-T164)
+- **Status**: Deferred - Minimal deployment operational
+- **Phase**: Phase 9 (Final Validation)
+- **Feature**: 004-cloud-infrastructure-deployment
+- **Tasks**:
+  - T162: Deploy production environment and verify all success criteria met
+  - T163: Conduct final cost analysis and confirm within 10% variance of estimates
+  - T164: Schedule first quarterly disaster recovery drill
+- **Current State**: All infrastructure code complete, minimal deployment (~$1.50/month) operational for local development
+- **Reason**: Full production infrastructure (~$289/month) not needed until ready to launch to real users
+- **Blocking**: Budget approval, production readiness decision
+- **Revisit When**:
+  - Ready to launch to production users
+  - Need to deploy full application stack to Azure
+  - Budget approved for ~$289/month Azure costs
+- **Estimated Effort**: 3-5 days (deployment, validation, DR drill)
+- **Dependencies**:
+  - T162 blocked by: Production readiness decision, budget approval
+  - T163 blocked by: T162 (need 30 days of production operation for cost analysis)
+  - T164 blocked by: T162 (need production environment to test DR procedures)
+
 ### Database Permission Table (T074-T075)
 - **Status**: Deferred - Using service-based permissions instead
 - **Phase**: Phase 5 (User Story 3)
@@ -65,26 +86,34 @@ Items that are deferred, blocked, or waiting for future consideration.
 - **Estimated Effort**: 1-2 days
 
 ### Email Service Production Implementation
-- **Status**: Blocked on infrastructure deployment (Spec 004)
-- **Blocking Issue**: Requires Azure Communication Services, verified domain, DNS configuration, and production URLs
-- **Current State**: Mock mode working (logs to console) - sufficient for development and testing
+- **Status**: ~~Blocked on infrastructure deployment (Spec 004)~~ **Unblocked - Infrastructure Complete**
+- **Blocking Issue**: ~~Requires Azure Communication Services, verified domain, DNS configuration, and production URLs~~
+- **Current State**:
+  - Mock mode working (logs to console) - sufficient for development and testing
+  - Infrastructure code complete (Azure Communication Services Bicep module ready)
+  - Domain purchased (augeo.app) and DNS zone deployed
+  - Email configuration documented in /docs/operations/email-configuration.md
 - **Files**: `backend/app/services/email_service.py`
-- **Dependencies**:
-  - Azure Communication Services Email resource
-  - Domain ownership verification (augeo.app or similar)
-  - DNS records (SPF, DKIM, DMARC) for email deliverability
-  - Production frontend URLs for email links
-  - azure-communication-email package
-  - AZURE_COMMUNICATION_CONNECTION_STRING environment variable
-  - EMAIL_FROM_ADDRESS configuration
-- **Impact**: Cannot send real emails (password reset, verification, user invitations)
-- **Priority**: Required for production launch - **blocked until Spec 004 (Cloud Infrastructure & Deployment)**
+- **Dependencies** (All Ready):
+  - ✅ Azure Communication Services Email resource (Bicep module ready)
+  - ✅ Domain ownership (augeo.app purchased from Namecheap, expires 10/28/2026)
+  - ✅ DNS infrastructure (Azure DNS zone deployed, nameservers configured)
+  - ⏳ DNS records (SPF, DKIM, DMARC) - Waiting for DNS propagation (24-48 hours)
+  - ⏳ Production frontend URLs - Need full production deployment (T162)
+  - ✅ azure-communication-email package (already in dependencies)
+  - ⏳ AZURE_COMMUNICATION_CONNECTION_STRING environment variable - Need ACS deployment
+  - ✅ EMAIL_FROM_ADDRESS configuration (backend config already supports)
+- **Impact**: Cannot send real emails (password reset, verification, user invitations) until production deployed
+- **Priority**: Required for production launch - **Ready to deploy with T162**
 - **Next Steps**:
-  1. Create Spec 004: Cloud Infrastructure & Deployment
-  2. Plan full Azure architecture (App Service, DNS, monitoring, etc.)
-  3. Implement email as part of complete deployment
-- **Estimated Effort**: 1-2 days (after infrastructure is deployed)
-- **Related Specs**: Spec 004 (Cloud Infrastructure & Deployment) - Not yet created
+  1. ~~Create Spec 004: Cloud Infrastructure & Deployment~~ ✅ Complete
+  2. ~~Plan full Azure architecture (App Service, DNS, monitoring, etc.)~~ ✅ Complete
+  3. Wait for DNS propagation (24-48 hours after nameserver configuration)
+  4. Deploy full production infrastructure (T162)
+  5. Configure Azure Communication Services domain verification
+  6. Test email delivery with mail-tester.com
+- **Estimated Effort**: 1-2 days (after T162 production deployment)
+- **Related Specs**: ✅ Spec 004 (Cloud Infrastructure & Deployment) - Complete
 
 ### IP Address Capture in Audit Logs
 - **Status**: Currently set to None
@@ -102,17 +131,18 @@ Items that are deferred, blocked, or waiting for future consideration.
 ## Blocked Items
 
 ### Real Email Sending (Production)
-- **Blocked By**: Missing Spec 004 (Cloud Infrastructure & Deployment)
-- **Status**: Need to create comprehensive deployment spec before implementing production email
-- **Reason**: Email requires domain, DNS, Azure resources, and production URLs - should be done holistically
+- **Blocked By**: ~~Missing Spec 004 (Cloud Infrastructure & Deployment)~~ **Now: T162 (Production Deployment)**
+- **Status**: Infrastructure complete, waiting for production deployment
+- **Reason**: Email requires full production environment (App Service, verified domain, DNS propagation)
 - **Current Workaround**: Mock email mode works for development/testing
 - **Tasks Affected**:
   - T057: Email service implementation (partially complete - mock mode working)
   - Production deployment of password reset feature
   - Production deployment of email verification feature
   - User invitation emails
-- **Next Action**: Create Spec 004 to plan Azure infrastructure, domain setup, DNS, CI/CD, and monitoring
+- **Next Action**: ~~Create Spec 004 to plan Azure infrastructure~~ ✅ Complete - **Execute T162 (Production Deployment)**
 - **Priority**: Medium - Not blocking current development, required before production launch
+- **Dependencies**: T162 (Production Deployment), DNS propagation (24-48 hours)
 
 ## Future Enhancements
 
@@ -136,6 +166,6 @@ None currently - all active work has clear direction.
 
 ---
 
-**Last Updated**: 2025-10-25
+**Last Updated**: 2025-10-28
 **Maintained By**: Development Team
 **Review Cadence**: Update after each phase completion

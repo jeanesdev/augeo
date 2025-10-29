@@ -59,11 +59,12 @@ export function EmailVerificationForm({
 
       form.reset()
       navigate({ to: '/sign-in' })
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { error?: { message?: string }; detail?: { message?: string }; message?: string } } }
       const errorMessage =
-        error.response?.data?.error?.message ||
-        error.response?.data?.detail?.message ||
-        error.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        err.response?.data?.detail?.message ||
+        err.response?.data?.message ||
         'Failed to verify email. The token may have expired.'
 
       toast.error('Verification failed', {
@@ -92,11 +93,12 @@ export function EmailVerificationForm({
       toast.success('Verification email sent', {
         description: 'Check your inbox for the new verification link.',
       })
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { error?: { message?: string }; detail?: { message?: string }; message?: string } } }
       const errorMessage =
-        error.response?.data?.error?.message ||
-        error.response?.data?.detail?.message ||
-        error.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        err.response?.data?.detail?.message ||
+        err.response?.data?.message ||
         'Failed to resend verification email.'
 
       toast.error('Resend failed', {

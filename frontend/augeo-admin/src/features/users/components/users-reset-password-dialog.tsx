@@ -39,8 +39,9 @@ export function UsersResetPasswordDialog({
       queryClient.invalidateQueries({ queryKey: ['users'] })
       onOpenChange(false)
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.detail || 'Failed to send password reset email'
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { detail?: string } } }
+      const message = err?.response?.data?.detail || 'Failed to send password reset email'
       toast.error(message)
     },
   })

@@ -1,22 +1,22 @@
-import { useState } from 'react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import apiClient from '@/lib/axios'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 const formSchema = z
   .object({
@@ -66,10 +66,11 @@ export function PasswordChangeForm({
       })
 
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { detail?: { message?: string }; message?: string } } }
       const errorMessage =
-        error.response?.data?.detail?.message ||
-        error.response?.data?.message ||
+        err.response?.data?.detail?.message ||
+        err.response?.data?.message ||
         'Failed to change password. Please try again.'
 
       toast.error('Change failed', {

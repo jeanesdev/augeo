@@ -8,9 +8,9 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Annotated, Any
 
+import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -159,10 +159,10 @@ async def get_current_user(
 
         return user
 
-    except JWTError as e:
+    except (jwt.DecodeError, jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
         # Token decode errors (invalid signature, expired, etc.)
         error_msg = str(e)
-        if "expired" in error_msg.lower():
+        if "expired" in error_msg.lower() or isinstance(e, jwt.ExpiredSignatureError):
             code = "TOKEN_EXPIRED"
             message = "Token has expired"
         else:

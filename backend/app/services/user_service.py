@@ -189,12 +189,8 @@ class UserService:
         if not await self.permission_service.can_assign_role(current_user, user_data.role):
             raise PermissionError(f"Cannot assign role: {user_data.role}")
 
-        # Validate role and npo_id combination
-        is_valid, error_msg = self.permission_service.validate_role_npo_id_combination(
-            user_data.role, user_data.npo_id
-        )
-        if not is_valid:
-            raise ValueError(error_msg)
+        # Note: role/npo_id validation is now handled at the schema level (UserCreateRequest)
+        # See app/schemas/users.py for validation logic
 
         # Check if email already exists
         stmt = select(User).where(User.email == user_data.email.lower())
@@ -340,10 +336,8 @@ class UserService:
         if not await self.permission_service.can_assign_role(current_user, role):
             raise PermissionError(f"Cannot assign role: {role}")
 
-        # Validate role and npo_id combination
-        is_valid, error_msg = self.permission_service.validate_role_npo_id_combination(role, npo_id)
-        if not is_valid:
-            raise ValueError(error_msg)
+        # Note: role/npo_id validation is now handled at the schema level (RoleUpdateRequest)
+        # See app/schemas/users.py for validation logic
 
         # Get role ID
         from app.models.base import Base

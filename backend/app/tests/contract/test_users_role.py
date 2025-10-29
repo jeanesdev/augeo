@@ -225,7 +225,11 @@ class TestUsersRoleUpdateContract:
         payload = {"role": "npo_admin"}
         response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
-        assert response.status_code == 400  # Business logic validation returns 400
+        assert response.status_code == 422  # Schema validation returns 422
+        data = response.json()
+        assert "detail" in data
+        # Check validation error message mentions npo_id requirement
+        assert any("npo_id" in error["message"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_update_to_event_coordinator_without_npo_id_returns_400(
@@ -267,7 +271,11 @@ class TestUsersRoleUpdateContract:
         payload = {"role": "event_coordinator"}
         response = await super_admin_client.patch(f"/api/v1/users/{user_id}/role", json=payload)
 
-        assert response.status_code == 400  # Business logic validation returns 400
+        assert response.status_code == 422  # Schema validation returns 422
+        data = response.json()
+        assert "detail" in data
+        # Check validation error message mentions npo_id requirement
+        assert any("npo_id" in error["message"].lower() for error in data["detail"]["details"])
 
     @pytest.mark.asyncio
     async def test_update_to_npo_admin_with_npo_id_succeeds(

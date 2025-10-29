@@ -95,9 +95,9 @@ class TestJWTTokens:
 
     def test_decode_invalid_token(self) -> None:
         """Test decoding an invalid token raises error."""
-        from jose import JWTError
+        import jwt
 
-        with pytest.raises(JWTError):
+        with pytest.raises(jwt.InvalidTokenError):
             decode_token("invalid.token.here")
 
     def test_token_with_custom_expiry(self) -> None:
