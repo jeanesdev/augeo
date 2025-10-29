@@ -3,9 +3,9 @@
  * Manages legal documents state (Terms of Service, Privacy Policy)
  */
 
-import { create } from 'zustand'
 import { legalService } from '@/services/legal-service'
 import type { LegalDocumentPublic, LegalDocumentType } from '@/types/legal'
+import { create } from 'zustand'
 
 interface LegalState {
   // State

@@ -3,9 +3,9 @@
  * Hook for fetching and managing legal documents
  */
 
-import { useEffect } from 'react'
 import { useLegalStore } from '@/stores/legal-store'
 import type { LegalDocumentType } from '@/types/legal'
+import { useEffect } from 'react'
 
 export function useLegalDocuments() {
   const {

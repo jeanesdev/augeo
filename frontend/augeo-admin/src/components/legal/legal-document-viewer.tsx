@@ -3,7 +3,7 @@
  * Displays legal document content with version and publication date
  */
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { LegalDocumentPublic } from '@/types/legal'
 
 interface LegalDocumentViewerProps {

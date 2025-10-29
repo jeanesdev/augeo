@@ -3,7 +3,6 @@
  * Banner displayed on first visit to collect cookie consent
  */
 
-import { useState } from 'react'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,8 +13,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Cookie } from 'lucide-react'
 import { useCookieStore } from '@/stores/cookie-store'
+import { Cookie } from 'lucide-react'
+import { useState } from 'react'
 
 interface CookieConsentBannerProps {
   open: boolean

@@ -3,9 +3,9 @@
  * Hook for checking user consent status and managing consent
  */
 
-import { useEffect, useState } from 'react'
 import { consentService } from '@/services/consent-service'
 import type { ConsentStatusResponse } from '@/types/consent'
+import { useEffect, useState } from 'react'
 
 export function useConsentCheck() {
   const [consentStatus, setConsentStatus] = useState<ConsentStatusResponse | null>(null)

@@ -3,9 +3,9 @@
  * Shows cookie consent banner on first visit
  */
 
-import { useState, useEffect } from 'react'
-import { CookieConsentBanner } from './cookie-consent-banner'
 import { hasSetCookiePreferences } from '@/utils/cookie-manager'
+import { useEffect, useState } from 'react'
+import { CookieConsentBanner } from './cookie-consent-banner'
 
 export function CookieConsentWrapper() {
   const [showBanner, setShowBanner] = useState(false)

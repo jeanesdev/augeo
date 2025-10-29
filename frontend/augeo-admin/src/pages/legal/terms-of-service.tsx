@@ -4,10 +4,10 @@
  */
 
 import { LegalDocumentViewer } from '@/components/legal/legal-document-viewer'
-import { useLegalDocuments } from '@/hooks/use-legal-documents'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { useLegalDocuments } from '@/hooks/use-legal-documents'
 import { Link } from '@tanstack/react-router'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 
 export function TermsOfServicePage() {
   const { termsOfService, isLoading, error } = useLegalDocuments()

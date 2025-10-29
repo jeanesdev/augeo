@@ -1,5 +1,7 @@
+import { TermsOfServiceModal } from '@/components/legal/terms-of-service-modal'
 import { PasswordInput } from '@/components/password-input'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -9,11 +11,9 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { TermsOfServiceModal } from '@/components/legal/terms-of-service-modal'
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/stores/auth-store'
 import { consentService } from '@/services/consent-service'
+import { useAuthStore } from '@/stores/auth-store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'

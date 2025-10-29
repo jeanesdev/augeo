@@ -3,16 +3,16 @@
  * Zustand store for managing cookie consent state
  */
 
-import { create } from 'zustand'
 import { cookieService } from '@/services/cookie-service'
+import type { CookieConsentPreferences, CookieConsentStatusResponse } from '@/types/cookie'
 import {
+  clearSessionId,
   getCookiePreferences,
-  saveCookiePreferences,
   getSessionId,
   hasSetCookiePreferences,
-  clearSessionId,
+  saveCookiePreferences,
 } from '@/utils/cookie-manager'
-import type { CookieConsentPreferences, CookieConsentStatusResponse } from '@/types/cookie'
+import { create } from 'zustand'
 
 interface CookieConsentState {
   preferences: CookieConsentPreferences

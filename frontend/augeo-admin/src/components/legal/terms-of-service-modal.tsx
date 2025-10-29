@@ -3,7 +3,6 @@
  * Modal for displaying and accepting Terms of Service
  */
 
-import { useState } from 'react'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,8 +13,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { LegalDocumentViewer } from './legal-document-viewer'
 import { useLegalDocuments } from '@/hooks/use-legal-documents'
+import { useState } from 'react'
+import { LegalDocumentViewer } from './legal-document-viewer'
 
 interface TermsOfServiceModalProps {
   open: boolean

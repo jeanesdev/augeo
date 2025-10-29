@@ -1,6 +1,6 @@
+import { CookieConsentWrapper } from '@/components/legal/cookie-consent-wrapper'
 import { NavigationProgress } from '@/components/navigation-progress'
 import { SessionExpirationWarning } from '@/components/session-expiration-warning'
-import { CookieConsentWrapper } from '@/components/legal/cookie-consent-wrapper'
 import { Toaster } from '@/components/ui/sonner'
 import { GeneralError } from '@/features/errors/general-error'
 import { NotFoundError } from '@/features/errors/not-found-error'

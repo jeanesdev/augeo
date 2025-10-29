@@ -3,12 +3,12 @@
  * Settings page for managing cookie consent preferences
  */
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useCookieStore } from '@/stores/cookie-store'
-import { Loader2, Cookie, Shield, BarChart3, Megaphone } from 'lucide-react'
+import { BarChart3, Cookie, Loader2, Megaphone, Shield } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export function CookiePreferences() {
