@@ -10,6 +10,8 @@ Admin web application for nonprofit auction management with authentication, user
 - **User Management**: List, create, update, delete users (admin only)
 - **Role Assignment**: Assign roles to users (Super Admin, NPO Admin, NPO Manager, Event Staff, Donor)
 - **Session Management**: Automatic token refresh, session expiration warning
+- **Legal Compliance**: Terms of Service, Privacy Policy, Cookie Consent (GDPR)
+- **Consent Management**: View consent history, export data, withdraw consent, delete account
 - **Dark/Light Mode**: Theme switcher with system preference support
 - **Responsive Design**: Mobile-first responsive layout
 - **Accessibility**: Built with accessibility in mind (ARIA, keyboard navigation)
@@ -133,26 +135,32 @@ frontend/augeo-admin/
 │   ├── components/       # Reusable UI components
 │   │   ├── ui/           # Shadcn UI components
 │   │   ├── layout/       # Layout components (header, sidebar)
+│   │   ├── legal/        # Legal components (TOS modal, cookie banner, consent)
 │   │   └── custom/       # Custom shared components
 │   ├── features/         # Feature-based modules
 │   │   ├── auth/         # Authentication (login, register, password reset)
 │   │   ├── users/        # User management
 │   │   └── settings/     # Settings and account
 │   ├── hooks/            # Custom React hooks
-│   │   └── use-users.ts  # User management hooks (React Query)
+│   │   ├── use-users.ts  # User management hooks (React Query)
+│   │   └── use-tos.ts    # Terms of Service hooks
 │   ├── lib/              # Utilities and configurations
 │   │   ├── axios.ts      # Axios configuration with interceptors
 │   │   ├── api/          # API service layer
 │   │   └── utils.ts      # Helper functions
+│   ├── pages/            # Full-page components
+│   │   └── legal/        # Legal pages (TOS, Privacy, Cookies, Consent)
 │   ├── routes/           # TanStack Router routes
 │   │   ├── __root.tsx    # Root route layout
 │   │   ├── _authenticated/ # Protected routes
 │   │   └── (auth)/       # Auth routes (login, register)
 │   ├── stores/           # Zustand state management
-│   │   └── auth-store.ts # Auth state (user, tokens, login/logout)
+│   │   ├── auth-store.ts # Auth state (user, tokens, login/logout)
+│   │   └── tos-store.ts  # TOS consent state
 │   ├── types/            # TypeScript type definitions
 │   │   ├── api.ts        # API request/response types
-│   │   └── auth.ts       # Auth types
+│   │   ├── auth.ts       # Auth types
+│   │   └── consent-history.ts # Consent history types
 │   └── main.tsx          # Application entry point
 ├── public/               # Static assets
 ├── index.html            # HTML template
@@ -219,6 +227,74 @@ frontend/augeo-admin/
 - Role-based access control
 - Automatic redirect to login for unauthenticated users
 - Permission checks at component level
+
+### Legal Compliance & GDPR
+
+1. **Terms of Service Modal** (`/sign-up`, `/settings/account`):
+   - Mandatory acceptance on registration
+   - Auto-detect outdated consent (409 Conflict)
+   - Modal with scrollable content
+   - Checkbox confirmation required
+
+2. **Privacy Policy** (`/privacy-policy`):
+   - Standalone page with full policy text
+   - Versioned documents
+   - Accessible from footer and settings
+
+3. **Cookie Consent Banner**:
+   - First-visit banner with granular preferences
+   - 3 categories: Essential (always on), Analytics, Marketing
+   - LocalStorage for anonymous sessions
+   - PostgreSQL for authenticated users
+   - Redis cache for performance
+
+4. **Cookie Preferences** (`/settings/cookies`):
+   - Update cookie preferences anytime
+   - Toggle categories on/off
+   - Consent audit trail
+
+5. **Consent History** (`/settings/consent`):
+   - Paginated table (10 items per page)
+   - Status badges (Active, Superseded, Withdrawn)
+   - Document versions with timestamps
+   - Previous/Next navigation
+
+6. **Data Rights Form** (`/settings/consent`):
+   - **Export Data**: GDPR Article 20 (Portability)
+   - **Withdraw Consent**: GDPR Article 7 (with confirmation)
+   - **Delete Account**: 30-day grace period (GDPR Article 17)
+   - Toast notifications for all actions
+
+7. **Legal Footer**:
+   - Present on all pages (auth + authenticated)
+   - Links to Terms, Privacy Policy
+   - Copyright with dynamic year
+
+**Components**:
+- `components/legal/tos-modal.tsx` - Terms acceptance modal
+- `components/legal/cookie-banner.tsx` - First-visit cookie consent
+- `components/legal/consent-history.tsx` - History table
+- `components/legal/data-rights-form.tsx` - Export/Delete/Withdraw
+- `components/legal/legal-footer.tsx` - Footer with legal links
+
+**Pages**:
+- `pages/legal/terms-of-service.tsx` - Full TOS document
+- `pages/legal/privacy-policy.tsx` - Full privacy policy
+- `pages/legal/cookie-policy.tsx` - Cookie preferences
+- `pages/legal/consent-settings.tsx` - Consent history + data rights
+
+**Hooks**:
+- `hooks/use-tos.ts` - TOS loading, acceptance, versioning
+- `hooks/use-cookies.ts` - Cookie consent, preferences
+
+**Stores**:
+- `stores/tos-store.ts` - TOS state (current version, user acceptance)
+
+**Routes**:
+- `/terms-of-service` - Public TOS page
+- `/privacy-policy` - Public privacy page
+- `/settings/cookies` - Cookie preferences (authenticated)
+- `/settings/consent` - Consent management (authenticated)
 
 ### State Management
 
