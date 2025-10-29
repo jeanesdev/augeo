@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 # ================================
 # Request Schemas
@@ -38,12 +38,42 @@ class UserCreateRequest(BaseModel):
             raise ValueError("Password must contain at least one number")
         return v
 
+    @model_validator(mode="after")
+    def validate_role_npo_id_combination(self) -> "UserCreateRequest":
+        """Validate that role and npo_id combination is valid."""
+        role = self.role
+        npo_id = self.npo_id
+
+        # NPO Admin and Event Coordinator MUST have npo_id
+        if role in ["npo_admin", "event_coordinator"] and npo_id is None:
+            raise ValueError(f"npo_id is required for {role} role")
+        # Staff and Donor MUST NOT have npo_id
+        if role in ["staff", "donor"] and npo_id is not None:
+            raise ValueError(f"npo_id must not be provided for {role} role")
+
+        return self
+
 
 class RoleUpdateRequest(BaseModel):
     """Request schema for updating a user's role."""
 
     role: Literal["super_admin", "npo_admin", "event_coordinator", "staff", "donor"]
     npo_id: uuid.UUID | None = None
+
+    @model_validator(mode="after")
+    def validate_role_npo_id_combination(self) -> "RoleUpdateRequest":
+        """Validate that role and npo_id combination is valid."""
+        role = self.role
+        npo_id = self.npo_id
+
+        # NPO Admin and Event Coordinator MUST have npo_id
+        if role in ["npo_admin", "event_coordinator"] and npo_id is None:
+            raise ValueError(f"npo_id is required for {role} role")
+        # Staff and Donor MUST NOT have npo_id
+        if role in ["staff", "donor"] and npo_id is not None:
+            raise ValueError(f"npo_id must not be provided for {role} role")
+
+        return self
 
 
 class UserUpdateRequest(BaseModel):
