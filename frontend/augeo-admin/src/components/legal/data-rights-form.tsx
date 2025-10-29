@@ -3,10 +3,6 @@
  * GDPR data rights: export data, delete account, withdraw consent
  */
 
-import { useState } from 'react'
-import { consentService } from '@/services/consent-service'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +14,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Download, Trash2, Shield, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { consentService } from '@/services/consent-service'
+import { Download, Loader2, Shield, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 export function DataRightsForm() {

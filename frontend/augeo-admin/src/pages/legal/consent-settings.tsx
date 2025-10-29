@@ -6,8 +6,8 @@
 import { ConsentHistory } from '@/components/legal/consent-history'
 import { DataRightsForm } from '@/components/legal/data-rights-form'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
 
 export function ConsentSettingsPage() {
   return (

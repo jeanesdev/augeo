@@ -4,9 +4,9 @@
  * Shows when user accepted terms/privacy policy and current status
  */
 
-import { useState, useEffect } from 'react'
-import { consentService } from '@/services/consent-service'
-import type { ConsentHistoryResponse } from '@/types/consent'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -15,11 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
+import { consentService } from '@/services/consent-service'
+import type { ConsentHistoryResponse } from '@/types/consent'
 import { formatDistanceToNow } from 'date-fns'
+import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export function ConsentHistory() {
   const [history, setHistory] = useState<ConsentHistoryResponse | null>(null)
