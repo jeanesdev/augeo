@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any, cast
 
 import bcrypt
-from jose import jwt
+import jwt
 
 from app.core.config import get_settings
 
