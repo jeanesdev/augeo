@@ -9,8 +9,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import { TermsOfServiceModal } from '@/components/legal/terms-of-service-modal'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
+import { consentService } from '@/services/consent-service'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'
@@ -50,6 +53,9 @@ const formSchema = z
         },
         { message: '11-digit phone must start with 1' }
       ),
+    acceptedTerms: z.boolean().refine((val) => val === true, {
+      message: 'You must accept the Terms of Service and Privacy Policy',
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",
@@ -80,6 +86,8 @@ export function SignUpForm({
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showLegalModal, setShowLegalModal] = useState(false)
+  const [legalDocumentIds, setLegalDocumentIds] = useState<{ tosId: string; privacyId: string } | null>(null)
   const navigate = useNavigate()
   const register = useAuthStore((state) => state.register)
 
@@ -92,32 +100,49 @@ export function SignUpForm({
       password: '',
       confirmPassword: '',
       phone: '',
+      acceptedTerms: false,
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
 
-    const { confirmPassword: _, ...registerData } = data
+    const { confirmPassword: _, acceptedTerms: __, ...registerData } = data
 
-    toast.promise(register(registerData), {
-      loading: 'Creating your account...',
-      success: (response) => {
-        setIsLoading(false)
+    try {
+      // Register the user
+      const response = await register(registerData)
 
-        // Navigate to sign-in page with success message
-        navigate({ to: '/sign-in', replace: true })
+      // If we have legal document IDs, accept them
+      if (legalDocumentIds) {
+        try {
+          await consentService.acceptConsent({
+            tos_document_id: legalDocumentIds.tosId,
+            privacy_document_id: legalDocumentIds.privacyId,
+          })
+        } catch (consentError) {
+          // eslint-disable-next-line no-console
+          console.error('Failed to record consent:', consentError)
+          // Don't fail registration if consent recording fails
+        }
+      }
 
-        return `Account created! ${response.message}`
-      },
-      error: (err) => {
-        setIsLoading(false)
-        const errorMessage =
-          err.response?.data?.error?.message ||
-          'Registration failed. Please try again.'
-        return errorMessage
-      },
-    })
+      toast.success(`Account created! ${response.message}`)
+      navigate({ to: '/sign-in', replace: true })
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: { message?: string } } } }
+      const errorMessage =
+        error.response?.data?.error?.message ||
+        'Registration failed. Please try again.'
+      toast.error(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAcceptLegal = async (tosId: string, privacyId: string) => {
+    setLegalDocumentIds({ tosId, privacyId })
+    form.setValue('acceptedTerms', true)
   }
 
   return (
@@ -218,11 +243,45 @@ export function SignUpForm({
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name='acceptedTerms'
+          render={({ field }) => (
+            <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <div className='space-y-1 leading-none'>
+                <FormLabel className='text-sm font-normal'>
+                  I accept the{' '}
+                  <Button
+                    type='button'
+                    variant='link'
+                    className='h-auto p-0 text-sm font-normal underline'
+                    onClick={() => setShowLegalModal(true)}
+                  >
+                    Terms of Service and Privacy Policy
+                  </Button>
+                </FormLabel>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
         <Button className='mt-2' disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <UserPlus />}
           Create Account
         </Button>
       </form>
+      <TermsOfServiceModal
+        open={showLegalModal}
+        onOpenChange={setShowLegalModal}
+        onAccept={handleAcceptLegal}
+      />
     </Form>
   )
 }
