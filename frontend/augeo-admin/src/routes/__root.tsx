@@ -1,3 +1,4 @@
+import { CookieConsentWrapper } from '@/components/legal/cookie-consent-wrapper'
 import { NavigationProgress } from '@/components/navigation-progress'
 import { SessionExpirationWarning } from '@/components/session-expiration-warning'
 import { Toaster } from '@/components/ui/sonner'
@@ -16,6 +17,7 @@ export const Route = createRootRouteWithContext<{
       <>
         <NavigationProgress />
         <SessionExpirationWarning />
+        <CookieConsentWrapper />
         <Outlet />
         <Toaster duration={5000} />
         {import.meta.env.MODE === 'development' && (

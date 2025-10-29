@@ -18,9 +18,11 @@ import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
 import { Route as authVerifyEmailRouteImport } from './routes/(auth)/verify-email'
+import { Route as authTermsOfServiceRouteImport } from './routes/(auth)/terms-of-service'
 import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
 import { Route as authSignIn2RouteImport } from './routes/(auth)/sign-in-2'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as authPrivacyPolicyRouteImport } from './routes/(auth)/privacy-policy'
 import { Route as authPasswordResetConfirmRouteImport } from './routes/(auth)/password-reset-confirm'
 import { Route as authPasswordResetRouteImport } from './routes/(auth)/password-reset'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
@@ -39,6 +41,7 @@ import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
+import { Route as AuthenticatedSettingsConsentRouteImport } from './routes/_authenticated/settings/consent'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
@@ -87,6 +90,11 @@ const authVerifyEmailRoute = authVerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authTermsOfServiceRoute = authTermsOfServiceRouteImport.update({
+  id: '/(auth)/terms-of-service',
+  path: '/terms-of-service',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authSignUpRoute = authSignUpRouteImport.update({
   id: '/(auth)/sign-up',
   path: '/sign-up',
@@ -100,6 +108,11 @@ const authSignIn2Route = authSignIn2RouteImport.update({
 const authSignInRoute = authSignInRouteImport.update({
   id: '/(auth)/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authPrivacyPolicyRoute = authPrivacyPolicyRouteImport.update({
+  id: '/(auth)/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authPasswordResetConfirmRoute =
@@ -197,6 +210,12 @@ const AuthenticatedSettingsDisplayRoute =
     path: '/display',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsConsentRoute =
+  AuthenticatedSettingsConsentRouteImport.update({
+    id: '/consent',
+    path: '/consent',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsAppearanceRoute =
   AuthenticatedSettingsAppearanceRouteImport.update({
     id: '/appearance',
@@ -224,9 +243,11 @@ export interface FileRoutesByFullPath {
   '/otp': typeof authOtpRoute
   '/password-reset': typeof authPasswordResetRoute
   '/password-reset-confirm': typeof authPasswordResetConfirmRoute
+  '/privacy-policy': typeof authPrivacyPolicyRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
   '/sign-up': typeof authSignUpRoute
+  '/terms-of-service': typeof authTermsOfServiceRoute
   '/verify-email': typeof authVerifyEmailRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
@@ -237,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/settings/consent': typeof AuthenticatedSettingsConsentRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
@@ -255,9 +277,11 @@ export interface FileRoutesByTo {
   '/otp': typeof authOtpRoute
   '/password-reset': typeof authPasswordResetRoute
   '/password-reset-confirm': typeof authPasswordResetConfirmRoute
+  '/privacy-policy': typeof authPrivacyPolicyRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
   '/sign-up': typeof authSignUpRoute
+  '/terms-of-service': typeof authTermsOfServiceRoute
   '/verify-email': typeof authVerifyEmailRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
@@ -268,6 +292,7 @@ export interface FileRoutesByTo {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/settings/consent': typeof AuthenticatedSettingsConsentRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
@@ -291,9 +316,11 @@ export interface FileRoutesById {
   '/(auth)/otp': typeof authOtpRoute
   '/(auth)/password-reset': typeof authPasswordResetRoute
   '/(auth)/password-reset-confirm': typeof authPasswordResetConfirmRoute
+  '/(auth)/privacy-policy': typeof authPrivacyPolicyRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sign-in-2': typeof authSignIn2Route
   '/(auth)/sign-up': typeof authSignUpRoute
+  '/(auth)/terms-of-service': typeof authTermsOfServiceRoute
   '/(auth)/verify-email': typeof authVerifyEmailRoute
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
@@ -304,6 +331,7 @@ export interface FileRoutesById {
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/_authenticated/settings/consent': typeof AuthenticatedSettingsConsentRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
@@ -326,9 +354,11 @@ export interface FileRouteTypes {
     | '/otp'
     | '/password-reset'
     | '/password-reset-confirm'
+    | '/privacy-policy'
     | '/sign-in'
     | '/sign-in-2'
     | '/sign-up'
+    | '/terms-of-service'
     | '/verify-email'
     | '/401'
     | '/403'
@@ -339,6 +369,7 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
+    | '/settings/consent'
     | '/settings/display'
     | '/settings/notifications'
     | '/clerk/sign-in'
@@ -357,9 +388,11 @@ export interface FileRouteTypes {
     | '/otp'
     | '/password-reset'
     | '/password-reset-confirm'
+    | '/privacy-policy'
     | '/sign-in'
     | '/sign-in-2'
     | '/sign-up'
+    | '/terms-of-service'
     | '/verify-email'
     | '/401'
     | '/403'
@@ -370,6 +403,7 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
+    | '/settings/consent'
     | '/settings/display'
     | '/settings/notifications'
     | '/clerk/sign-in'
@@ -392,9 +426,11 @@ export interface FileRouteTypes {
     | '/(auth)/otp'
     | '/(auth)/password-reset'
     | '/(auth)/password-reset-confirm'
+    | '/(auth)/privacy-policy'
     | '/(auth)/sign-in'
     | '/(auth)/sign-in-2'
     | '/(auth)/sign-up'
+    | '/(auth)/terms-of-service'
     | '/(auth)/verify-email'
     | '/(errors)/401'
     | '/(errors)/403'
@@ -405,6 +441,7 @@ export interface FileRouteTypes {
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
+    | '/_authenticated/settings/consent'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
     | '/clerk/(auth)/sign-in'
@@ -425,9 +462,11 @@ export interface RootRouteChildren {
   authOtpRoute: typeof authOtpRoute
   authPasswordResetRoute: typeof authPasswordResetRoute
   authPasswordResetConfirmRoute: typeof authPasswordResetConfirmRoute
+  authPrivacyPolicyRoute: typeof authPrivacyPolicyRoute
   authSignInRoute: typeof authSignInRoute
   authSignIn2Route: typeof authSignIn2Route
   authSignUpRoute: typeof authSignUpRoute
+  authTermsOfServiceRoute: typeof authTermsOfServiceRoute
   authVerifyEmailRoute: typeof authVerifyEmailRoute
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
@@ -501,6 +540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authVerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(auth)/terms-of-service': {
+      id: '/(auth)/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof authTermsOfServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/sign-up': {
       id: '/(auth)/sign-up'
       path: '/sign-up'
@@ -520,6 +566,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof authSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/privacy-policy': {
+      id: '/(auth)/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof authPrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(auth)/password-reset-confirm': {
@@ -648,6 +701,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsDisplayRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/consent': {
+      id: '/_authenticated/settings/consent'
+      path: '/consent'
+      fullPath: '/settings/consent'
+      preLoaderRoute: typeof AuthenticatedSettingsConsentRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/appearance': {
       id: '/_authenticated/settings/appearance'
       path: '/appearance'
@@ -675,6 +735,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
+  AuthenticatedSettingsConsentRoute: typeof AuthenticatedSettingsConsentRoute
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
@@ -684,6 +745,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
   {
     AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
     AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
+    AuthenticatedSettingsConsentRoute: AuthenticatedSettingsConsentRoute,
     AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
@@ -770,9 +832,11 @@ const rootRouteChildren: RootRouteChildren = {
   authOtpRoute: authOtpRoute,
   authPasswordResetRoute: authPasswordResetRoute,
   authPasswordResetConfirmRoute: authPasswordResetConfirmRoute,
+  authPrivacyPolicyRoute: authPrivacyPolicyRoute,
   authSignInRoute: authSignInRoute,
   authSignIn2Route: authSignIn2Route,
   authSignUpRoute: authSignUpRoute,
+  authTermsOfServiceRoute: authTermsOfServiceRoute,
   authVerifyEmailRoute: authVerifyEmailRoute,
   errors401Route: errors401Route,
   errors403Route: errors403Route,

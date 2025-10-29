@@ -1,12 +1,12 @@
-import { Outlet } from '@tanstack/react-router'
-import { Monitor, Bell, Palette, Wrench, UserCog } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { Separator } from '@/components/ui/separator'
+import { Outlet } from '@tanstack/react-router'
+import { Bell, Monitor, Palette, Shield, UserCog, Wrench } from 'lucide-react'
 import { SidebarNav } from './components/sidebar-nav'
 
 const sidebarNavItems = [
@@ -34,6 +34,11 @@ const sidebarNavItems = [
     title: 'Display',
     href: '/settings/display',
     icon: <Monitor size={18} />,
+  },
+  {
+    title: 'Privacy & Consent',
+    href: '/settings/consent',
+    icon: <Shield size={18} />,
   },
 ]
 

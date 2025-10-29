@@ -26,6 +26,7 @@ from app.core.errors import (
 from app.core.logging import get_logger, setup_logging
 from app.core.metrics import set_up
 from app.core.redis import get_redis
+from app.middleware.consent_check import ConsentCheckMiddleware
 from app.middleware.metrics import MetricsMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 
@@ -103,6 +104,9 @@ app = FastAPI(
     openapi_tags=[
         {"name": "auth", "description": "Authentication and authorization operations"},
         {"name": "users", "description": "User management operations"},
+        {"name": "legal", "description": "Legal documents (Terms of Service, Privacy Policy)"},
+        {"name": "consent", "description": "User consent management and GDPR compliance"},
+        {"name": "cookies", "description": "Cookie consent management (EU Cookie Law)"},
         {"name": "health", "description": "Health check and monitoring"},
         {"name": "metrics", "description": "Prometheus metrics for monitoring"},
         {"name": "root", "description": "Root API information"},
@@ -114,6 +118,9 @@ app.add_middleware(RequestIDMiddleware)
 
 # Metrics middleware (after request ID for accurate tracking)
 app.add_middleware(MetricsMiddleware)
+
+# Consent check middleware (after metrics, before CORS)
+app.add_middleware(ConsentCheckMiddleware)
 
 # CORS middleware
 app.add_middleware(
