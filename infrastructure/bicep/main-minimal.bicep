@@ -115,6 +115,7 @@ module dns './modules/dns.bicep' = if (enableDns) {
   scope: az.resourceGroup(resourceGroupName)
   params: {
     domainName: customDomain
+    environment: environment
     tags: tags
   }
   dependsOn: [
