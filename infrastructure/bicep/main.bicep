@@ -230,7 +230,6 @@ module communicationServices './modules/communication.bicep' = if (enableCustomD
 // Deploy Cost Budget (Phase 9)
 module budget './modules/budget.bicep' = {
   name: 'budget-${environment}'
-  scope: subscription()
   params: {
     environment: environment
     budgetAmount: monthlyBudget

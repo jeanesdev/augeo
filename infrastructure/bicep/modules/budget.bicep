@@ -5,6 +5,8 @@
 // Dependencies: None (subscription-level resource)
 // ============================================================================
 
+targetScope = 'subscription'
+
 @description('Environment name (dev, staging, production)')
 @allowed(['dev', 'staging', 'production'])
 param environment string
