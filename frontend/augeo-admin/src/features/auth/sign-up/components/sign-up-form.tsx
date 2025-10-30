@@ -57,7 +57,30 @@ const formSchema = z
       .string()
       .max(255, 'Organization name must not exceed 255 characters')
       .optional(),
-    organization_address: z.string().optional(),
+    address_line1: z
+      .string()
+      .max(255, 'Street address must not exceed 255 characters')
+      .optional(),
+    address_line2: z
+      .string()
+      .max(255, 'Street address must not exceed 255 characters')
+      .optional(),
+    city: z
+      .string()
+      .max(100, 'City must not exceed 100 characters')
+      .optional(),
+    state: z
+      .string()
+      .max(100, 'State must not exceed 100 characters')
+      .optional(),
+    postal_code: z
+      .string()
+      .max(20, 'Postal code must not exceed 20 characters')
+      .optional(),
+    country: z
+      .string()
+      .max(100, 'Country must not exceed 100 characters')
+      .optional(),
     acceptedTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the Terms of Service and Privacy Policy',
     }),
@@ -106,7 +129,12 @@ export function SignUpForm({
       confirmPassword: '',
       phone: '',
       organization_name: '',
-      organization_address: '',
+      address_line1: '',
+      address_line2: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      country: '',
       acceptedTerms: false,
     },
   })
@@ -239,17 +267,86 @@ export function SignUpForm({
         />
         <FormField
           control={form.control}
-          name='organization_address'
+          name='address_line1'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Organization Address (Optional)</FormLabel>
+              <FormLabel>Street Address 1 (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder='123 Main St, City, State ZIP' {...field} />
+                <Input placeholder='123 Main Street' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name='address_line2'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Street Address 2 (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder='Apartment, suite, etc.' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className='grid grid-cols-2 gap-3'>
+          <FormField
+            control={form.control}
+            name='city'
+            render={({ field}) => (
+              <FormItem>
+                <FormLabel>City (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder='New York' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='state'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>State (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder='NY' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className='grid grid-cols-2 gap-3'>
+          <FormField
+            control={form.control}
+            name='postal_code'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Postal Code (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder='10001' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='country'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Country (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder='United States' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name='password'

@@ -216,7 +216,12 @@ class UserService:
             last_name=user_data.last_name,
             phone=user_data.phone,
             organization_name=user_data.organization_name,
-            organization_address=user_data.organization_address,
+            address_line1=user_data.address_line1,
+            address_line2=user_data.address_line2,
+            city=user_data.city,
+            state=user_data.state,
+            postal_code=user_data.postal_code,
+            country=user_data.country,
             password_hash=hash_password(user_data.password),
             role_id=role_id,
             npo_id=user_data.npo_id,
@@ -295,8 +300,18 @@ class UserService:
             user.phone = user_data.phone
         if user_data.organization_name is not None:
             user.organization_name = user_data.organization_name
-        if user_data.organization_address is not None:
-            user.organization_address = user_data.organization_address
+        if user_data.address_line1 is not None:
+            user.address_line1 = user_data.address_line1
+        if user_data.address_line2 is not None:
+            user.address_line2 = user_data.address_line2
+        if user_data.city is not None:
+            user.city = user_data.city
+        if user_data.state is not None:
+            user.state = user_data.state
+        if user_data.postal_code is not None:
+            user.postal_code = user_data.postal_code
+        if user_data.country is not None:
+            user.country = user_data.country
         if user_data.password is not None:
             user.password_hash = hash_password(user_data.password)
 

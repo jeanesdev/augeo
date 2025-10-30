@@ -34,7 +34,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     - NPO Admin and Event Coordinator roles MUST have npo_id set
     - Staff and Donor roles MUST NOT have npo_id (staff use event assignments)
     - Default role on registration: "donor"
-    - Organization name and address are optional fields for users who wish to provide
+    - Organization name and address fields are optional for users who wish to provide
       business/organization information
     """
 
@@ -56,7 +56,14 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     # Organization (Optional)
     organization_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    organization_address: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    # Address (Optional)
+    address_line1: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    address_line2: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Authentication
     email_verified: Mapped[bool] = mapped_column(
