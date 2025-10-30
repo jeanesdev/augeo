@@ -297,21 +297,21 @@ class UserService:
         if user_data.last_name is not None:
             user.last_name = user_data.last_name
         if user_data.phone is not None:
-            user.phone = user_data.phone
+            user.phone = user_data.phone or None  # Convert empty string to None
         if user_data.organization_name is not None:
-            user.organization_name = user_data.organization_name
+            user.organization_name = user_data.organization_name or None
         if user_data.address_line1 is not None:
-            user.address_line1 = user_data.address_line1
+            user.address_line1 = user_data.address_line1 or None
         if user_data.address_line2 is not None:
-            user.address_line2 = user_data.address_line2
+            user.address_line2 = user_data.address_line2 or None
         if user_data.city is not None:
-            user.city = user_data.city
+            user.city = user_data.city or None
         if user_data.state is not None:
-            user.state = user_data.state
+            user.state = user_data.state or None
         if user_data.postal_code is not None:
-            user.postal_code = user_data.postal_code
+            user.postal_code = user_data.postal_code or None
         if user_data.country is not None:
-            user.country = user_data.country
+            user.country = user_data.country or None
         if user_data.password is not None:
             user.password_hash = hash_password(user_data.password)
 
