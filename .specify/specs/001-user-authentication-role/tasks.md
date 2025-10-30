@@ -627,45 +627,6 @@ With multiple developers:
 
 ---
 
-## Task Summary
-
-**Total Tasks**: 170
-
-**Tasks by Phase**:
-
-- Phase 1 (Setup): 11 tasks
-- Phase 2 (Foundational): 11 tasks (BLOCKING)
-- Phase 3 (User Story 1 - Registration & Login): 28 tasks ← MVP
-- Phase 4 (User Story 2 - Password Recovery): 18 tasks
-- Phase 5 (User Story 3 - Role Management): 24 tasks
-- Phase 6 (User Story 4 - Session Management): 14 tasks
-- Phase 7 (Email Verification): 14 tasks
-- Phase 8 (Event Staff Assignment): 13 tasks
-- Phase 9 (Row-Level Security): 8 tasks
-- Phase 10 (Super Admin Bootstrap): 4 tasks
-- Phase 11 (Audit Logging): 8 tasks
-- Phase 12 (Polish): 17 tasks
-
-**Parallel Tasks**: 83 tasks marked [P] can run in parallel
-
-**MVP Scope** (Minimum Viable Product):
-
-- Phase 1: Setup (T001-T011)
-- Phase 2: Foundational (T012-T022)
-- Phase 3: User Story 1 (T023-T050)
-- Phase 10: Super Admin Bootstrap (T142-T145)
-- **Total MVP**: 54 tasks
-
-**Independent Test Criteria**:
-
-- US1: Create account → logout → login → access protected endpoint
-- US2: Request password reset → receive email → reset password → login with new password
-- US3: Create user → assign role → verify role-based access → change role → verify updated access
-- US4: Login → wait for expiration → verify re-auth required → trigger rate limit → verify blocking
-- Phase 13: Register with org fields → verify stored → register without org fields → verify optional → update org fields → verify updated
-
----
-
 ## Phase 13: Organization Profile Fields (Optional User Information)
 
 **Purpose**: Add optional organization name and address fields to user profiles for users representing businesses or institutions
@@ -712,6 +673,46 @@ With multiple developers:
 **Checkpoint**: Users can optionally provide organization name and address during registration and profile updates
 
 **Independent Test**: Register new user with organization fields → verify stored → update organization info → verify updated → register user without organization fields → verify optional
+
+---
+
+## Task Summary
+
+**Total Tasks**: 187
+
+**Tasks by Phase**:
+
+- Phase 1 (Setup): 11 tasks
+- Phase 2 (Foundational): 11 tasks (BLOCKING)
+- Phase 3 (User Story 1 - Registration & Login): 28 tasks ← MVP
+- Phase 4 (User Story 2 - Password Recovery): 18 tasks
+- Phase 5 (User Story 3 - Role Management): 24 tasks
+- Phase 6 (User Story 4 - Session Management): 14 tasks
+- Phase 7 (Email Verification): 14 tasks
+- Phase 8 (Event Staff Assignment): 13 tasks
+- Phase 9 (Row-Level Security): 8 tasks
+- Phase 10 (Super Admin Bootstrap): 4 tasks
+- Phase 11 (Audit Logging): 8 tasks
+- Phase 12 (Polish): 17 tasks
+- Phase 13 (Organization Profile Fields): 17 tasks
+
+**Parallel Tasks**: 94 tasks marked [P] can run in parallel
+
+**MVP Scope** (Minimum Viable Product):
+
+- Phase 1: Setup (T001-T011)
+- Phase 2: Foundational (T012-T022)
+- Phase 3: User Story 1 (T023-T050)
+- Phase 10: Super Admin Bootstrap (T142-T145)
+- **Total MVP**: 54 tasks
+
+**Independent Test Criteria**:
+
+- US1: Create account → logout → login → access protected endpoint
+- US2: Request password reset → receive email → reset password → login with new password
+- US3: Create user → assign role → verify role-based access → change role → verify updated access
+- US4: Login → wait for expiration → verify re-auth required → trigger rate limit → verify blocking
+- Phase 13: Register with org fields → verify stored → register without org fields → verify optional → update org fields → verify updated
 
 ---
 
