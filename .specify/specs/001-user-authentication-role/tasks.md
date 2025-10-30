@@ -658,29 +658,31 @@ With multiple developers:
 
 ### Testing
 
-- [x] T180 [P] Verified existing integration tests pass with organization fields optional in backend/app/tests/integration/test_auth_flow.py
-- [x] T181 [P] Verified user registration without organization fields works (all existing tests pass) in backend/app/tests/integration/test_auth_flow.py
-- [x] T182 [P] Organization field updates supported via UserUpdateRequest schema
-- [x] T183 [P] Validation test for organization_name max length (255 chars) enforced via Pydantic Field(max_length=255)
-- [x] T184 [P] Frontend form includes organization fields with proper TypeScript types
+- [x] T180 [P] Add integration test for registration with organization and address fields in backend/app/tests/integration/test_auth_flow.py
+- [x] T181 [P] Add validation tests for organization_name and address field max lengths in backend/app/tests/contract/test_auth_register.py
+- [x] T182 [P] Add user update tests for address field operations in backend/app/tests/contract/test_users_update.py
+- [x] T183 [P] Verify frontend component includes organization and address fields (SignUpForm updated)
+- [x] T184 [P] Verify TypeScript types updated for all user schemas
 
 ### Documentation
 
-- [-] T185 [P] Update API documentation in contracts/auth.yaml to reflect new optional fields in registration endpoint (DEFERRED - contracts will be updated in bulk)
-- [-] T186 [P] Update API documentation in contracts/users.yaml to reflect new fields in user response and update endpoints (DEFERRED - contracts will be updated in bulk)
-- [-] T187 [P] Update quickstart.md to show example registration with organization fields (DEFERRED - documentation will be updated after feature testing)
+- [x] T185 [P] Update API documentation in contracts/auth.yaml to reflect new optional fields in registration endpoint
+- [x] T186 [P] Update API documentation in contracts/users.yaml to reflect new fields in user response and update endpoints
+- [x] T187 [P] Update quickstart.md to show example registration with organization fields
 
-**Completed**: October 30, 2025 | **Commit**: fe9dd41
+**Completed**: October 30, 2025 | **Commits**: fe9dd41 (implementation), ebf89b2 (tests), 18799c6 (documentation)
 
 **Notes**:
 
-- All backend and frontend code implemented and tested
+- All backend, frontend, and documentation updates complete
 - Database migration 008 successfully applied
+- Backend tests: 7 new tests covering registration, validation, and updates (all passing)
+- API contracts updated: auth.yaml and users.yaml with address field schemas and examples
+- Documentation updated: quickstart.md with registration and user creation examples
+- Address fields restructured: Split organization_address into 6 components (address_line1/2, city, state, postal_code, country)
+- All 7 address fields optional with proper maxLength constraints
 - Existing integration tests pass without modification (fields are truly optional)
-- Added organization_name index for efficient lookups
-- Pydantic schemas use `= None` defaults to ensure optional fields work correctly
-- User model includes organization fields with proper SQLAlchemy mapping
-- SignUpForm includes two new optional input fields with proper validation
+- SignUpForm includes organization_name and address input fields with proper validation
 - TypeScript types updated across User, UserCreate, UserUpdate, UserPublic interfaces
 
 **Checkpoint**: ✅ Users can optionally provide organization name and address during registration and profile updates
@@ -725,7 +727,7 @@ With multiple developers:
 - US2: Request password reset → receive email → reset password → login with new password
 - US3: Create user → assign role → verify role-based access → change role → verify updated access
 - US4: Login → wait for expiration → verify re-auth required → trigger rate limit → verify blocking
-- Phase 13: Register with org fields → verify stored → register without org fields → verify optional → update org fields → verify updated
+- Phase 13: Register with organization and address → verify stored → update address → verify updated → register without fields → verify optional → clear fields → verify NULL
 
 ---
 
