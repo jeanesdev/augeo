@@ -112,9 +112,7 @@ class TestUsersUpdateContract:
         assert data["postal_code"] is None
 
     @pytest.mark.asyncio
-    async def test_update_user_clear_address_fields(
-        self, super_admin_client: AsyncClient
-    ) -> None:
+    async def test_update_user_clear_address_fields(self, super_admin_client: AsyncClient) -> None:
         """Test clearing address fields by setting to null/empty.
 
         Contract: PATCH /api/v1/users/{user_id}

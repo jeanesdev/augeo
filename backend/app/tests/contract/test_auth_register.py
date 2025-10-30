@@ -307,9 +307,7 @@ class TestAuthRegisterContract:
         assert data["user"]["is_active"] is False
 
     @pytest.mark.asyncio
-    async def test_register_organization_name_max_length(
-        self, async_client: AsyncClient
-    ) -> None:
+    async def test_register_organization_name_max_length(self, async_client: AsyncClient) -> None:
         """Test organization_name field validation for max length (255 chars).
 
         Contract: organization_name VARCHAR(255)
@@ -342,9 +340,7 @@ class TestAuthRegisterContract:
         assert response.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_register_address_fields_max_lengths(
-        self, async_client: AsyncClient
-    ) -> None:
+    async def test_register_address_fields_max_lengths(self, async_client: AsyncClient) -> None:
         """Test address field validations for max lengths.
 
         Contract:
@@ -405,4 +401,3 @@ class TestAuthRegisterContract:
         }
         response = await async_client.post("/api/v1/auth/register", json=valid_payload)
         assert response.status_code == 201
-
