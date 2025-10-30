@@ -295,7 +295,7 @@ export function SignUpForm({
           <FormField
             control={form.control}
             name='city'
-            render={({ field}) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>City (Optional)</FormLabel>
                 <FormControl>
