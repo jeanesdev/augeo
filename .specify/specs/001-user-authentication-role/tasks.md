@@ -662,6 +662,56 @@ With multiple developers:
 - US2: Request password reset → receive email → reset password → login with new password
 - US3: Create user → assign role → verify role-based access → change role → verify updated access
 - US4: Login → wait for expiration → verify re-auth required → trigger rate limit → verify blocking
+- Phase 13: Register with org fields → verify stored → register without org fields → verify optional → update org fields → verify updated
+
+---
+
+## Phase 13: Organization Profile Fields (Optional User Information)
+
+**Purpose**: Add optional organization name and address fields to user profiles for users representing businesses or institutions
+
+**Dependencies**: Phase 3 (User Registration & Login) must be complete
+
+**User Story Context**: Extension of User Story 1 (User Registration & Login) - enhances user profile capabilities
+
+### Database Migration
+
+- [ ] T171 [P] Create Alembic migration 008_add_user_organization_fields.py to add organization_name (VARCHAR 255 NULL) and organization_address (TEXT NULL) to users table in backend/alembic/versions/
+
+### Backend Schema Updates
+
+- [ ] T172 [P] Update UserCreate schema to include organization_name: str | None and organization_address: str | None in backend/app/schemas/auth.py
+- [ ] T173 [P] Update UserUpdate schema to include optional organization_name and organization_address fields in backend/app/schemas/user.py
+- [ ] T174 [P] Update UserPublic/UserResponse schemas to include organization_name and organization_address in response in backend/app/schemas/user.py
+
+### Backend Service Updates
+
+- [ ] T175 Update AuthService.register() to accept and store organization_name and organization_address during user registration in backend/app/services/auth_service.py
+- [ ] T176 Update UserService to handle organization field updates in user profile management in backend/app/services/user_service.py
+
+### Frontend Updates
+
+- [ ] T177 [P] Add organization_name and organization_address fields to RegisterForm component with optional validation in frontend/augeo-admin/src/features/auth/components/RegisterForm.tsx
+- [ ] T178 [P] Add organization_name and organization_address fields to user profile edit form in frontend/augeo-admin/src/features/users/components/UserProfileForm.tsx
+- [ ] T179 [P] Update User type definition to include organization_name?: string and organization_address?: string in frontend/shared/types/user.ts
+
+### Testing
+
+- [ ] T180 [P] Add test for user registration with organization fields in backend/app/tests/integration/test_auth_flow.py
+- [ ] T181 [P] Add test for user registration without organization fields (ensure optional) in backend/app/tests/integration/test_auth_flow.py
+- [ ] T182 [P] Add test for updating user profile with organization fields in backend/app/tests/integration/test_user_api.py
+- [ ] T183 [P] Add validation test for organization_name max length (255 chars) in backend/app/tests/unit/test_schemas.py
+- [ ] T184 [P] Add frontend test for RegisterForm with organization fields in frontend/augeo-admin/src/features/auth/components/RegisterForm.test.tsx
+
+### Documentation
+
+- [ ] T185 [P] Update API documentation in contracts/auth.yaml to reflect new optional fields in registration endpoint
+- [ ] T186 [P] Update API documentation in contracts/users.yaml to reflect new fields in user response and update endpoints
+- [ ] T187 [P] Update quickstart.md to show example registration with organization fields
+
+**Checkpoint**: Users can optionally provide organization name and address during registration and profile updates
+
+**Independent Test**: Register new user with organization fields → verify stored → update organization info → verify updated → register user without organization fields → verify optional
 
 ---
 
