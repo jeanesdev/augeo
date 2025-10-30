@@ -53,6 +53,11 @@ const formSchema = z
         },
         { message: '11-digit phone must start with 1' }
       ),
+    organization_name: z
+      .string()
+      .max(255, 'Organization name must not exceed 255 characters')
+      .optional(),
+    organization_address: z.string().optional(),
     acceptedTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the Terms of Service and Privacy Policy',
     }),
@@ -100,6 +105,8 @@ export function SignUpForm({
       password: '',
       confirmPassword: '',
       phone: '',
+      organization_name: '',
+      organization_address: '',
       acceptedTerms: false,
     },
   })
@@ -212,6 +219,32 @@ export function SignUpForm({
                   }}
                   maxLength={17}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='organization_name'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Name (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder='Acme Corporation' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='organization_address'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Address (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder='123 Main St, City, State ZIP' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

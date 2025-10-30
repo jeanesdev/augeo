@@ -80,6 +80,8 @@ class AuthService:
             first_name=user_data.first_name,
             last_name=user_data.last_name,
             phone=user_data.phone,
+            organization_name=user_data.organization_name,
+            organization_address=user_data.organization_address,
             email_verified=False,
             is_active=False,
             role_id=donor_role_id,
@@ -186,6 +188,8 @@ class AuthService:
             first_name=user.first_name,
             last_name=user.last_name,
             phone=user.phone,
+            organization_name=user.organization_name,
+            organization_address=user.organization_address,
             email_verified=user.email_verified,
             is_active=user.is_active,
             role=user.role.name,  # Get role name from relationship

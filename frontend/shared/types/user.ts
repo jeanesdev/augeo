@@ -19,6 +19,8 @@ export interface User {
   role_id: string;
   role_name?: string;
   npo_id: string | null;
+  organization_name?: string | null;
+  organization_address?: string | null;
   status: UserStatus;
   email_verified: boolean;
   is_active: boolean;
@@ -33,6 +35,8 @@ export interface UserCreate {
   last_name: string;
   role_id?: string;
   npo_id?: string | null;
+  organization_name?: string | null;
+  organization_address?: string | null;
 }
 
 export interface UserUpdate {
@@ -41,6 +45,8 @@ export interface UserUpdate {
   email?: string;
   role_id?: string;
   npo_id?: string | null;
+  organization_name?: string | null;
+  organization_address?: string | null;
   is_active?: boolean;
 }
 
@@ -51,6 +57,8 @@ export interface UserPublic {
   last_name: string;
   role_name: string;
   npo_id: string | null;
+  organization_name?: string | null;
+  organization_address?: string | null;
   email_verified: boolean;
   is_active: boolean;
   created_at: string;
