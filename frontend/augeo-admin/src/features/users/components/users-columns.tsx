@@ -1,9 +1,9 @@
-import { DataTableColumnHeader } from '@/components/data-table'
-import { LongText } from '@/components/long-text'
+import { type ColumnDef } from '@tanstack/react-table'
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { cn } from '@/lib/utils'
-import { type ColumnDef } from '@tanstack/react-table'
+import { DataTableColumnHeader } from '@/components/data-table'
+import { LongText } from '@/components/long-text'
 import { callTypes, roles } from '../data/data'
 import { type User } from '../data/schema'
 import { DataTableRowActions } from './data-table-row-actions'
@@ -75,7 +75,12 @@ export const usersColumns: ColumnDef<User>[] = [
         <div className='flex space-x-2'>
           <Badge
             variant='outline'
-            className={cn('capitalize', emailVerified ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200')}
+            className={cn(
+              'capitalize',
+              emailVerified
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+            )}
           >
             {emailVerified ? 'Verified' : 'Unverified'}
           </Badge>

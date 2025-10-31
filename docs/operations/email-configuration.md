@@ -4,22 +4,30 @@ This guide explains how to set up email sending using Azure Communication Servic
 
 ## Overview
 
-The Augeo platform uses Azure Communication Services for transactional email sending with:
+The Augeo platform uses a hybrid email architecture:
+- **Email Sending**: Azure Communication Services (ACS)
+- **Email Receiving**: ImprovMX (free email forwarding service)
 - **Custom domain**: `augeo.app`
-- **Sender addresses**: `noreply@augeo.app`, `support@augeo.app`, `billing@augeo.app`
-- **Authentication**: SPF, DKIM, DMARC for 95%+ deliverability
+- **Sender addresses**: `DoNotReply@augeo.app`, `Legal@augeo.app`, `Privacy@augeo.app`, `DPO@augeo.app`, `admin@augeo.app`
+- **Authentication**: SPF, DKIM, DMARC for 10/10 deliverability score
 - **Delivery time**: < 30 seconds average
-- **Cost**: ~$0.0012 per email sent
+- **Cost**: FREE (100 emails/month on ACS free tier, unlimited forwarding with ImprovMX)
 
 ## Architecture
 
 ```
-Application → Azure Communication Services → Email Domain → Recipient
-                     ↓
-              Authentication (SPF/DKIM/DMARC)
-                     ↓
-              DNS Records (augeo.app)
+Sending:  Application → Azure Communication Services → SPF/DKIM/DMARC → Recipient
+
+Receiving: Sender → MX Records (ImprovMX) → Email Forwarding → jeanes.dev@gmail.com
+                          ↓
+                   DNS Records (augeo.app)
 ```
+
+**Why This Architecture?**
+- **Azure Communication Services**: Handles all outbound transactional emails with excellent deliverability
+- **ImprovMX**: Provides email receiving/forwarding (Azure doesn't offer email receiving)
+- **Cost-Effective**: Both services free for our usage volume
+- **Flexible DNS**: Works with Azure DNS (no nameserver changes required)
 
 ## Prerequisites
 
@@ -80,13 +88,41 @@ az network dns record-set txt add-record \
 ```
 
 ### SPF Record (Sender Policy Framework)
+
+**For Azure Communication Services only** (no forwarding service in SPF):
+
 ```bash
 az network dns record-set txt add-record \
   --zone-name augeo.app \
   --resource-group augeo-production-rg \
   --record-set-name @ \
-  --value "v=spf1 include:spf.protection.outlook.com include:spf.azurecomm.net ~all"
+  --value "v=spf1 include:spf.protection.outlook.com ~all"
 ```
+
+**Note**: ImprovMX doesn't need to be in SPF as it only receives/forwards emails, it doesn't send emails from your domain.
+
+### MX Records (Mail Exchange - for receiving emails)
+
+**For ImprovMX email forwarding**:
+
+```bash
+# Add ImprovMX MX records
+az network dns record-set mx add-record \
+  --zone-name augeo.app \
+  --resource-group augeo-production-rg \
+  --record-set-name @ \
+  --exchange mx1.improvmx.com \
+  --preference 10
+
+az network dns record-set mx add-record \
+  --zone-name augeo.app \
+  --resource-group augeo-production-rg \
+  --record-set-name @ \
+  --exchange mx2.improvmx.com \
+  --preference 20
+```
+
+**Note**: MX records route incoming emails to ImprovMX's servers for forwarding. Azure Communication Services doesn't provide email receiving capabilities.
 
 ### DMARC Record (Domain-based Message Authentication)
 ```bash
@@ -168,18 +204,101 @@ Expected output:
 }
 ```
 
+## Step 4b: Configure ImprovMX Email Forwarding
+
+ImprovMX provides free email forwarding to receive emails at your custom domain addresses.
+
+### 1. Set Up ImprovMX
+
+1. Go to [https://improvmx.com/](https://improvmx.com/)
+2. Click "Get Started" (no account required initially)
+3. Enter your domain: `augeo.app`
+4. ImprovMX will automatically detect your MX records
+
+### 2. Configure Email Aliases
+
+Add forwarding rules for each address:
+
+| Alias | Forwards To | Purpose |
+|-------|-------------|---------|
+| `admin@augeo.app` | `jeanes.dev@gmail.com` | Administrative emails |
+| `Legal@augeo.app` | `jeanes.dev@gmail.com` | Legal inquiries |
+| `Privacy@augeo.app` | `jeanes.dev@gmail.com` | Privacy requests |
+| `DPO@augeo.app` | `jeanes.dev@gmail.com` | Data Protection Officer |
+| `support@augeo.app` | `jeanes.dev@gmail.com` | Support inquiries |
+
+### 3. Verify Your Gmail Address
+
+- ImprovMX will send a verification email to `jeanes.dev@gmail.com`
+- Click the verification link in that email
+- All forwarding will be activated immediately
+
+### 4. Optional: Set Up Catch-All
+
+To receive emails sent to any address at your domain:
+
+```
+*@augeo.app → jeanes.dev@gmail.com
+```
+
+### 5. Test Email Receiving
+
+After DNS propagation (5-15 minutes), test by sending an email:
+
+```bash
+# From your personal email or another service
+echo "Test email body" | mail -s "Test Receiving" admin@augeo.app
+```
+
+Check your Gmail inbox for the forwarded message.
+
+### ImprovMX Features
+
+- ✅ **Completely FREE**: Up to 10 aliases
+- ✅ **No account required**: Optional account for dashboard access
+- ✅ **Works with any DNS**: Azure DNS, CloudFlare, Namecheap, etc.
+- ✅ **No nameserver changes**: Unlike CloudFlare Email Routing
+- ✅ **Instant setup**: No waiting period
+- ✅ **Unlimited forwarding**: No volume limits on free tier
+
+### Why Not Use CloudFlare Email Routing?
+
+CloudFlare Email Routing requires changing your domain's nameservers from Azure DNS to CloudFlare's nameservers. This would force you to:
+- Migrate all DNS records from Azure to CloudFlare
+- Update nameservers at domain registrar
+- Lose integration with Azure DNS zones
+- Potentially break existing Azure resource DNS integrations
+
+ImprovMX works with your existing Azure DNS setup without any infrastructure changes.
+
 ## Step 5: Configure Sender Addresses
 
-The following sender addresses are pre-configured:
+The following sender addresses are configured in Azure Communication Services:
 
-| Address | Purpose | Display Name |
-|---------|---------|--------------|
-| noreply@augeo.app | System notifications, no-reply emails | Augeo Platform |
-| support@augeo.app | Support inquiries, help tickets | Augeo Support |
-| billing@augeo.app | Invoices, payment receipts | Augeo Billing |
-| notifications@augeo.app | User notifications, alerts | Augeo Notifications |
+| Address | Purpose | Display Name | Can Receive? |
+|---------|---------|--------------|--------------|
+| DoNotReply@augeo.app | System notifications, automated emails | Augeo Platform | ❌ No (by design) |
+| admin@augeo.app | Administrative communications | Augeo Admin | ✅ Yes (forwards to Gmail) |
+| Legal@augeo.app | Legal inquiries, terms updates | Augeo Legal | ✅ Yes (forwards to Gmail) |
+| Privacy@augeo.app | Privacy requests, GDPR inquiries | Augeo Privacy | ✅ Yes (forwards to Gmail) |
+| DPO@augeo.app | Data Protection Officer communications | Augeo DPO | ✅ Yes (forwards to Gmail) |
 
-No additional configuration required - these are automatically enabled.
+### Creating Sender Usernames in ACS
+
+Sender usernames are created via Azure CLI (not Bicep):
+
+```bash
+# Add sender username to email domain
+az communication email domain sender-username create \
+  --email-service-name augeo-production-email \
+  --domain-name augeo.app \
+  --sender-username admin \
+  --username admin \
+  --display-name "Augeo Admin" \
+  --resource-group augeo-production-rg
+```
+
+Repeat for each sender address (DoNotReply, Legal, Privacy, DPO).
 
 ## Step 6: Store ACS Connection String in Key Vault
 
@@ -500,26 +619,33 @@ The Augeo Team
 ## Best Practices
 
 1. **Use appropriate sender addresses**:
-   - `noreply@` for automated emails
-   - `support@` for support responses
-   - `billing@` for payment-related emails
+   - `DoNotReply@augeo.app` for automated emails (no replies expected)
+   - `admin@augeo.app` for administrative communications
+   - `Legal@augeo.app` for terms updates and legal notices
+   - `Privacy@augeo.app` for GDPR/privacy requests
+   - `DPO@augeo.app` for data protection inquiries
 
-2. **Include unsubscribe links** for marketing emails
+2. **Email receiving vs sending**:
+   - Azure Communication Services: **Sending only**
+   - ImprovMX: **Receiving/forwarding only**
+   - DoNotReply@ should **not** have forwarding (by design)
 
-3. **Monitor bounce and complaint rates**:
+3. **Include unsubscribe links** for marketing emails
+
+4. **Monitor bounce and complaint rates**:
    - Bounce rate: < 5%
    - Complaint rate: < 0.1%
 
-4. **Implement rate limiting**:
-   - Max 100 emails/min per sender
+5. **Implement rate limiting**:
+   - Max 100 emails/min per sender (ACS free tier limit)
    - Warm up new domains gradually
 
-5. **Use email templates** for consistency
+6. **Use email templates** for consistency
 
-6. **Track email metrics**:
+7. **Track email metrics**:
    - Delivery rate
-   - Open rate
-   - Click rate
+   - Open rate (if tracking enabled)
+   - Click rate (if tracking enabled)
    - Bounce rate
 
 ## Cost Optimization

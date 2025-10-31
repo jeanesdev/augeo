@@ -1,3 +1,13 @@
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { type Row } from '@tanstack/react-table'
+import {
+  KeyRound,
+  MailCheck,
+  Shield,
+  UserCheck,
+  UserPen,
+  UserX,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -6,9 +16,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-import { type Row } from '@tanstack/react-table'
-import { KeyRound, MailCheck, Shield, UserCheck, UserPen, UserX } from 'lucide-react'
 import { type User } from '../data/schema'
 import { useActivateUser, useVerifyUserEmail } from '../hooks/use-users'
 import { useUsers } from './users-provider'

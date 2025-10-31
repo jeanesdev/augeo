@@ -41,7 +41,9 @@ export function useCreateUser() {
       toast.success('User created successfully')
     },
     onError: (error: unknown) => {
-      const err = error as { response?: { data?: { detail?: string }; status?: number } }
+      const err = error as {
+        response?: { data?: { detail?: string }; status?: number }
+      }
       // Extract error message from Axios error response
       let message = 'Failed to create user'
 
@@ -75,7 +77,10 @@ export function useUpdateUser() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & usersApi.UpdateUserRequest) =>
+    mutationFn: ({
+      id,
+      ...data
+    }: { id: string } & usersApi.UpdateUserRequest) =>
       usersApi.updateUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -86,7 +91,9 @@ export function useUpdateUser() {
       let message = 'Failed to update user'
 
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { detail?: string } } }
+        const axiosError = error as {
+          response?: { data?: { detail?: string } }
+        }
         if (axiosError.response?.data?.detail) {
           message = axiosError.response.data.detail
         }
@@ -104,17 +111,27 @@ export function useUpdateUserRole() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: usersApi.RoleUpdateRequest }) =>
-      usersApi.updateUserRole(userId, data),
+    mutationFn: ({
+      userId,
+      data,
+    }: {
+      userId: string
+      data: usersApi.RoleUpdateRequest
+    }) => usersApi.updateUserRole(userId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['users', variables.userId] })
       toast.success('User role updated successfully')
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error && 'response' in error
-        ? (error as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message
-        : 'Failed to update user role'
+      const message =
+        error instanceof Error && 'response' in error
+          ? (
+              error as {
+                response?: { data?: { error?: { message?: string } } }
+              }
+            ).response?.data?.error?.message
+          : 'Failed to update user role'
       toast.error(message || 'Failed to update user role')
     },
   })
@@ -127,8 +144,13 @@ export function useActivateUser() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: usersApi.UserActivateRequest }) =>
-      usersApi.activateUser(userId, data),
+    mutationFn: ({
+      userId,
+      data,
+    }: {
+      userId: string
+      data: usersApi.UserActivateRequest
+    }) => usersApi.activateUser(userId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['users', variables.userId] })
@@ -136,9 +158,14 @@ export function useActivateUser() {
       toast.success(`User ${action} successfully`)
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error && 'response' in error
-        ? (error as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message
-        : 'Failed to update user status'
+      const message =
+        error instanceof Error && 'response' in error
+          ? (
+              error as {
+                response?: { data?: { error?: { message?: string } } }
+              }
+            ).response?.data?.error?.message
+          : 'Failed to update user status'
       toast.error(message || 'Failed to update user status')
     },
   })
@@ -158,9 +185,11 @@ export function useVerifyUserEmail() {
       toast.success('Email verified successfully')
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error && 'response' in error
-        ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : 'Failed to verify email'
+      const message =
+        error instanceof Error && 'response' in error
+          ? (error as { response?: { data?: { detail?: string } } }).response
+              ?.data?.detail
+          : 'Failed to verify email'
       toast.error(message || 'Failed to verify email')
     },
   })
@@ -183,7 +212,9 @@ export function useDeleteUser() {
       let message = 'Failed to delete user'
 
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { detail?: string } } }
+        const axiosError = error as {
+          response?: { data?: { detail?: string } }
+        }
         if (axiosError.response?.data?.detail) {
           message = axiosError.response.data.detail
         }

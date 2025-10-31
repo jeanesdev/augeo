@@ -1,4 +1,12 @@
-import { PasswordInput } from '@/components/password-input'
+import { useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from '@tanstack/react-router'
+import { Loader2, UserPlus } from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -9,15 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/stores/auth-store'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from '@tanstack/react-router'
-import { Loader2, UserPlus } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
+import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z
   .object({
@@ -71,7 +71,8 @@ const formatPhoneNumber = (value: string): string => {
 
   // Handle 10-digit numbers
   if (phoneNumber.length <= 3) return `(${phoneNumber}`
-  if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+  if (phoneNumber.length <= 6)
+    return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
   return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
 }
 
@@ -181,7 +182,10 @@ export function SignUpForm({
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, '')
                     // Only allow 10 or 11 digits (11 must start with 1)
-                    if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                    if (
+                      digits.length <= 10 ||
+                      (digits.length === 11 && digits.startsWith('1'))
+                    ) {
                       field.onChange(digits)
                     }
                   }}

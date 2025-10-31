@@ -1,3 +1,6 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useAuthStore } from '@/stores/auth-store'
+import apiClient from '@/lib/axios'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -7,9 +10,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import apiClient from '@/lib/axios'
-import { useAuthStore } from '@/stores/auth-store'
-import { useCallback, useEffect, useState } from 'react'
 
 interface SessionExpirationWarningProps {
   /**
@@ -89,7 +89,10 @@ export function SessionExpirationWarning({
       const secondsUntilExpiry = Math.floor(timeUntilExpiry / 1000)
 
       // Show warning if within threshold
-      if (secondsUntilExpiry <= warningThresholdSeconds && secondsUntilExpiry > 0) {
+      if (
+        secondsUntilExpiry <= warningThresholdSeconds &&
+        secondsUntilExpiry > 0
+      ) {
         setSecondsRemaining(secondsUntilExpiry)
         setIsOpen(true)
       }
@@ -120,8 +123,10 @@ export function SessionExpirationWarning({
           <AlertDialogDescription asChild>
             <div className='space-y-2'>
               <p>Your session will expire in:</p>
-              <p className='text-2xl font-bold text-foreground'>
-                {secondsRemaining !== null ? formatTime(secondsRemaining) : '--:--'}
+              <p className='text-foreground text-2xl font-bold'>
+                {secondsRemaining !== null
+                  ? formatTime(secondsRemaining)
+                  : '--:--'}
               </p>
               <p className='text-sm'>
                 Would you like to extend your session or log out now?
@@ -137,10 +142,7 @@ export function SessionExpirationWarning({
           >
             Log Out
           </Button>
-          <Button
-            onClick={handleExtendSession}
-            disabled={isExtending}
-          >
+          <Button onClick={handleExtendSession} disabled={isExtending}>
             {isExtending ? 'Extending...' : 'Stay Logged In'}
           </Button>
         </AlertDialogFooter>
