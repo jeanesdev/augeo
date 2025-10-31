@@ -1,3 +1,8 @@
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { type QueryClient } from '@tanstack/react-query'
+import { Toaster } from '@/components/ui/sonner'
 import { CookieConsentWrapper } from '@/components/legal/cookie-consent-wrapper'
 import { NavigationProgress } from '@/components/navigation-progress'
 import { SessionExpirationWarning } from '@/components/session-expiration-warning'
