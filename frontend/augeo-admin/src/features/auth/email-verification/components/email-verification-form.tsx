@@ -1,3 +1,12 @@
+import { useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from '@tanstack/react-router'
+import { ArrowRight, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import apiClient from '@/lib/axios'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -9,21 +18,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import apiClient from '@/lib/axios'
-import { cn } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from '@tanstack/react-router'
-import { ArrowRight, Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 const formSchema = z.object({
   token: z.string().min(1, 'Verification token is required'),
 })
 
-interface EmailVerificationFormProps extends React.HTMLAttributes<HTMLFormElement> {
+interface EmailVerificationFormProps
+  extends React.HTMLAttributes<HTMLFormElement> {
   token?: string
   email?: string
 }
@@ -60,7 +61,15 @@ export function EmailVerificationForm({
       form.reset()
       navigate({ to: '/sign-in' })
     } catch (error) {
-      const err = error as { response?: { data?: { error?: { message?: string }; detail?: { message?: string }; message?: string } } }
+      const err = error as {
+        response?: {
+          data?: {
+            error?: { message?: string }
+            detail?: { message?: string }
+            message?: string
+          }
+        }
+      }
       const errorMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.detail?.message ||
@@ -78,7 +87,8 @@ export function EmailVerificationForm({
   async function handleResend() {
     if (!email) {
       toast.error('Email required', {
-        description: 'Please provide your email address to resend verification.',
+        description:
+          'Please provide your email address to resend verification.',
       })
       return
     }
@@ -94,7 +104,15 @@ export function EmailVerificationForm({
         description: 'Check your inbox for the new verification link.',
       })
     } catch (error) {
-      const err = error as { response?: { data?: { error?: { message?: string }; detail?: { message?: string }; message?: string } } }
+      const err = error as {
+        response?: {
+          data?: {
+            error?: { message?: string }
+            detail?: { message?: string }
+            message?: string
+          }
+        }
+      }
       const errorMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.detail?.message ||

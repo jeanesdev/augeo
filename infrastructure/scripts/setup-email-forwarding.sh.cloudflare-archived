@@ -1,0 +1,97 @@
+#!/bin/bash
+# Setup email forwarding for augeo.app using CloudFlare Email Routing
+# This allows receiving emails at augeo.app and forwarding them to Gmail
+
+set -euo pipefail
+
+ENVIRONMENT="${1:-dev}"
+DOMAIN="augeo.app"
+RESOURCE_GROUP="augeo-${ENVIRONMENT}-rg"
+
+echo "📧 Setting up Email Forwarding for augeo.app"
+echo "============================================="
+echo ""
+echo "This script will configure MX records for CloudFlare Email Routing"
+echo "CloudFlare Email Routing is FREE and allows unlimited email forwarding"
+echo ""
+
+# Check if logged in
+if ! az account show &> /dev/null; then
+    echo "❌ Not logged in to Azure. Please run: az login"
+    exit 1
+fi
+
+echo "📝 Adding MX records for CloudFlare Email Routing..."
+echo ""
+
+# Remove any existing MX records first
+echo "Checking for existing MX records..."
+az network dns record-set mx delete \
+    --zone-name "$DOMAIN" \
+    --resource-group "$RESOURCE_GROUP" \
+    --name @ \
+    --yes 2>/dev/null || echo "No existing MX records to remove"
+
+# Add CloudFlare MX records
+echo "1️⃣  Adding MX record (priority 1)..."
+az network dns record-set mx create \
+    --zone-name "$DOMAIN" \
+    --resource-group "$RESOURCE_GROUP" \
+    --name @ \
+    --ttl 3600
+
+az network dns record-set mx add-record \
+    --zone-name "$DOMAIN" \
+    --resource-group "$RESOURCE_GROUP" \
+    --record-set-name @ \
+    --preference 1 \
+    --exchange "route1.mx.cloudflare.net"
+
+echo "2️⃣  Adding MX record (priority 2)..."
+az network dns record-set mx add-record \
+    --zone-name "$DOMAIN" \
+    --resource-group "$RESOURCE_GROUP" \
+    --record-set-name @ \
+    --preference 2 \
+    --exchange "route2.mx.cloudflare.net"
+
+echo "3️⃣  Adding MX record (priority 3)..."
+az network dns record-set mx add-record \
+    --zone-name "$DOMAIN" \
+    --resource-group "$RESOURCE_GROUP" \
+    --record-set-name @ \
+    --preference 3 \
+    --exchange "route3.mx.cloudflare.net"
+
+echo ""
+echo "✅ MX records configured successfully!"
+echo ""
+echo "📋 Next Steps to Complete Setup:"
+echo ""
+echo "1. Go to CloudFlare Email Routing:"
+echo "   https://dash.cloudflare.com/?to=/:account/:zone/email/routing/overview"
+echo ""
+echo "2. Click 'Get Started' or 'Add Email Routing'"
+echo ""
+echo "3. Add your domain: augeo.app"
+echo ""
+echo "4. Verify domain ownership (CloudFlare will check DNS records)"
+echo ""
+echo "5. Create forwarding rules:"
+echo "   Legal@augeo.app     → jeanes.dev@gmail.com"
+echo "   Privacy@augeo.app   → jeanes.dev@gmail.com"
+echo "   DPO@augeo.app       → jeanes.dev@gmail.com"
+echo "   admin@augeo.app     → jeanes.dev@gmail.com"
+echo ""
+echo "6. Optional: Add catch-all rule for all other emails"
+echo ""
+echo "💡 CloudFlare Email Routing Features:"
+echo "   ✅ Completely FREE"
+echo "   ✅ Unlimited forwarding"
+echo "   ✅ Spam protection included"
+echo "   ✅ No credit card required"
+echo ""
+echo "📧 Note: DoNotReply@augeo.app won't accept incoming emails (by design)"
+echo ""
+echo "⏳ DNS propagation: 5-30 minutes"
+echo "   After that, test by sending email to Legal@augeo.app"

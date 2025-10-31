@@ -67,7 +67,8 @@ export function UserAuthForm({
       error: (err) => {
         setIsLoading(false)
         const errorMessage =
-          err.response?.data?.error?.message || 'Login failed. Please try again.'
+          err.response?.data?.error?.message ||
+          'Login failed. Please try again.'
         return errorMessage
       },
     })

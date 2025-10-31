@@ -1,4 +1,7 @@
-import { SelectDropdown } from '@/components/select-dropdown'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { MailPlus, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,10 +21,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { MailPlus, Send } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { SelectDropdown } from '@/components/select-dropdown'
 import { roles } from '../data/data'
 import { useCreateUser } from '../hooks/use-users'
 
@@ -75,7 +75,8 @@ const formatPhoneNumber = (value: string): string => {
 
   // Handle 10-digit numbers
   if (phoneNumber.length <= 3) return `(${phoneNumber}`
-  if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+  if (phoneNumber.length <= 6)
+    return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
   return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
 }
 
@@ -162,10 +163,7 @@ export function UsersInviteDialog({
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder='John'
-                        {...field}
-                      />
+                      <Input placeholder='John' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -178,10 +176,7 @@ export function UsersInviteDialog({
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder='Doe'
-                        {...field}
-                      />
+                      <Input placeholder='Doe' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -202,7 +197,10 @@ export function UsersInviteDialog({
                       onChange={(e) => {
                         const digits = e.target.value.replace(/\D/g, '')
                         // Only allow 10 or 11 digits (11 must start with 1)
-                        if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                        if (
+                          digits.length <= 10 ||
+                          (digits.length === 11 && digits.startsWith('1'))
+                        ) {
                           field.onChange(digits)
                         }
                       }}
@@ -262,7 +260,8 @@ export function UsersInviteDialog({
             form='user-invite-form'
             disabled={createUserMutation.isPending}
           >
-            {createUserMutation.isPending ? 'Creating...' : 'Create User'} <Send />
+            {createUserMutation.isPending ? 'Creating...' : 'Create User'}{' '}
+            <Send />
           </Button>
         </DialogFooter>
       </DialogContent>

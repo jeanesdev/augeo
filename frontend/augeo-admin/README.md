@@ -80,6 +80,7 @@ pnpm dev
 ```
 
 Application now running at:
+
 - **App**: http://localhost:5173
 - **Hot Reload**: Enabled
 
@@ -299,6 +300,7 @@ frontend/augeo-admin/
 ### State Management
 
 **Auth Store** (Zustand):
+
 ```typescript
 {
   user: User | null,
@@ -312,6 +314,7 @@ frontend/augeo-admin/
 ```
 
 **React Query**:
+
 - `useUsers()` - List users with pagination
 - `useCreateUser()` - Create new user
 - `useUpdateUser()` - Update user details
@@ -322,6 +325,7 @@ frontend/augeo-admin/
 ### API Integration
 
 **Axios Configuration** (`lib/axios.ts`):
+
 - Base URL configuration
 - Authorization header injection
 - Automatic token refresh on 401
@@ -329,6 +333,7 @@ frontend/augeo-admin/
 - Request/response interceptors
 
 **API Service Layer** (`lib/api/`):
+
 - `auth-api.ts` - Authentication endpoints
 - `users-api.ts` - User management endpoints
 - Type-safe request/response with Zod schemas
@@ -350,6 +355,7 @@ VITE_DEBUG=true
 ### Tailwind CSS
 
 Custom theme in `tailwind.config.js`:
+
 - Primary color: Augeo brand blue
 - Dark mode support
 - Custom spacing and typography
@@ -358,6 +364,7 @@ Custom theme in `tailwind.config.js`:
 ### Shadcn UI Components
 
 Installed components:
+
 - Button, Input, Label, Textarea
 - Dialog, Sheet, Dropdown Menu
 - Table, Badge, Avatar
@@ -473,5 +480,6 @@ Proprietary
 ## Support
 
 For issues and questions:
+
 - Email: support@augeo.app
 - Backend API: http://localhost:8000/docs

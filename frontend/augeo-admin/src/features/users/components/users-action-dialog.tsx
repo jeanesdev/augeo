@@ -1,7 +1,8 @@
 'use client'
 
-import { PasswordInput } from '@/components/password-input'
-import { SelectDropdown } from '@/components/select-dropdown'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,9 +21,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { PasswordInput } from '@/components/password-input'
+import { SelectDropdown } from '@/components/select-dropdown'
 import { roles } from '../data/data'
 import { type User } from '../data/schema'
 import { useCreateUser, useUpdateUser } from '../hooks/use-users'
@@ -158,39 +158,25 @@ export function UsersActionDialog({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
       ? {
-        firstName: currentRow.first_name,
-        lastName: currentRow.last_name,
-        email: currentRow.email,
-        role: currentRow.role,
-        phoneNumber: currentRow.phone || '',
-        organization_name: currentRow.organization_name || '',
-        address_line1: currentRow.address_line1 || '',
-        address_line2: currentRow.address_line2 || '',
-        city: currentRow.city || '',
-        state: currentRow.state || '',
-        postal_code: currentRow.postal_code || '',
-        country: currentRow.country || '',
-        password: '',
-        confirmPassword: '',
-        isEdit,
-      }
+          firstName: currentRow.first_name,
+          lastName: currentRow.last_name,
+          email: currentRow.email,
+          role: currentRow.role,
+          phoneNumber: currentRow.phone || '',
+          password: '',
+          confirmPassword: '',
+          isEdit,
+        }
       : {
-        firstName: '',
-        lastName: '',
-        email: '',
-        role: '',
-        phoneNumber: '',
-        organization_name: '',
-        address_line1: '',
-        address_line2: '',
-        city: '',
-        state: '',
-        postal_code: '',
-        country: '',
-        password: '',
-        confirmPassword: '',
-        isEdit,
-      },
+          firstName: '',
+          lastName: '',
+          email: '',
+          role: '',
+          phoneNumber: '',
+          password: '',
+          confirmPassword: '',
+          isEdit,
+        },
   })
 
   const onSubmit = async (values: UserForm) => {
@@ -236,7 +222,9 @@ export function UsersActionDialog({
         // TODO: Add NPO selection field for npo_admin and event_coordinator roles
         // For now, these roles cannot be created without npo_id
         if (['npo_admin', 'event_coordinator'].includes(values.role)) {
-          throw new Error('NPO Admin and Event Coordinator roles require NPO selection. Please use Staff or Donor role for now.')
+          throw new Error(
+            'NPO Admin and Event Coordinator roles require NPO selection. Please use Staff or Donor role for now.'
+          )
         }
 
         const payload = {
@@ -355,16 +343,21 @@ export function UsersActionDialog({
                     if (phoneNumber.length === 0) return ''
 
                     // Handle 11-digit numbers with +1
-                    if (phoneNumber.length === 11 && phoneNumber.startsWith('1')) {
+                    if (
+                      phoneNumber.length === 11 &&
+                      phoneNumber.startsWith('1')
+                    ) {
                       const digits = phoneNumber.slice(1)
                       if (digits.length <= 3) return `+1(${digits}`
-                      if (digits.length <= 6) return `+1(${digits.slice(0, 3)})${digits.slice(3)}`
+                      if (digits.length <= 6)
+                        return `+1(${digits.slice(0, 3)})${digits.slice(3)}`
                       return `+1(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`
                     }
 
                     // Handle 10-digit numbers
                     if (phoneNumber.length <= 3) return `(${phoneNumber}`
-                    if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+                    if (phoneNumber.length <= 6)
+                      return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
                     return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
                   }
 
@@ -378,11 +371,16 @@ export function UsersActionDialog({
                           placeholder='(123)456-7890 or +1(123)456-7890'
                           className='col-span-4'
                           maxLength={17}
-                          value={field.value ? formatPhoneNumber(field.value) : ''}
+                          value={
+                            field.value ? formatPhoneNumber(field.value) : ''
+                          }
                           onChange={(e) => {
                             const digits = e.target.value.replace(/\D/g, '')
                             // Only allow 10 or 11 digits (11 must start with 1)
-                            if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                            if (
+                              digits.length <= 10 ||
+                              (digits.length === 11 && digits.startsWith('1'))
+                            ) {
                               field.onChange(digits)
                             }
                           }}

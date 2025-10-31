@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import {
   Card,
   CardContent,
@@ -6,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Link } from '@tanstack/react-router'
 import { AuthLayout } from '../auth-layout'
 import { EmailVerificationForm } from './components/email-verification-form'
 
@@ -15,7 +15,10 @@ interface EmailVerificationPageProps {
   email?: string
 }
 
-export function EmailVerificationPage({ token, email }: EmailVerificationPageProps) {
+export function EmailVerificationPage({
+  token,
+  email,
+}: EmailVerificationPageProps) {
   return (
     <AuthLayout>
       <Card className='gap-4'>
@@ -24,8 +27,8 @@ export function EmailVerificationPage({ token, email }: EmailVerificationPagePro
             Verify Your Email
           </CardTitle>
           <CardDescription>
-            Enter the verification token from your <br /> email to activate
-            your account.
+            Enter the verification token from your <br /> email to activate your
+            account.
           </CardDescription>
         </CardHeader>
         <CardContent>

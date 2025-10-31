@@ -87,17 +87,13 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: !!user,
         }),
 
-      setAccessToken: (accessToken) =>
-        set({ accessToken }),
+      setAccessToken: (accessToken) => set({ accessToken }),
 
-      setRefreshToken: (refreshToken) =>
-        set({ refreshToken }),
+      setRefreshToken: (refreshToken) => set({ refreshToken }),
 
-      setError: (error) =>
-        set({ error }),
+      setError: (error) => set({ error }),
 
-      setLoading: (loading) =>
-        set({ isLoading: loading }),
+      setLoading: (loading) => set({ isLoading: loading }),
 
       reset: () =>
         set({
@@ -132,7 +128,12 @@ export const useAuthStore = create<AuthState>()(
           return response.data
         } catch (error: unknown) {
           const errorMessage =
-            (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
+            (
+              error as {
+                response?: { data?: { error?: { message?: string } } }
+                message?: string
+              }
+            ).response?.data?.error?.message ||
             (error as { message?: string }).message ||
             'Login failed'
           set({ error: errorMessage, isLoading: false })
@@ -140,9 +141,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (
-        data: RegisterRequest
-      ): Promise<RegisterResponse> => {
+      register: async (data: RegisterRequest): Promise<RegisterResponse> => {
         set({ isLoading: true, error: null })
 
         try {
@@ -155,7 +154,12 @@ export const useAuthStore = create<AuthState>()(
           return response.data
         } catch (error: unknown) {
           const errorMessage =
-            (error as { response?: { data?: { error?: { message?: string } } }; message?: string }).response?.data?.error?.message ||
+            (
+              error as {
+                response?: { data?: { error?: { message?: string } } }
+                message?: string
+              }
+            ).response?.data?.error?.message ||
             (error as { message?: string }).message ||
             'Registration failed'
           set({ error: errorMessage, isLoading: false })
