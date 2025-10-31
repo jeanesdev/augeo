@@ -124,6 +124,37 @@ async def test_engine(test_database_url: str) -> AsyncGenerator[AsyncEngine, Non
         # Reflect the roles table into Base.metadata so auth_service can use it
         await conn.run_sync(lambda sync_conn: Base.metadata.reflect(bind=sync_conn, only=["roles"]))
 
+        # Create PostgreSQL enum types for legal documentation (matching migration 007)
+        # Use exception handling since CREATE TYPE doesn't support IF NOT EXISTS
+        try:
+            await conn.execute(
+                text(
+                    "CREATE TYPE legal_document_type AS ENUM ('terms_of_service', 'privacy_policy')"
+                )
+            )
+        except Exception:
+            pass  # Type already exists
+        try:
+            await conn.execute(
+                text("CREATE TYPE legal_document_status AS ENUM ('draft', 'published', 'archived')")
+            )
+        except Exception:
+            pass
+        try:
+            await conn.execute(
+                text("CREATE TYPE consent_status AS ENUM ('active', 'withdrawn', 'superseded')")
+            )
+        except Exception:
+            pass
+        try:
+            await conn.execute(
+                text(
+                    "CREATE TYPE consent_action AS ENUM ('consent_given', 'consent_updated', 'consent_withdrawn', 'data_export_requested', 'data_deletion_requested', 'cookie_consent_updated')"
+                )
+            )
+        except Exception:
+            pass
+
         # Then create other tables
         await conn.run_sync(Base.metadata.create_all)
 
@@ -671,3 +702,101 @@ async def event_coordinator_client(
     async_client.headers["Authorization"] = f"Bearer {access_token}"
 
     return async_client
+
+
+# Legal documentation fixtures
+
+
+@pytest_asyncio.fixture
+async def admin_auth_headers(test_super_admin_token: str) -> dict[str, str]:
+    """
+    Get authorization headers for admin user (super_admin).
+
+    Returns dictionary with Authorization header containing Bearer token.
+    Used for testing admin-only endpoints in legal documentation system.
+    """
+    return {"Authorization": f"Bearer {test_super_admin_token}"}
+
+
+@pytest_asyncio.fixture
+async def user_auth_headers(test_donor_token: str) -> dict[str, str]:
+    """
+    Get authorization headers for regular user (donor).
+
+    Returns dictionary with Authorization header containing Bearer token.
+    Used for testing user endpoints that require authentication.
+    """
+    return {"Authorization": f"Bearer {test_donor_token}"}
+
+
+@pytest_asyncio.fixture
+async def user_id(test_donor_user: Any) -> str:
+    """
+    Get test donor user ID as string.
+
+    Returns the UUID string of the test donor user.
+    Used for verification in database queries.
+    """
+    return str(test_donor_user.id)
+
+
+@pytest_asyncio.fixture
+async def published_legal_documents(
+    async_client: AsyncClient,
+    admin_auth_headers: dict[str, str],
+) -> dict[str, str]:
+    """
+    Create and publish initial legal documents (TOS v1.0 and Privacy v1.0).
+
+    Returns dictionary with document IDs:
+    - tos_id: UUID of published Terms of Service v1.0
+    - privacy_id: UUID of published Privacy Policy v1.0
+
+    These are used as base documents for consent testing.
+    """
+    # Create TOS v1.0
+    tos_payload = {
+        "document_type": "terms_of_service",
+        "version": "1.0",
+        "content": "# Terms of Service v1.0\n\nInitial terms...",
+    }
+    tos_response = await async_client.post(
+        "/api/v1/legal/admin/documents",
+        json=tos_payload,
+        headers=admin_auth_headers,
+    )
+    assert tos_response.status_code == 201
+    tos_id = tos_response.json()["id"]
+
+    # Publish TOS
+    publish_tos_response = await async_client.post(
+        f"/api/v1/legal/admin/documents/{tos_id}/publish",
+        headers=admin_auth_headers,
+    )
+    assert publish_tos_response.status_code == 200
+
+    # Create Privacy v1.0
+    privacy_payload = {
+        "document_type": "privacy_policy",
+        "version": "1.0",
+        "content": "# Privacy Policy v1.0\n\nInitial privacy policy...",
+    }
+    privacy_response = await async_client.post(
+        "/api/v1/legal/admin/documents",
+        json=privacy_payload,
+        headers=admin_auth_headers,
+    )
+    assert privacy_response.status_code == 201
+    privacy_id = privacy_response.json()["id"]
+
+    # Publish Privacy
+    publish_privacy_response = await async_client.post(
+        f"/api/v1/legal/admin/documents/{privacy_id}/publish",
+        headers=admin_auth_headers,
+    )
+    assert publish_privacy_response.status_code == 200
+
+    return {
+        "tos_id": tos_id,
+        "privacy_id": privacy_id,
+    }

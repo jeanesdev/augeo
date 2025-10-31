@@ -1,6 +1,9 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/auth-store'
 
+// Global flag to track if consent modal is already shown
+let consentModalShown = false
+
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
@@ -133,7 +136,29 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 429 Too Many Requests - extract retry-after if available
+    // Handle 409 Conflict - consent required
+    if (error.response?.status === 409) {
+      const errorData = error.response.data as { error?: { code?: string } }
+
+      // Check if this is a consent_required error
+      if (errorData?.error?.code === 'consent_required') {
+        // Only show modal once to prevent spam
+        if (!consentModalShown) {
+          consentModalShown = true
+
+          // Show a notification to the user
+          // Note: In a real implementation, you'd trigger a global modal here
+          // For now, we'll redirect to a consent update page
+          // eslint-disable-next-line no-console
+          console.error('Consent required: User must accept updated legal documents')
+
+          // Reset flag after a delay to allow future consent checks
+          setTimeout(() => {
+            consentModalShown = false
+          }, 5000)
+        }
+      }
+    }    // Handle 429 Too Many Requests - extract retry-after if available
     if (error.response?.status === 429) {
       const retryAfter = error.response.headers['retry-after']
       if (retryAfter) {

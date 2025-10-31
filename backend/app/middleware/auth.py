@@ -183,6 +183,80 @@ async def get_current_user(
         ) from e
 
 
+async def get_current_user_optional(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User | None:
+    """Extract and validate JWT if present, return None if not authenticated.
+
+    This is used for endpoints that work for both authenticated and anonymous users.
+
+    Args:
+        request: FastAPI request object
+        db: Database session
+
+    Returns:
+        Authenticated User object or None if no valid token
+
+    Usage:
+        @router.get("/public-or-private")
+        async def flexible_route(
+            current_user: Annotated[User | None, Depends(get_current_user_optional)]
+        ):
+            if current_user:
+                return {"user_id": current_user.id}
+            return {"message": "Anonymous user"}
+    """
+    # Try to extract Authorization header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+
+    token = auth_header.replace("Bearer ", "")
+
+    try:
+        # Decode and validate JWT
+        payload = decode_token(token)
+        user_id_str = payload.get("sub")
+        token_jti = payload.get("jti")
+
+        if not user_id_str or not token_jti:
+            return None
+
+        user_id = uuid.UUID(user_id_str)
+
+        # Check if token is blacklisted
+        redis_service = RedisService()
+        is_blacklisted = await redis_service.is_token_blacklisted(token_jti)
+        if is_blacklisted:
+            return None
+
+        # Fetch user from database
+        from sqlalchemy import select
+
+        stmt = select(User).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user or not user.is_active:
+            return None
+
+        # Fetch role name and attach to user object
+        from sqlalchemy import text
+
+        role_stmt = text("SELECT name FROM roles WHERE id = :role_id")
+        role_result = await db.execute(role_stmt, {"role_id": user.role_id})
+        role_name_str = role_result.scalar_one_or_none()
+
+        user.role_name = role_name_str if role_name_str else "unknown"  # type: ignore[attr-defined]
+
+        return user
+
+    except Exception:
+        # Any error in token validation - return None (anonymous)
+        return None
+
+
 async def get_current_active_user(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     """Get current user and verify email is verified.
 

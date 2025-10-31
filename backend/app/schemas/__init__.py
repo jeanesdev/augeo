@@ -11,8 +11,31 @@ from app.schemas.auth import (
     UserPublic,
     UserRegisterResponse,
 )
+from app.schemas.consent import (
+    ConsentAcceptRequest,
+    ConsentAuditLogResponse,
+    ConsentHistoryResponse,
+    ConsentResponse,
+    ConsentStatusResponse,
+    DataDeletionRequest,
+    DataExportRequest,
+)
+from app.schemas.cookies import (
+    CookieConsentRequest,
+    CookieConsentResponse,
+    CookieConsentStatusResponse,
+    CookieConsentUpdateRequest,
+)
+from app.schemas.legal_documents import (
+    LegalDocumentCreateRequest,
+    LegalDocumentListResponse,
+    LegalDocumentPublicResponse,
+    LegalDocumentResponse,
+    LegalDocumentUpdateRequest,
+)
 
 __all__ = [
+    # Auth
     "LoginRequest",
     "LoginResponse",
     "LogoutRequest",
@@ -22,4 +45,23 @@ __all__ = [
     "UserCreate",
     "UserPublic",
     "UserRegisterResponse",
+    # Consent
+    "ConsentAcceptRequest",
+    "ConsentAuditLogResponse",
+    "ConsentHistoryResponse",
+    "ConsentResponse",
+    "ConsentStatusResponse",
+    "DataDeletionRequest",
+    "DataExportRequest",
+    # Cookies
+    "CookieConsentRequest",
+    "CookieConsentResponse",
+    "CookieConsentStatusResponse",
+    "CookieConsentUpdateRequest",
+    # Legal Documents
+    "LegalDocumentCreateRequest",
+    "LegalDocumentListResponse",
+    "LegalDocumentPublicResponse",
+    "LegalDocumentResponse",
+    "LegalDocumentUpdateRequest",
 ]

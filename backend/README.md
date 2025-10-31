@@ -168,7 +168,28 @@ Interactive API documentation is automatically generated:
 - `GET /health/ready` - Kubernetes readiness probe
 - `GET /health/live` - Kubernetes liveness probe
 
+**Legal & Compliance** (GDPR):
+
+- `GET /api/v1/legal/documents` - List all published legal documents (public)
+- `GET /api/v1/legal/documents/{type}` - Get current Terms or Privacy Policy (public)
+- `GET /api/v1/legal/documents/{type}/version/{version}` - Get specific document version (public)
+- `POST /api/v1/consent/accept` - Accept Terms of Service and Privacy Policy (authenticated)
+- `GET /api/v1/consent/status` - Get current consent status (authenticated)
+- `GET /api/v1/consent/history` - Get consent history with pagination (authenticated)
+- `POST /api/v1/consent/withdraw` - Withdraw consent (GDPR Article 7)
+- `POST /api/v1/consent/data-export` - Request GDPR data export (async)
+- `POST /api/v1/consent/data-deletion` - Request account deletion (30-day grace)
+- `GET /api/v1/cookies/consent` - Get cookie consent status
+- `POST /api/v1/cookies/consent` - Set cookie preferences (Essential, Analytics, Marketing)
+- `PUT /api/v1/cookies/consent` - Update cookie preferences
+- `DELETE /api/v1/cookies/consent` - Revoke cookie consent
+- `POST /api/v1/legal/admin/documents` - Create draft legal document (super admin)
+- `PATCH /api/v1/legal/admin/documents/{id}` - Update draft document (super admin)
+- `POST /api/v1/legal/admin/documents/{id}/publish` - Publish document (super admin)
+- `GET /api/v1/legal/admin/documents` - List all documents with filters (super admin)
+
 **Metrics** (Prometheus):
+
 - `GET /metrics` - Prometheus-formatted metrics
   - `augeo_http_requests_total` - HTTP requests by method/path/status
   - `augeo_db_failures_total` - Database connection failures

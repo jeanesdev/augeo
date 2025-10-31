@@ -6,6 +6,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-25
 - Python 3.11+ (Backend), TypeScript (Frontend) + FastAPI, SQLAlchemy, Pydantic, React, Zustand
 - Authentication: OAuth2 + JWT, bcrypt password hashing, Redis sessions (001-user-authentication-role)
 - Monitoring: Prometheus metrics, structured logging, health checks (001-user-authentication-role)
+- Legal Compliance: GDPR consent tracking, cookie consent management, versioned legal documents (005-legal-documentation)
 
 ## Project Structure
 ```
@@ -134,6 +135,16 @@ git commit -m "message"
   - ✅ CORS configuration for cross-origin requests
   - ✅ Backend and frontend READMEs updated with complete setup instructions
 - 002-npo-creation: Added Python 3.11+ (Backend), TypeScript (Frontend) + FastAPI, SQLAlchemy, Pydantic, React, Zustand
+- 005-legal-documentation: Completed Phase 0-1 (Research, Design, Contracts)
+  - ✅ Legal document versioning with semantic versioning (major.minor)
+  - ✅ GDPR compliance: consent tracking, data export, data deletion (7-year audit retention)
+  - ✅ Cookie consent management with granular categories (Essential, Analytics, Marketing)
+  - ✅ 4 new database tables: legal_documents, user_consents, cookie_consents, consent_audit_logs
+  - ✅ 15+ API endpoints for legal documents, consent management, and cookie preferences
+  - ✅ Immutable audit trail with database triggers preventing modifications
+  - ✅ Middleware-based consent enforcement (409 Conflict on outdated consent)
+  - ✅ Hybrid cookie storage: localStorage (anonymous) + PostgreSQL (authenticated) + Redis (cache)
+  - ✅ EU Cookie Law compliance (strictest standard for global deployment)
 
 ## API Endpoints (001-user-authentication-role)
 
@@ -215,6 +226,30 @@ git commit -m "message"
 - Unit tests: Security, permissions, password hashing, JWT blacklist
 - Test fixtures: Authenticated clients, test users with different roles
 - Coverage: `poetry run pytest --cov=app --cov-report=html`
+
+## API Endpoints (005-legal-documentation)
+
+### Legal Documents
+- `GET /api/v1/legal/documents` - List all current published legal documents (public)
+- `GET /api/v1/legal/documents/:type` - Get current version of Terms of Service or Privacy Policy (public)
+- `GET /api/v1/legal/documents/:type/version/:version` - Get specific document version (public)
+- `POST /api/v1/legal/documents` - Create new legal document draft (admin)
+- `PATCH /api/v1/legal/documents/:id` - Update draft document (admin)
+- `POST /api/v1/legal/documents/:id/publish` - Publish draft (admin)
+
+### Consent Management
+- `POST /api/v1/consent/accept` - Accept legal documents (required for registration/updates)
+- `GET /api/v1/consent/status` - Get user's current consent status
+- `GET /api/v1/consent/history` - Get user's consent history with pagination
+- `POST /api/v1/consent/data-export` - Request GDPR data export (async job)
+- `POST /api/v1/consent/data-deletion` - Request GDPR account deletion (30-day grace period)
+- `POST /api/v1/consent/withdraw` - Withdraw consent (triggers account deactivation)
+
+### Cookie Consent
+- `GET /api/v1/cookies/consent` - Get cookie consent status (user or anonymous session)
+- `POST /api/v1/cookies/consent` - Set cookie preferences (essential, analytics, marketing)
+- `PUT /api/v1/cookies/consent` - Update cookie preferences
+- `DELETE /api/v1/cookies/consent` - Revoke cookie consent (default to reject all)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

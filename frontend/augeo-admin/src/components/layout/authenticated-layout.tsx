@@ -1,11 +1,12 @@
-import { Outlet } from '@tanstack/react-router'
-import { getCookie } from '@/lib/cookies'
-import { cn } from '@/lib/utils'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { LegalFooter } from '@/components/legal/legal-footer'
+import { SkipToMain } from '@/components/skip-to-main'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { LayoutProvider } from '@/context/layout-provider'
 import { SearchProvider } from '@/context/search-provider'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/layout/app-sidebar'
-import { SkipToMain } from '@/components/skip-to-main'
+import { getCookie } from '@/lib/cookies'
+import { cn } from '@/lib/utils'
+import { Outlet } from '@tanstack/react-router'
 
 type AuthenticatedLayoutProps = {
   children?: React.ReactNode
@@ -24,6 +25,9 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
               // Set content container, so we can use container queries
               '@container/content',
 
+              // Flex column layout to push footer to bottom
+              'flex flex-col',
+
               // If layout is fixed, set the height
               // to 100svh to prevent overflow
               'has-[[data-layout=fixed]]:h-svh',
@@ -33,7 +37,8 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
               'peer-data-[variant=inset]:has-[[data-layout=fixed]]:h-[calc(100svh-(var(--spacing)*4))]'
             )}
           >
-            {children ?? <Outlet />}
+            <div className='flex-1'>{children ?? <Outlet />}</div>
+            <LegalFooter />
           </SidebarInset>
         </SidebarProvider>
       </LayoutProvider>
