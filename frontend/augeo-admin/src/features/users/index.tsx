@@ -19,16 +19,22 @@ export function Users() {
 
   // Determine is_active filter based on status search param
   // If no status filter, default to showing only active users
-  const isActiveFilter = search.status && search.status.length > 0
-    ? search.status.includes('active') && !search.status.includes('inactive')
-      ? true  // Only "active" selected
-      : !search.status.includes('active') && search.status.includes('inactive')
-      ? false // Only "inactive" selected
-      : undefined // Both selected or neither (show all)
-    : true // Default: show only active users
+  const isActiveFilter =
+    search.status && search.status.length > 0
+      ? search.status.includes('active') && !search.status.includes('inactive')
+        ? true // Only "active" selected
+        : !search.status.includes('active') &&
+            search.status.includes('inactive')
+          ? false // Only "inactive" selected
+          : undefined // Both selected or neither (show all)
+      : true // Default: show only active users
 
   // Fetch users from API
-  const { data: usersData, isLoading, isError } = useUsers({
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+  } = useUsers({
     page: search.page || 1,
     page_size: search.pageSize || 10,
     is_active: isActiveFilter,

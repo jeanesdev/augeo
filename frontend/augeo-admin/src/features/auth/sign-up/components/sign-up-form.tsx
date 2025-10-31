@@ -77,7 +77,8 @@ const formatPhoneNumber = (value: string): string => {
 
   // Handle 10-digit numbers
   if (phoneNumber.length <= 3) return `(${phoneNumber}`
-  if (phoneNumber.length <= 6) return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
+  if (phoneNumber.length <= 6)
+    return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3)}`
   return `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
 }
 
@@ -206,7 +207,10 @@ export function SignUpForm({
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, '')
                     // Only allow 10 or 11 digits (11 must start with 1)
-                    if (digits.length <= 10 || (digits.length === 11 && digits.startsWith('1'))) {
+                    if (
+                      digits.length <= 10 ||
+                      (digits.length === 11 && digits.startsWith('1'))
+                    ) {
                       field.onChange(digits)
                     }
                   }}

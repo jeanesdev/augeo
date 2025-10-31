@@ -1,3 +1,11 @@
+import { useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import apiClient from '@/lib/axios'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -8,14 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import apiClient from '@/lib/axios'
-import { cn } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 const formSchema = z.object({
   email: z
@@ -42,12 +42,17 @@ export function PasswordResetRequestForm({
       await apiClient.post('/auth/password/reset/request', data)
 
       toast.success('Reset link sent', {
-        description: 'If that email exists, a password reset link has been sent.',
+        description:
+          'If that email exists, a password reset link has been sent.',
       })
 
       form.reset()
     } catch (error) {
-      const err = error as { response?: { data?: { detail?: { message?: string }; message?: string } } }
+      const err = error as {
+        response?: {
+          data?: { detail?: { message?: string }; message?: string }
+        }
+      }
       const errorMessage =
         err.response?.data?.detail?.message ||
         err.response?.data?.message ||

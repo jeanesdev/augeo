@@ -1,7 +1,7 @@
+import { Separator } from '@/components/ui/separator'
 import { ContentSection } from '../components/content-section'
 import { AccountForm } from './account-form'
 import { PasswordChangeForm } from './components/password-change-form'
-import { Separator } from '@/components/ui/separator'
 
 export function SettingsAccount() {
   return (

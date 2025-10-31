@@ -1,20 +1,15 @@
 import z from 'zod'
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
 import { Users } from '@/features/users'
 import { roles } from '@/features/users/data/data'
-import { useAuthStore } from '@/stores/auth-store'
 
 const usersSearchSchema = z.object({
   page: z.number().optional().catch(1),
   pageSize: z.number().optional().catch(10),
   // Facet filters
   status: z
-    .array(
-      z.union([
-        z.literal('active'),
-        z.literal('inactive'),
-      ])
-    )
+    .array(z.union([z.literal('active'), z.literal('inactive')]))
     .optional()
     .catch([]),
   role: z

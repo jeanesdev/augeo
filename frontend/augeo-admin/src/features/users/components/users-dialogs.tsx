@@ -10,20 +10,22 @@ export function UsersDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useUsers()
 
   // Convert schema User to API User for RoleAssignmentDialog
-  const apiUser: ApiUser | null = currentRow ? {
-    id: currentRow.id,
-    email: currentRow.email,
-    first_name: currentRow.first_name,
-    last_name: currentRow.last_name,
-    phone: currentRow.phone,
-    role: currentRow.role,
-    npo_id: currentRow.npo_id,
-    email_verified: currentRow.email_verified,
-    is_active: currentRow.is_active,
-    last_login_at: currentRow.last_login_at,
-    created_at: currentRow.created_at,
-    updated_at: currentRow.updated_at,
-  } : null
+  const apiUser: ApiUser | null = currentRow
+    ? {
+        id: currentRow.id,
+        email: currentRow.email,
+        first_name: currentRow.first_name,
+        last_name: currentRow.last_name,
+        phone: currentRow.phone,
+        role: currentRow.role,
+        npo_id: currentRow.npo_id,
+        email_verified: currentRow.email_verified,
+        is_active: currentRow.is_active,
+        last_login_at: currentRow.last_login_at,
+        created_at: currentRow.created_at,
+        updated_at: currentRow.updated_at,
+      }
+    : null
 
   return (
     <>

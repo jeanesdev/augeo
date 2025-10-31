@@ -1,5 +1,8 @@
 'use client'
 
+import axios from 'axios'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,9 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
-import { toast } from 'sonner'
 import { type User } from '../data/schema'
 
 type UsersResetPasswordDialogProps = {
@@ -41,7 +41,8 @@ export function UsersResetPasswordDialog({
     },
     onError: (error: unknown) => {
       const err = error as { response?: { data?: { detail?: string } } }
-      const message = err?.response?.data?.detail || 'Failed to send password reset email'
+      const message =
+        err?.response?.data?.detail || 'Failed to send password reset email'
       toast.error(message)
     },
   })
@@ -61,17 +62,15 @@ export function UsersResetPasswordDialog({
             Send a password reset email to <strong>{currentRow?.email}</strong>?
             <br />
             <br />
-            The user will receive an email with instructions to reset their password.
+            The user will receive an email with instructions to reset their
+            password.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={resetPassword.isPending}
-          >
+          <Button onClick={handleConfirm} disabled={resetPassword.isPending}>
             {resetPassword.isPending ? 'Sending...' : 'Send Reset Email'}
           </Button>
         </DialogFooter>

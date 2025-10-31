@@ -1,13 +1,13 @@
-import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
+import { useState } from 'react'
+import { type Table } from '@tanstack/react-table'
+import { Trash2, UserCheck, UserX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { type Table } from '@tanstack/react-table'
-import { Trash2, UserCheck, UserX } from 'lucide-react'
-import { useState } from 'react'
+import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
 import { type User } from '../data/schema'
 import { useActivateUser } from '../hooks/use-users'
 import { UsersMultiDeleteDialog } from './users-multi-delete-dialog'

@@ -1,3 +1,11 @@
+import { useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import apiClient from '@/lib/axios'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -9,14 +17,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import apiClient from '@/lib/axios'
-import { cn } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 const formSchema = z
   .object({
@@ -67,7 +67,11 @@ export function PasswordChangeForm({
 
       form.reset()
     } catch (error) {
-      const err = error as { response?: { data?: { detail?: { message?: string }; message?: string } } }
+      const err = error as {
+        response?: {
+          data?: { detail?: { message?: string }; message?: string }
+        }
+      }
       const errorMessage =
         err.response?.data?.detail?.message ||
         err.response?.data?.message ||
@@ -106,7 +110,7 @@ export function PasswordChangeForm({
                     type='button'
                     variant='ghost'
                     size='sm'
-                    className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+                    className='absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent'
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   >
                     {showCurrentPassword ? (
@@ -140,7 +144,7 @@ export function PasswordChangeForm({
                     type='button'
                     variant='ghost'
                     size='sm'
-                    className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+                    className='absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent'
                     onClick={() => setShowNewPassword(!showNewPassword)}
                   >
                     {showNewPassword ? (
@@ -152,7 +156,8 @@ export function PasswordChangeForm({
                 </div>
               </FormControl>
               <FormDescription>
-                Must be 8-100 characters with at least one letter and one number.
+                Must be 8-100 characters with at least one letter and one
+                number.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -177,7 +182,7 @@ export function PasswordChangeForm({
                     type='button'
                     variant='ghost'
                     size='sm'
-                    className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+                    className='absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent'
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
