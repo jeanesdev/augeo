@@ -17,6 +17,7 @@ from app.core.config import get_settings
 from app.core.database import get_db
 from app.main import app
 from app.models.base import Base
+from app.models.user import User
 
 settings = get_settings()
 
@@ -301,6 +302,9 @@ async def test_user(db_session: AsyncSession) -> Any:
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)
+
+    # Add role_name attribute (normally attached by auth middleware)
+    user.role_name = "donor"  # type: ignore[attr-defined]
 
     return user
 
@@ -704,6 +708,108 @@ async def event_coordinator_client(
     return async_client
 
 
+@pytest.fixture
+async def test_user_2(
+    db_session: AsyncSession,
+) -> User:
+    """
+    Create a second test user (donor role).
+
+    Used for testing multi-user scenarios and permissions between different users.
+    """
+    from sqlalchemy import text
+
+    from app.core.security import hash_password
+
+    # Get donor role_id from database
+    role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'donor'"))
+    donor_role_id = role_result.scalar_one()
+
+    user = User(
+        email="testuser2@example.com",
+        password_hash=hash_password("TestPass123"),
+        first_name="Jane",
+        last_name="Smith",
+        role_id=donor_role_id,
+        email_verified=True,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+async def authenticated_client_2(
+    async_client: AsyncClient,
+    test_user_2: User,
+) -> AsyncClient:
+    """
+    Create authenticated async test client for test_user_2.
+
+    Returns AsyncClient with Authorization header set to test_user_2 token.
+    """
+    # Clear rate limiting from Redis to avoid conflicts from previous test runs
+    from app.core.redis import get_redis
+
+    redis_client = await get_redis()
+    await redis_client.flushdb()
+
+    # Login to get access token
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": test_user_2.email,
+            "password": "TestPass123",
+        },
+    )
+
+    assert response.status_code == 200, f"Login failed: {response.json()}"
+    data = response.json()
+    access_token = data["access_token"]
+
+    # Set authorization header for subsequent requests
+    async_client.headers["Authorization"] = f"Bearer {access_token}"
+
+    return async_client
+
+
+@pytest.fixture
+async def authenticated_superadmin_client(
+    async_client: AsyncClient,
+    test_super_admin_user: User,
+) -> AsyncClient:
+    """
+    Alias for super_admin_client for consistency with naming conventions.
+
+    Returns AsyncClient with Authorization header set to super_admin token.
+    """
+    # Clear rate limiting from Redis to avoid conflicts from previous test runs
+    from app.core.redis import get_redis
+
+    redis_client = await get_redis()
+    await redis_client.flushdb()
+
+    # Login to get access token
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": test_super_admin_user.email,
+            "password": "TestPass123",
+        },
+    )
+
+    assert response.status_code == 200, f"Login failed: {response.json()}"
+    data = response.json()
+    access_token = data["access_token"]
+
+    # Set authorization header for subsequent requests
+    async_client.headers["Authorization"] = f"Bearer {access_token}"
+
+    return async_client
+
+
 # Legal documentation fixtures
 
 
@@ -800,3 +906,127 @@ async def published_legal_documents(
         "tos_id": tos_id,
         "privacy_id": privacy_id,
     }
+
+
+# ================================
+# NPO Fixtures
+# ================================
+
+
+@pytest_asyncio.fixture
+async def test_npo(db_session: AsyncSession, test_user: Any) -> Any:
+    """
+    Create a test NPO for testing.
+
+    Returns an NPO in DRAFT status with test_user as admin member.
+    """
+    from app.models.npo import NPO, NPOStatus
+    from app.models.npo_member import MemberRole, MemberStatus, NPOMember
+
+    # Create NPO
+    npo = NPO(
+        name="Test NPO Organization",
+        description="A test non-profit organization for testing",
+        mission_statement="Help people test software properly",
+        email="test@testnpo.org",
+        phone="+1-555-0100",
+        website_url="https://testnpo.org",
+        tax_id="12-3456789",
+        address={
+            "street": "123 Test St",
+            "city": "Test City",
+            "state": "TS",
+            "zipCode": "12345",
+            "country": "US",
+        },
+        registration_number="REG123456",
+        status=NPOStatus.DRAFT,
+        created_by_user_id=test_user.id,
+    )
+    db_session.add(npo)
+    await db_session.flush()
+
+    # Add creator as admin member
+    member = NPOMember(
+        npo_id=npo.id,
+        user_id=test_user.id,
+        role=MemberRole.ADMIN,
+        status=MemberStatus.ACTIVE,
+    )
+    db_session.add(member)
+    await db_session.commit()
+    await db_session.refresh(npo)
+
+    return npo
+
+
+@pytest_asyncio.fixture
+async def test_npo_2(db_session: AsyncSession, test_super_admin_user: Any) -> Any:
+    """
+    Create a second test NPO for testing.
+
+    Returns an NPO in DRAFT status with superadmin as creator.
+    """
+    from app.models.npo import NPO, NPOStatus
+    from app.models.npo_member import MemberRole, MemberStatus, NPOMember
+
+    # Create NPO
+    npo = NPO(
+        name="Second Test NPO",
+        description="Another test organization",
+        mission_statement="Testing multiple NPOs",
+        email="test2@testnpo.org",
+        phone="+1-555-0200",
+        status=NPOStatus.DRAFT,
+        created_by_user_id=test_super_admin_user.id,
+    )
+    db_session.add(npo)
+    await db_session.flush()
+
+    # Add creator as admin member
+    member = NPOMember(
+        npo_id=npo.id,
+        user_id=test_super_admin_user.id,
+        role=MemberRole.ADMIN,
+        status=MemberStatus.ACTIVE,
+    )
+    db_session.add(member)
+    await db_session.commit()
+    await db_session.refresh(npo)
+
+    return npo
+
+
+@pytest_asyncio.fixture
+async def superadmin_user(db_session: AsyncSession) -> Any:
+    """
+    Alias for test_super_admin_user for consistency.
+    """
+    from sqlalchemy import text
+
+    from app.core.security import hash_password
+    from app.models.user import User
+
+    # Get super_admin role_id from database
+    role_result = await db_session.execute(text("SELECT id FROM roles WHERE name = 'super_admin'"))
+    superadmin_role_id = role_result.scalar_one()
+
+    # Create super admin user
+    user = User(
+        email="superadmin@example.com",
+        first_name="Super",
+        last_name="Admin",
+        phone="+1-555-0001",
+        password_hash=hash_password("AdminPass123"),
+        email_verified=True,
+        is_active=True,
+        role_id=superadmin_role_id,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    # Add role_name attribute (normally attached by auth middleware)
+    user.role_name = "super_admin"  # type: ignore[attr-defined]
+
+    return user

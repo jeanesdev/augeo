@@ -120,6 +120,176 @@ The Augeo Platform Team
         # Send with retry logic
         return await self._send_email_with_retry(to_email, subject, body, "verification")
 
+    async def send_npo_member_invitation_email(
+        self,
+        to_email: str,
+        invitation_token: str,
+        npo_name: str,
+        role: str,
+        invited_by_name: str | None = None,
+    ) -> bool:
+        """
+        Send NPO member invitation email.
+
+        Args:
+            to_email: Recipient email address
+            invitation_token: Invitation token
+            npo_name: Name of the NPO
+            role: Role being offered (admin, co_admin, staff)
+            invited_by_name: Name of person who sent invitation
+
+        Returns:
+            True if email sent successfully
+
+        Raises:
+            EmailSendError: If email fails after all retries
+        """
+        # Construct invitation link
+        invitation_url = f"{settings.frontend_admin_url}/accept-invitation?token={invitation_token}"
+
+        # Email content
+        subject = f"Invitation to Join {npo_name} - Augeo Platform"
+        inviter = f"{invited_by_name} from" if invited_by_name else "A member of"
+        role_display = role.replace("_", " ").title()
+
+        body = f"""
+Hi,
+
+{inviter} {npo_name} has invited you to join their organization on Augeo Platform as a {role_display}.
+
+Click the link below to accept the invitation:
+{invitation_url}
+
+This invitation will expire in 7 days.
+
+If you don't have an Augeo Platform account yet, you'll be able to create one when you accept the invitation.
+
+Best regards,
+The Augeo Platform Team
+        """.strip()
+
+        return await self._send_email_with_retry(to_email, subject, body, "npo_invitation")
+
+    async def send_npo_application_submitted_email(
+        self, to_email: str, npo_name: str, applicant_name: str | None = None
+    ) -> bool:
+        """
+        Send confirmation email when NPO application is submitted.
+
+        Args:
+            to_email: NPO applicant's email
+            npo_name: Name of the NPO
+            applicant_name: Applicant's name
+
+        Returns:
+            True if email sent successfully
+        """
+        subject = f"NPO Application Submitted: {npo_name}"
+        greeting = f"Hi {applicant_name}," if applicant_name else "Hi,"
+
+        body = f"""
+{greeting}
+
+Thank you for submitting your application for {npo_name} on Augeo Platform.
+
+Your application is now under review by our team. We'll notify you once a decision has been made.
+
+You can check the status of your application by logging into your account.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+The Augeo Platform Team
+        """.strip()
+
+        return await self._send_email_with_retry(
+            to_email, subject, body, "npo_application_submitted"
+        )
+
+    async def send_npo_application_approved_email(
+        self, to_email: str, npo_name: str, applicant_name: str | None = None
+    ) -> bool:
+        """
+        Send email when NPO application is approved.
+
+        Args:
+            to_email: NPO applicant's email
+            npo_name: Name of the NPO
+            applicant_name: Applicant's name
+
+        Returns:
+            True if email sent successfully
+        """
+        subject = f"NPO Application Approved: {npo_name}"
+        greeting = f"Hi {applicant_name}," if applicant_name else "Hi,"
+        dashboard_url = f"{settings.frontend_admin_url}/dashboard"
+
+        body = f"""
+{greeting}
+
+Congratulations! Your application for {npo_name} has been approved.
+
+Your organization is now active on Augeo Platform. You can start:
+- Customizing your NPO branding
+- Inviting team members
+- Creating donation campaigns and events
+
+Visit your dashboard to get started:
+{dashboard_url}
+
+Welcome to Augeo Platform!
+
+Best regards,
+The Augeo Platform Team
+        """.strip()
+
+        return await self._send_email_with_retry(
+            to_email, subject, body, "npo_application_approved"
+        )
+
+    async def send_npo_application_rejected_email(
+        self,
+        to_email: str,
+        npo_name: str,
+        rejection_reason: str | None = None,
+        applicant_name: str | None = None,
+    ) -> bool:
+        """
+        Send email when NPO application is rejected.
+
+        Args:
+            to_email: NPO applicant's email
+            npo_name: Name of the NPO
+            rejection_reason: Reason for rejection (optional)
+            applicant_name: Applicant's name
+
+        Returns:
+            True if email sent successfully
+        """
+        subject = f"NPO Application Status: {npo_name}"
+        greeting = f"Hi {applicant_name}," if applicant_name else "Hi,"
+
+        reason_text = f"\n\nReason:\n{rejection_reason}\n" if rejection_reason else ""
+
+        body = f"""
+{greeting}
+
+Thank you for your interest in joining Augeo Platform with {npo_name}.
+
+After careful review, we're unable to approve your application at this time.{reason_text}
+
+You may submit a new application in the future if you'd like to try again.
+
+If you have any questions or need clarification, please contact us.
+
+Best regards,
+The Augeo Platform Team
+        """.strip()
+
+        return await self._send_email_with_retry(
+            to_email, subject, body, "npo_application_rejected"
+        )
+
     async def _send_email_with_retry(
         self, to_email: str, subject: str, body: str, email_type: str
     ) -> bool:
